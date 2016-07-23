@@ -116,7 +116,6 @@ private:
 
 	bool					m_canRender;
 
-	CD3DStateBlock *m_pState;
 	IDirect3DDevice9 *m_pd3dDevice;
 };
 
@@ -133,23 +132,10 @@ private:
 //-----------------------------------------------------------------------------
 class CD3DFont
 {
-	TCHAR   m_strFontName [ 80 ];            // Font properties
-	DWORD   m_dwFontHeight;
-	DWORD   m_dwFontFlags;
-
-
-	LPDIRECT3DTEXTURE9      m_pTexture;   // The d3d texture for this font
-	LPDIRECT3DVERTEXBUFFER9 m_pVB;        // VertexBuffer for rendering text
-	DWORD   m_dwTexWidth;                 // Texture dimensions
-	DWORD   m_dwTexHeight;
-	FLOAT   m_fTextScale;
-	FLOAT   m_fTexCoords [ 255  ] [ 4 ];
-	DWORD   m_dwSpacing;                  // Character pixel spacing per side
-								
-	CD3DStateBlock *m_pState;
-	IDirect3DDevice9 *m_pd3dDevice;
-	float m_fWidth;
 public:
+	CD3DFont ( const TCHAR* strFontName, DWORD dwHeight, DWORD dwFlags = 0L );
+	~CD3DFont ( void );
+
 	// 2D and 3D text drawing functions
 	HRESULT Print ( FLOAT x, FLOAT y, DWORD dwColor, const TCHAR* strText, DWORD dwFlags = 0L );
 
@@ -167,10 +153,24 @@ public:
 
 	LPDIRECT3DDEVICE9 getDevice () const { return m_pd3dDevice; }
 
-	// Constructor / destructor
-	CD3DFont ( const TCHAR* strFontName, DWORD dwHeight, DWORD dwFlags = 0L );
-	~CD3DFont ();
+private:
+		TCHAR   m_strFontName [ 80 ];            // Font properties
+		DWORD   m_dwFontHeight;
+		DWORD   m_dwFontFlags;
+
+
+		LPDIRECT3DTEXTURE9      m_pTexture;   // The d3d texture for this font
+		LPDIRECT3DVERTEXBUFFER9 m_pVB;        // VertexBuffer for rendering text
+		DWORD   m_dwTexWidth;                 // Texture dimensions
+		DWORD   m_dwTexHeight;
+		FLOAT   m_fTextScale;
+		FLOAT   m_fTexCoords [ 255 ] [ 4 ];
+		DWORD   m_dwSpacing;                  // Character pixel spacing per side
+
+		IDirect3DDevice9 *m_pd3dDevice;
+		float m_fWidth;
 };
+
 class CD3DTexture
 {
 public:
@@ -185,21 +185,13 @@ public:
 	void Draw ( float fX, float fY, float fScaleX, float fScaleY, float fRotation = 0.f, D3DCOLOR d3dColor = D3DCOLOR_XRGB ( 255, 255, 255 ) );
 	void Draw ( float fX, float fY, D3DCOLOR d3dColor = D3DCOLOR_XRGB ( 255, 255, 255 ) );
 
-	void OnLostDevice ( void );
-	void OnResetDevice ( void );
-
 private:
 	LPDIRECT3DTEXTURE9      m_pTexture;   // The d3d texture for this font
 	LPDIRECT3DVERTEXBUFFER9 m_pVB;        // VertexBuffer for rendering text
-
-	//static ID3DXSprite	*s_pSprite;
-	//static size_t		s_tCount;
 
 	IDirect3DDevice9	*m_pDevice;
 	TCHAR				*m_szPath;
 
 	LPCVOID				m_pSrc;
 	UINT				m_uSrcSize;
-
-	CD3DStateBlock *m_pState;
 };

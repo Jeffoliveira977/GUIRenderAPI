@@ -437,7 +437,7 @@ void CControl::UpdateRects ( void )
 	}
 }
 
-void CControl::BeginRenderRect ( SControlRect rRect )
+void CControl::EnterScissorRect ( SControlRect rRect )
 {
 	m_rScissor = m_rBoundingBox;
 
@@ -469,7 +469,7 @@ void CControl::BeginRenderRect ( SControlRect rRect )
 	m_rScissor = rRect;
 }
 
-void CControl::EndRenderRect ( void )
+void CControl::LeaveScissorRect ( void )
 {
 	SetScissor ( m_pDialog->GetDevice (), m_rScissor.GetRect () );
 }

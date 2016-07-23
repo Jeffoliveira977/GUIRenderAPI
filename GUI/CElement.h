@@ -118,8 +118,8 @@ public:
 		TYPE_WINDOW
 	};
 
-	void BeginRenderRect ( SControlRect rRect );
-	void EndRenderRect ( void );
+	void EnterScissorRect ( SControlRect rRect );
+	void LeaveScissorRect ( void );
 
 	void SetColor ( SControlColor sColor );
 	SControlColor GetColor ( SControlColor sColor );

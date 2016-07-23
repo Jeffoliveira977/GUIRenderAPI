@@ -12,14 +12,14 @@
 //-------------------------------------------------------------------------
 
 #define D3DFVF_BITMAPFONT ( D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1 )
-#define D3DFVF_PRIMITIVES	( D3DFVF_XYZRHW | D3DFVF_DIFFUSE )
+#define D3DFVF_PRIMITIVES ( D3DFVF_XYZRHW | D3DFVF_DIFFUSE )
 
 #define MAX_NUM_VERTICES 50 * 6
 
 inline FONT2DVERTEX InitFont2DVertex ( const D3DXVECTOR4& p, D3DCOLOR color,
 									   FLOAT tu, FLOAT tv )
 {
-	return { p,   color, tu, tv };
+	return { p, color, tu, tv };
 }
 
 inline LVERTEX Init2DVertex ( float x, float y,
@@ -29,7 +29,6 @@ inline LVERTEX Init2DVertex ( float x, float y,
 }
 
 // Helper's function
-
 void RotateVerts ( VECTOR2 *pVector, size_t size, float fX, float fY, float fAngle )
 {
 	fAngle /= ( 180.f / D3DX_PI );
@@ -41,7 +40,6 @@ void RotateVerts ( VECTOR2 *pVector, size_t size, float fX, float fY, float fAng
 
 		pVector [ i ].x = fX + ( fOldX - fX ) * cos ( fAngle ) + ( fOldY - fY ) * sin ( fAngle );
 		pVector [ i ].y = fY - ( fOldX - fX ) * sin ( fAngle ) + ( fOldY - fY ) * cos ( fAngle );
-
 	}
 }
 
@@ -60,160 +58,12 @@ void SetScissor ( IDirect3DDevice9 *pD3dd, RECT rect )
 		pD3dd->SetRenderState ( D3DRS_SCISSORTESTENABLE, FALSE );
 }
 
-
 void SetScissor ( IDirect3DDevice9 *pD3dd, int iX, int iY, int iWidth, int iHeight )
 {
 	RECT rRect;
 	SetRect ( &rRect, iX, iY, iX + iWidth, iY + iHeight );
 
 	SetScissor ( pD3dd, rRect );
-}
-
-void ClipRect ( LPDIRECT3DDEVICE9 device, LPDIRECT3DSURFACE9 surface, LPDIRECT3DSURFACE9 backbuffer, int x, int y, int width, int height, int destX, int destY, int destWidth, int destHeight )
-{
-	RECT source;
-
-	if ( x >= destX && 
-		 ( x + width ) <= ( destX + destWidth ) )
-	{
-		source.left = 0;
-		source.right = width;
-	}
-	else if ( ( x >= destX && 
-			  x <= ( destX + destWidth ) ) && 
-			  ( ( x + width ) > ( destX + destWidth ) ) )
-	{
-		source.left = 0;
-		source.right = width - ( ( x + width ) - ( destX + destWidth ) );
-		source.right = abs ( source.right );
-	}
-	else if ( x < destX && 
-			  ( x + width ) < ( destX + destWidth ) )
-	{
-		source.left = abs ( x );
-		source.right = width;
-	}
-	else if ( ( x < destX ) && 
-			  ( ( x + width ) > ( destX + destWidth ) ) )
-	{
-		source.left = abs ( x );
-		source.right = source.left + ( destWidth );
-	}
-	else
-	{
-		return;
-	}
-
-
-	if ( y >= destY && 
-		 ( y + height ) <= ( destY + destHeight ) )
-	{
-		source.top = 0;
-		source.bottom = height;
-	}
-	else if ( ( y >= destY && 
-			  y <= ( destY + destHeight ) ) && 
-			  ( ( y + height ) > ( destY + destHeight ) ) )
-	{
-		source.top = 0;
-		source.bottom = height - ( ( y + height ) - ( destY + destHeight ) );
-		source.bottom = abs ( source.bottom );
-	}
-	else if ( y < destY && 
-			  ( y + height ) > destY 
-			  && ( y + height ) <= ( destY + destHeight ) )
-	{
-		source.top = abs ( y );
-		source.bottom = height;
-	}
-	else if ( ( y < destY ) && 
-			  ( ( y + height ) > ( destY + destHeight ) ) )
-	{
-		source.top = abs ( y );
-		source.bottom = source.top + ( destHeight );
-	}
-	else
-	{
-		return;
-	}
-
-	RECT destination;
-
-	if ( x >= destX && 
-		 ( x + width ) <= ( destX + destWidth ) )
-	{
-		destination.left = x;
-		destination.right = x + width;
-	}
-	else if ( ( x >= destX && 
-			  x <= ( destX + destWidth ) ) 
-			  && ( ( x + width ) > ( destX + destWidth ) ) )
-	{
-		destination.left = x;
-		destination.right = ( destX + destWidth );
-	}
-	else if ( ( x < destX ) && 
-			  ( ( x + width ) < ( destX + destWidth ) ) && 
-			  ( ( x + width ) >= x ) )
-	{
-		destination.left = destX;
-		destination.right = width - abs ( x );
-	}
-	else if ( ( x < destX ) && 
-			  ( ( x + width ) > ( destX + destWidth ) ) )
-	{
-		destination.left = destX;
-		destination.right = ( destX + destWidth );
-	}
-	else
-	{
-		return;
-	}
-
-	if ( y >= destY && 
-		 ( y + height ) <= ( destY + destHeight ) )
-	{
-		destination.top = y;
-		destination.bottom = y + height;
-	}
-	else if ( ( y >= destY && 
-			  y <= ( destY + destHeight ) ) && 
-			  ( y + height ) > ( destY + destHeight ) )
-	{
-		destination.top = y;
-		destination.bottom = ( destY + destHeight );
-	}
-	else if ( y < destY && 
-			  ( y + height ) > destY && 
-			  ( y + height ) <= ( destY + destHeight ) )
-	{
-		destination.top = destY;
-		destination.bottom = height - abs ( y );
-	}
-	else if ( ( y < destY ) && 
-			  ( ( y + height ) > ( destY + destHeight ) ) )
-	{
-		destination.top = destY;
-		destination.bottom = ( destY + destHeight );
-	}
-	else
-	{
-		return;
-	}
-
-	device->StretchRect ( surface, &source, backbuffer, &destination, D3DTEXF_NONE );
-
-	DeleteObject ( &source );
-	DeleteObject ( &destination );
-};
-
-void ClipRect ( LPDIRECT3DDEVICE9 device, LPDIRECT3DSURFACE9 surface, LPDIRECT3DSURFACE9 backbuffer, RECT rScr, RECT rDst )
-{
-	/*ClipRect ( device, surface, backbuffer,
-			   rScr.left, rScr.top, rScr.left + rScr.right, rScr.top + rScr.bottom,
-			   rDst.left, rDst.top, rDst.left + rDst.right, rDst.top + rDst.bottom );
-	*/
-	device->StretchRect ( surface, &rScr, backbuffer, &rDst, D3DTEXF_NONE );
 }
 
 CGraphics::CGraphics ( IDirect3DDevice9 *pDevice )
@@ -420,7 +270,8 @@ void CD3DStateBlock::SetRenderStates ( void )
 	m_pd3dDevice->SetRenderState ( D3DRS_INDEXEDVERTEXBLENDENABLE, FALSE );
 	m_pd3dDevice->SetRenderState ( D3DRS_FOGENABLE, FALSE );
 	m_pd3dDevice->SetRenderState ( D3DRS_COLORWRITEENABLE,
-								   D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN |D3DCOLORWRITEENABLE_BLUE | D3DCOLORWRITEENABLE_ALPHA );
+								   D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN |
+								   D3DCOLORWRITEENABLE_BLUE | D3DCOLORWRITEENABLE_ALPHA );
 
 	m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_COLOROP, D3DTOP_MODULATE );
 	m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_COLORARG1, D3DTA_TEXTURE );
@@ -459,16 +310,13 @@ CD3DFont::CD3DFont ( const TCHAR* strFontName, DWORD dwHeight, DWORD dwFlags )
 	m_pd3dDevice = NULL;
 	m_pTexture = NULL;
 	m_pVB = NULL;
-
-	// Create a state block
-	m_pState = new CD3DStateBlock ();
 }
 
 //-----------------------------------------------------------------------------
 // Name: ~CD3DFont()
 // Desc: Font class destructor
 //-----------------------------------------------------------------------------
-CD3DFont::~CD3DFont ()
+CD3DFont::~CD3DFont ( void )
 {
 	Invalidate ();
 }
@@ -481,9 +329,6 @@ CD3DFont::~CD3DFont ()
 HRESULT CD3DFont::Initialize ( LPDIRECT3DDEVICE9 pd3dDevice )
 {
 	HRESULT hr;
-
-	if ( m_pState )
-		m_pState->Initialize ( pd3dDevice );
 
 	m_pd3dDevice = pd3dDevice;
 
@@ -622,13 +467,10 @@ HRESULT CD3DFont::Initialize ( LPDIRECT3DDEVICE9 pd3dDevice )
 // Name: InvalidateDeviceObjects()
 // Desc: Destroys all device-dependent objects
 //-----------------------------------------------------------------------------
-HRESULT CD3DFont::Invalidate ()
+HRESULT CD3DFont::Invalidate ( void )
 {
 	SAFE_RELEASE ( m_pVB );
 	SAFE_RELEASE ( m_pTexture );
-
-	if ( m_pState )
-		m_pState->Invalidate ();
 
 	return S_OK;
 }
@@ -718,16 +560,8 @@ HRESULT CD3DFont::GetTextExtent ( const TCHAR* str, SIZE* pSize )
 // Desc: Draws 2D text. Note that sx and sy are in pixels
 //-----------------------------------------------------------------------------
 HRESULT CD3DFont::Print ( FLOAT sx, FLOAT sy, DWORD dwColor,
-							 const TCHAR* szText, DWORD dwFlags )
+						  const TCHAR* szText, DWORD dwFlags )
 {
-	if ( !m_pState )
-		return E_FAIL;
-
-	if ( FAILED ( m_pState->BeginState () ) )
-		return E_FAIL;
-
-	m_pState->SetRenderStates ();
-
 	m_pd3dDevice->SetTexture ( 0, m_pTexture );
 	m_pd3dDevice->SetFVF ( D3DFVF_BITMAPFONT );
 	m_pd3dDevice->SetStreamSource ( 0, m_pVB, 0, sizeof ( FONT2DVERTEX ) );
@@ -780,8 +614,8 @@ HRESULT CD3DFont::Print ( FLOAT sx, FLOAT sy, DWORD dwColor,
 				}
 
 				TCHAR ch = toupper ( *szStrTag );
-				bool numeric =	( ch >= '0' && ch <= '9' ) || 
-								( ch >= 'A' && ch <= 'F' );
+				bool numeric = ( ch >= '0' && ch <= '9' ) ||
+					( ch >= 'A' && ch <= 'F' );
 
 				if ( numeric )
 				{
@@ -826,7 +660,7 @@ HRESULT CD3DFont::Print ( FLOAT sx, FLOAT sy, DWORD dwColor,
 		{
 			if ( dwFlags & D3DFONT_COLORTABLE )
 				dwColor = dwCustomColor;
-	
+
 			if ( dwFlags & D3DFONT_BORDER )
 			{
 				float _x = sx, _y = sy;
@@ -898,10 +732,6 @@ HRESULT CD3DFont::Print ( FLOAT sx, FLOAT sy, DWORD dwColor,
 	if ( dwNumTriangles > 0 )
 		m_pd3dDevice->DrawPrimitive ( D3DPT_TRIANGLELIST, 0, dwNumTriangles );
 
-	// Restore the modified renderstates
-	if ( FAILED ( m_pState->EndState () ) )
-		return E_FAIL;
-
 	return S_OK;
 }
 
@@ -935,7 +765,6 @@ CD3DRender::CD3DRender ( int numVertices )
 	m_curVertex = 0;
 
 	m_pd3dDevice = NULL;
-	m_pState = NULL;
 }
 
 CD3DRender::~CD3DRender ( void )
@@ -948,12 +777,6 @@ HRESULT CD3DRender::Initialize ( IDirect3DDevice9 *pD3Ddevevice )
 	if ( !m_canRender )
 	{
 		m_pd3dDevice = pD3Ddevevice;
-
-		if ( !m_pState )
-			m_pState = new CD3DStateBlock ();
-
-		if ( m_pState )
-			m_pState->Initialize ( pD3Ddevevice );
 
 		if ( FAILED ( m_pd3dDevice->CreateVertexBuffer ( m_maxVertex * sizeof ( LVERTEX ),
 			 D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, 0, D3DPOOL_DEFAULT, &m_pD3Dbuf, NULL ) ) )
@@ -972,9 +795,6 @@ HRESULT CD3DRender::Invalidate ( void )
 	m_pVertex = NULL;
 	m_canRender = false;
 
-	if ( m_pState )
-		m_pState->Invalidate ();
-
 	return S_OK;
 }
 
@@ -991,14 +811,6 @@ HRESULT CD3DRender::BeginRender ( D3DPRIMITIVETYPE primType )
 
 	m_primType = primType;
 
-	if ( !m_pState ) 
-		return E_FAIL;
-
-	if ( FAILED ( m_pState->BeginState () ) )
-		return E_FAIL;
-
-	m_pState->SetRenderStates ();
-
 	return S_OK;
 }
 
@@ -1007,9 +819,6 @@ HRESULT CD3DRender::EndRender ( void )
 	int numPrims;
 
 	m_pVertex = NULL;
-
-	if ( !m_pState )
-		return E_FAIL;
 
 	if ( !m_canRender )
 	{
@@ -1057,9 +866,6 @@ HRESULT CD3DRender::EndRender ( void )
 		m_pd3dDevice->SetStreamSource ( 0, m_pD3Dbuf, 0, sizeof ( LVERTEX ) );
 		m_pd3dDevice->DrawPrimitive ( m_primType, 0, numPrims );
 	}
-
-	if ( FAILED ( m_pState->EndState () ) )
-		return E_FAIL;
 
 	return S_OK;
 }
@@ -1238,9 +1044,6 @@ void CD3DRender::D3DLine ( float fStartX, float fStartY, float fEndX, float fEnd
 	}
 }
 
-//ID3DXSprite	*CD3DTexture::s_pSprite = NULL;
-//size_t		CD3DTexture::s_tCount = 0;
-
 CD3DTexture::CD3DTexture ( const TCHAR *szPath ) :
 	m_pTexture ( NULL )
 {
@@ -1252,7 +1055,6 @@ CD3DTexture::CD3DTexture ( const TCHAR *szPath ) :
 	strcpy ( m_szPath, szPath );
 #endif
 
-	m_pState = new CD3DStateBlock ();
 }
 
 CD3DTexture::CD3DTexture ( LPCVOID pSrc, UINT uSrcSize ) :
@@ -1260,22 +1062,28 @@ CD3DTexture::CD3DTexture ( LPCVOID pSrc, UINT uSrcSize ) :
 {
 	m_pSrc = pSrc;
 	m_uSrcSize = uSrcSize;
-
-	m_pState = new CD3DStateBlock ();
 }
 
 CD3DTexture::~CD3DTexture ( void )
 {
+	 SAFE_DELETE_ARRAY ( m_szPath );
 	Invalidate ();
+}
+
+HRESULT CD3DTexture::Invalidate ( void )
+{
+	SAFE_RELEASE ( m_pVB );
+	SAFE_RELEASE ( m_pTexture );
+
+	return S_OK;
 }
 
 HRESULT CD3DTexture::Initialize ( LPDIRECT3DDEVICE9 pd3dDevice )
 {
 	m_pDevice = pd3dDevice;
 
-	
-	if ( m_pState )
-		m_pState->Initialize ( m_pDevice );
+	if ( !m_pDevice )
+		return E_FAIL;
 
 	HRESULT hr;
 
@@ -1295,7 +1103,7 @@ HRESULT CD3DTexture::Initialize ( LPDIRECT3DDEVICE9 pd3dDevice )
 		if ( FAILED ( hr ) )
 			return hr;
 	}
-	else if ( m_pSrc && 
+	else if ( m_pSrc &&
 			  m_uSrcSize )
 	{
 		hr = D3DXCreateTextureFromFileInMemory ( m_pDevice, m_pSrc, m_uSrcSize, &m_pTexture );
@@ -1307,71 +1115,72 @@ HRESULT CD3DTexture::Initialize ( LPDIRECT3DDEVICE9 pd3dDevice )
 	return S_OK;
 }
 
-HRESULT CD3DTexture::Invalidate ( void )
-{
-	SAFE_RELEASE ( m_pVB );
-	SAFE_RELEASE ( m_pTexture );
-
-	SAFE_DELETE_ARRAY ( m_szPath );
-
-	if ( m_pState )
-		m_pState->Invalidate ();
-
-	return S_OK;
-}
-
 void CD3DTexture::Draw ( float fX, float fY, float fScaleX, float fScaleY,
 						 float fRotation, D3DCOLOR d3dColor )
 {
-	if ( !m_pState )
+	if ( !m_pTexture ||
+		 !m_pDevice ||
+		 !m_pVB )
 		return;
 
-	if ( FAILED ( m_pState->BeginState () ) )
-		return;
-
-	m_pState->SetRenderStates ();
-
-	TLVERTEX* vertices;
+	TLVERTEX* vVector;
 
 	//Lock the vertex buffer
-	m_pVB->Lock ( 0, 0, ( void ** ) &vertices, NULL );
+	m_pVB->Lock ( 0, 0, ( void ** ) &vVector, NULL );
 
 	//Setup vertices
 	//A -0.5f modifier is applied to vertex coordinates to match texture and screen coords
 	//Some drivers may compensate for this automatically, but on others texture alignment errors are introduced
 	//More information on this can be found in the Direct3D 9 documentation
-	vertices [ 0 ].colour = d3dColor;
-	vertices [ 0 ].x = fX - 0.5f;
-	vertices [ 0 ].y = fY - 0.5f;
-	vertices [ 0 ].z = 0.0f;
-	vertices [ 0 ].rhw = 1.0f;
-	vertices [ 0 ].u = 0.0f;
-	vertices [ 0 ].v = 0.0f;
+	vVector [ 0 ].colour = d3dColor;
+	vVector [ 0 ].x = fX - 0.5f;
+	vVector [ 0 ].y = fY - 0.5f;
+	vVector [ 0 ].z = 0.0f;
+	vVector [ 0 ].rhw = 1.0f;
+	vVector [ 0 ].u = 0.0f;
+	vVector [ 0 ].v = 0.0f;
 
-	vertices [ 1 ].colour = d3dColor;
-	vertices [ 1 ].x = fScaleX + fX - 0.5f;
-	vertices [ 1 ].y = fY - 0.5f;
-	vertices [ 1 ].z = 0.0f;
-	vertices [ 1 ].rhw = 1.0f;
-	vertices [ 1 ].u = 1.0f;
-	vertices [ 1 ].v = 0.0f;
+	vVector [ 1 ].colour = d3dColor;
+	vVector [ 1 ].x = fScaleX + fX - 0.5f;
+	vVector [ 1 ].y = fY - 0.5f;
+	vVector [ 1 ].z = 0.0f;
+	vVector [ 1 ].rhw = 1.0f;
+	vVector [ 1 ].u = 1.0f;
+	vVector [ 1 ].v = 0.0f;
 
-	vertices [ 2 ].colour = d3dColor;
-	vertices [ 2 ].x = fScaleX + fX - 0.5f;
-	vertices [ 2 ].y = fScaleY + fY - 0.5f;
-	vertices [ 2 ].z = 0.0f;
-	vertices [ 2 ].rhw = 1.0f;
-	vertices [ 2 ].u = 1.0f;
-	vertices [ 2 ].v = 1.0f;
+	vVector [ 2 ].colour = d3dColor;
+	vVector [ 2 ].x = fScaleX + fX - 0.5f;
+	vVector [ 2 ].y = fScaleY + fY - 0.5f;
+	vVector [ 2 ].z = 0.0f;
+	vVector [ 2 ].rhw = 1.0f;
+	vVector [ 2 ].u = 1.0f;
+	vVector [ 2 ].v = 1.0f;
 
-	vertices [ 3 ].colour = d3dColor;
-	vertices [ 3 ].x = fX - 0.5f;
-	vertices [ 3 ].y = fScaleY + fY - 0.5f;
-	vertices [ 3 ].z = 0.0f;
-	vertices [ 3 ].rhw = 1.0f;
-	vertices [ 3 ].u = 0.0f;
-	vertices [ 3 ].v = 1.0f;
+	vVector [ 3 ].colour = d3dColor;
+	vVector [ 3 ].x = fX - 0.5f;
+	vVector [ 3 ].y = fScaleY + fY - 0.5f;
+	vVector [ 3 ].z = 0.0f;
+	vVector [ 3 ].rhw = 1.0f;
+	vVector [ 3 ].u = 0.0f;
+	vVector [ 3 ].v = 1.0f;
 
+	const int iVertexSize = 6;
+	D3DXVECTOR2 v[ iVertexSize ];
+
+	for ( size_t i = 0; i < iVertexSize; i++ )
+	{
+		v [ i ].x = vVector [ i ].x;
+		v [ i ].y = vVector [ i ].y;
+	}
+
+	if ( fRotation )
+		RotateVerts ( v, iVertexSize, fX, fY, fRotation );
+	
+	for ( size_t i = 0; i < iVertexSize; i++ )
+	{
+		vVector [ i ].x = v [ i ].x;
+		vVector [ i ].y = v [ i ].y;
+	}	
 
 	//Unlock the vertex buffer
 	m_pVB->Unlock ();
@@ -1383,34 +1192,16 @@ void CD3DTexture::Draw ( float fX, float fY, float fScaleX, float fScaleY,
 
 	//Draw image
 	m_pDevice->DrawPrimitive ( D3DPT_TRIANGLEFAN, 0, 2 );
-
-	m_pState->EndState ();
 }
 
 void CD3DTexture::Draw ( float fX, float fY, D3DCOLOR d3dColor )
 {
+	if ( !m_pTexture )
+		return;
+
 	D3DSURFACE_DESC surfaceDesc;
 
 	//Get texture dimensions
 	m_pTexture->GetLevelDesc ( 0, &surfaceDesc );
 	Draw ( fX, fY, surfaceDesc.Width, surfaceDesc.Height, d3dColor );
-}
-
-void CD3DTexture::OnLostDevice ()
-{
-	/*if ( s_pSprite )
-		s_pSprite->OnLostDevice ();
-
-	SAFE_RELEASE ( m_pTexture );*/
-}
-
-void CD3DTexture::OnResetDevice ()
-{
-	/*if ( s_pSprite )
-		s_pSprite->OnResetDevice ();
-
-	if ( m_szPath )
-		CreateTextureFromFile ( m_szPath );
-	else
-		CreateTextureFromMemory ( m_pSrc, m_uSrcSize );*/
 }

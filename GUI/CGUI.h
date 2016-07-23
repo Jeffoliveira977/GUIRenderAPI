@@ -61,29 +61,6 @@ class CScrollablePane;
 #include "TrackBar.h"
 
 
-struct SD3DItem
-{
-	CD3DFont *pFont = NULL;
-	CD3DTexture *pTexture = NULL;
-};
-
-class CDialogManager
-{
-public:
-
-	void InitializeDeviceObjs ( IDirect3DDevice9 *pDevice )
-	{
-	
-	}
-
-	void PreReset ( void );
-	void PostReset ( void );
-		
-
-private:
-	std::vector<SD3DItem> m_vD3DItem;
-};
-
 class CDialog
 {
 public:
@@ -110,12 +87,14 @@ public:
 
 	CScrollBarVertical *AddScrollBar ( CWindow *pWindow, int X, int Y, int Width, int Height, int nMin, int nMax, int nPagSize, int nValue, tAction Callback = NULL );
 	CScrollBarHorizontal *AddScrollBarHorizontal ( CWindow *pWindow, int X, int Y, int Width, int Height, int nMin, int nMax, int nPagSize, int nValue, tAction Callback = NULL );
+	
+	void LoadTexture ( const SIMPLEGUI_CHAR *szPath, CD3DTexture **ppTexture = NULL );
+	void LoadTexture ( LPCVOID pSrc, UINT uSrcSize, CD3DTexture **ppTexture = NULL );
 
-	void LoadTexture ( const SIMPLEGUI_CHAR *szPath, CD3DTexture **ppCreated = NULL );
-	void LoadTexture ( LPCVOID pSrc, UINT uSrcSize, CD3DTexture **ppCreated = NULL );
 	void RemoveTexture ( CD3DTexture *pTexture );
 
-	void LoadFont ( const SIMPLEGUI_CHAR *szFontName, DWORD dwHeight = 15, bool bBold = false, CD3DFont **ppCreated = NULL );
+	void LoadFont ( const SIMPLEGUI_CHAR *szFontName, DWORD dwHeight = 15, bool bBold = false, CD3DFont **ppFont = NULL );
+	void RemoveFont ( CD3DFont *pFont );
 
 	void DrawFont ( SControlRect &rect, DWORD dwColor, const SIMPLEGUI_CHAR* szText, DWORD dwFlags, CD3DFont *pFont = NULL );
 	void DrawBox ( SControlRect &rect, D3DCOLOR d3dColor, D3DCOLOR d3dColorOutline, bool bAntAlias = true );
@@ -146,11 +125,15 @@ public:
 	CMouse *GetMouse ( void );
 	CD3DRender *GetRenderer ( void );
 	CD3DFont *GetFont ( int ID = 0 );
+	CD3DTexture *GetTexture ( int ID = 0 );
 
 	void SetVisible ( bool bVisible );
 	bool IsVisible ( void );
 
 private:
+
+	CD3DStateBlock *m_pState;
+
 	bool m_bVisible;
 
 	CMouse *m_pMouse;

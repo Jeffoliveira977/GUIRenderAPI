@@ -160,27 +160,10 @@ unsigned char rawData [ 508 ] =
 	0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
 };
 
-
-
-//CCTexture g_pTexture[7];
-//CD3DStateBlock *g_pState = NULL;
 CMouse::CMouse ( CDialog *pDialog )
 {
 	m_pDialog = pDialog;
 	m_eCursorType = DEFAULT;
-
-	/*pDialog->LoadTexture ( ( LPCVOID ) &rawData, sizeof ( rawData ), &m_pTexture[ DEFAULT ] );
-	pDialog->LoadTexture ( ( LPCVOID ) &rawData1, sizeof ( rawData1 ), &m_pTexture [ E_RESIZE ] );
-	pDialog->LoadTexture ( ( LPCVOID ) &rawData2, sizeof ( rawData2 ), &m_pTexture [ S_RESIZE ] );
-	pDialog->LoadTexture ( ( LPCVOID ) &rawData3, sizeof ( rawData3 ), &m_pTexture [ SE_RESIZE ] );
-	pDialog->LoadTexture ( ( LPCVOID ) &rawData4, sizeof ( rawData4 ), &m_pTexture [ NE_RESIZE ] );*/
-
-	/* if ( !g_pState )
-		g_pState = new CD3DStateBlock ();
-
-	if ( g_pState )
-		g_pState->Initialize ( m_pDialog->GetDevice () );
-	*/
 
 	m_pDialog->LoadTexture ( "FMPGUI/Untitled-2.png", &m_pTexture [ DEFAULT ] );
 	m_pDialog->LoadTexture ( "FMPGUI/Semtulo-3.png", &m_pTexture [ E_RESIZE ] );
@@ -188,15 +171,6 @@ CMouse::CMouse ( CDialog *pDialog )
 	m_pDialog->LoadTexture ("FMPGUI/Semtulo-2.png", &m_pTexture [ S_RESIZE ] );
 	m_pDialog->LoadTexture ( "FMPGUI/Semtulo-1.png", &m_pTexture [ SE_RESIZE ] );
 	m_pDialog->LoadTexture (  "FMPGUI/move_cursor.png", &m_pTexture [ MOVE ] );
-
-
-	/*g_pTexture[ DEFAULT ].Init ( pDialog->GetDevice (),"FMPGUI/Untitled-2.png" );
-	g_pTexture [ E_RESIZE ].Init ( pDialog->GetDevice (), "FMPGUI/Semtulo-3.png" );
-	g_pTexture [ NE_RESIZE ].Init ( pDialog->GetDevice (), "FMPGUI/Semtulo-4.png" );
-	g_pTexture [ S_RESIZE ].Init ( pDialog->GetDevice (), "FMPGUI/Semtulo-2.png" );
-	g_pTexture [ SE_RESIZE ].Init ( pDialog->GetDevice (), "FMPGUI/Semtulo-1.png" );
-	g_pTexture [ MOVE ].Init ( pDialog->GetDevice (), "FMPGUI/move_cursor.png" );
-	*/
 
 	SetSize ( 12 );
 
@@ -211,7 +185,7 @@ CMouse::CMouse ( CDialog *pDialog )
 CMouse::~CMouse ( void )
 {
 	for ( size_t i = 0; i < 5; i++ )
-		SAFE_DELETE ( m_pTexture [ i ] );
+		m_pDialog->RemoveTexture ( m_pTexture [ i ] );
 }
 
 bool CMouse::HandleMessage ( UINT uMsg, WPARAM wParam, LPARAM lParam )

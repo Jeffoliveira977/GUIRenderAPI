@@ -134,9 +134,9 @@ void CWindow::Draw ( void )
 					rRect.size.cx = rRect.size.cx - ( m_pScrollbar->IsVerScrollbarNeeded () ? pScrollbarVer->GetWidth () : 0 );
 					rRect.size.cy = rRect.size.cy - ( m_pScrollbar->IsHorScrollbarNeeded () ? pScrollbarHor->GetHeight () : 0 );
 
-					control->BeginRenderRect ( rRect );
+					control->EnterScissorRect ( rRect );
 					control->Draw ();
-					control->EndRenderRect ();
+					control->LeaveScissorRect ();
 				}
 
 				m_maxControlSize.cx = max ( m_maxControlSize.cx, pos->GetX () + size.cx );
@@ -513,7 +513,7 @@ void CWindow::OnMouseMove ( CControl *pControl, UINT uMsg )
 		// Handle mouse entering the new control
 		m_pControlMouseOver = pControl;
 		if ( pControl != NULL )
-			m_pControlMouseOver->OnMouseEnter ();
+			pControl->OnMouseEnter ();
 	}
 }
 
@@ -523,8 +523,8 @@ bool CWindow::ControlMessages ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lPara
 	if ( !CControl::CanHaveFocus () ||
 		 m_eWindowArea != CLEAR ||
 		 m_pScrollbar->ContainsRect ( pos ) ||
-		 !CControl::ContainsRect ( pos ) /*||
-		 m_rTitle.InControlArea ( pos )*/ )
+		 !CControl::ContainsRect ( pos ) ||
+		 m_rTitle.InControlArea ( pos ) )
 	{
 		return false;
 	}
@@ -755,8 +755,8 @@ bool CWindow::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
 			m_eWindowArea = CLEAR;
 			m_size = m_rBoundingBox.size;
 
-			m_pControlMouseOver = NULL;
-			m_pFocussedControl = NULL;
+			//m_pControlMouseOver = NULL;
+			//m_pFocussedControl = NULL;
 
 			if ( m_bPressed )
 			{
@@ -780,6 +780,14 @@ bool CWindow::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
 
 		case WM_MOUSEMOVE:
 		{
+			if ( m_rTitle.InControlArea ( pos ) )
+			{
+				if ( m_pControlMouseOver )
+					m_pControlMouseOver->OnMouseLeave ();
+				
+				m_pControlMouseOver = NULL;
+			}
+
 			if ( m_bSizable )
 			{
 				if ( m_bMouseOver &&

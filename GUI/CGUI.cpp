@@ -21,6 +21,11 @@ CDialog::CDialog ( IDirect3DDevice9 *pDevice )
 		MessageBox ( 0, _UI ( "Error for creating mouse (CMouse::CMouse)." ), 0, 0 );
 
 	m_bVisible = true;
+
+	// Create a state block
+	m_pState = new CD3DStateBlock ();
+	if ( m_pState )
+		m_pState->Initialize ( m_pDevice );
 }
 
 CDialog::~CDialog ( void )
@@ -28,10 +33,10 @@ CDialog::~CDialog ( void )
 	EnterCriticalSection ( &cs );
 
 	for ( size_t i = 0; i < m_vFont.size (); i++ )
-		SAFE_DELETE ( m_vFont [ i ] );
+		SAFE_DELETE ( m_vFont[i] );
 
 	for ( size_t i = 0; i < m_vTexture.size (); i++ )
-		SAFE_DELETE ( m_vTexture [ i ] );
+		SAFE_DELETE ( m_vTexture[i]  );
 
 	SAFE_DELETE ( m_pMouse );
 	SAFE_DELETE ( m_pFocussedWindow );
@@ -39,12 +44,13 @@ CDialog::~CDialog ( void )
 
 	RemoveAllWindows ();
 
+	SAFE_DELETE ( m_pState );
+
 	LeaveCriticalSection ( &cs );
 	DeleteCriticalSection ( &cs );
 }
 
-//--------------------------------------------------------------------------------------
-void CDialog::LoadFont ( const SIMPLEGUI_CHAR *szFontName, DWORD dwHeight, bool bBold, CD3DFont **ppCreated )
+void CDialog::LoadFont ( const SIMPLEGUI_CHAR *szFontName, DWORD dwHeight, bool bBold, CD3DFont **ppFont )
 {
 	CD3DFont *pFont = new CD3DFont ( szFontName, dwHeight, bBold );
 	if ( !pFont )
@@ -53,14 +59,20 @@ void CDialog::LoadFont ( const SIMPLEGUI_CHAR *szFontName, DWORD dwHeight, bool 
 	if ( FAILED ( pFont->Initialize ( m_pDevice ) ) )
 		return;
 
-	if ( ppCreated != NULL )
-		*ppCreated = pFont;
+	if ( ppFont != NULL )
+		*ppFont = pFont;
 
 	m_vFont.push_back ( pFont );
 }
 
+void CDialog::RemoveFont ( CD3DFont *pFont )
+{
+	SAFE_DELETE ( pFont );
+	m_vFont.erase ( std::find ( m_vFont.begin (), m_vFont.end (), pFont ) );
+}
+
 //--------------------------------------------------------------------------------------
-void CDialog::LoadTexture ( const SIMPLEGUI_CHAR *szPath, CD3DTexture **ppCreated )
+void CDialog::LoadTexture ( const SIMPLEGUI_CHAR *szPath, CD3DTexture **ppTexture )
 {
 	CD3DTexture *pTexture = new CD3DTexture ( szPath );
 
@@ -70,14 +82,14 @@ void CDialog::LoadTexture ( const SIMPLEGUI_CHAR *szPath, CD3DTexture **ppCreate
 	if ( FAILED ( pTexture->Initialize ( m_pDevice ) ) )
 		return;
 
-	if ( ppCreated != NULL )
-		*ppCreated = pTexture;
+	if ( ppTexture != NULL )
+		*ppTexture = pTexture;
 
 	m_vTexture.push_back ( pTexture );
 }
 
 //--------------------------------------------------------------------------------------
-void CDialog::LoadTexture ( LPCVOID pSrc, UINT uSrcSize, CD3DTexture **ppCreated )
+void CDialog::LoadTexture ( LPCVOID pSrc, UINT uSrcSize, CD3DTexture **ppTexture )
 {
 	CD3DTexture *pTexture = new CD3DTexture ( pSrc, uSrcSize );
 	if ( !pTexture )
@@ -86,12 +98,13 @@ void CDialog::LoadTexture ( LPCVOID pSrc, UINT uSrcSize, CD3DTexture **ppCreated
 	if ( FAILED ( pTexture->Initialize ( m_pDevice ) ) )
 		return;
 
-	if ( ppCreated != NULL )
-		*ppCreated = pTexture;
+	if ( ppTexture != NULL )
+		*ppTexture = pTexture;
 
 	m_vTexture.push_back ( pTexture );
 }
 
+//--------------------------------------------------------------------------------------
 void CDialog::RemoveTexture ( CD3DTexture *pTexture )
 {
 	m_vTexture.erase ( std::find ( m_vTexture.begin (), m_vTexture.end (), pTexture ) );
@@ -104,7 +117,7 @@ void CDialog::DrawFont ( SControlRect &rect, DWORD dwColor, const SIMPLEGUI_CHAR
 		return;
 
 	if ( !pFont && !m_vFont.empty () )
-		pFont = GetFont ();
+		pFont = m_vFont [ 0 ];
 
 	CPos pos = rect.pos;
 	pFont->Print ( pos.GetX (), pos.GetY (), dwColor, szText, dwFlags );
@@ -484,13 +497,19 @@ CScrollBarHorizontal *CDialog::AddScrollBarHorizontal ( CWindow *pWindow, int X,
 
 	return pScrollBar;
 }
+
 //--------------------------------------------------------------------------------------
 void CDialog::Draw ( void )
 {
 	if ( !m_bVisible )
 		return;
 
+	if ( FAILED ( m_pState->BeginState () ) )
+		return;
+
 	EnterCriticalSection ( &cs );
+
+	m_pState->SetRenderStates ();
 
 	for ( size_t i = 0; i < m_vWindows.size (); i++ )
 	{
@@ -506,6 +525,8 @@ void CDialog::Draw ( void )
 
 	m_pMouse->Draw ();
 
+	m_pState->EndState ();
+
 	LeaveCriticalSection ( &cs );
 }
 
@@ -514,7 +535,7 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	EnterCriticalSection ( &cs );
 
-	if ( !m_pMouse ) 
+	if ( !m_pMouse )
 		return;
 
 	m_pMouse->HandleMessage ( uMsg, wParam, lParam );
@@ -524,7 +545,7 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 	CPos pos = m_pMouse->GetPos ();
 
-	if ( !GetAsyncKeyState(VK_LBUTTON) )
+	if ( !GetAsyncKeyState ( VK_LBUTTON ) )
 		m_pMouse->SetCursorType ( CMouse::DEFAULT );
 
 	// Check for any window with focus
@@ -536,6 +557,7 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 		if ( pControl &&
 			 ( pControl->GetType () == CControl::TYPE_DROPDOWN ) )
 		{
+
 			m_pFocussedWindow->OnMouseMove ( pControl, uMsg );
 
 			// Let then give it the first chance at handling keyboard.
@@ -598,7 +620,7 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 		case WM_RBUTTONDBLCLK:
 		case WM_XBUTTONDBLCLK:
 		case WM_MOUSEWHEEL:
-		{			
+		{
 			if ( m_pFocussedWindow )
 			{
 				// See if the mouse is over any windows		
@@ -617,26 +639,22 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 					}
 				}
 
-				m_pFocussedWindow->HandleMouse ( uMsg, pos, wParam, lParam );
 				// If the window is not always on top, and it's enabled, then give
 				// it the first chance at handling the message.
-				if ( ( pWindow && pWindow->GetAlwaysOnTop () ) &&
+				if ( !( pWindow && pWindow->GetAlwaysOnTop () ) &&
 					 m_pFocussedWindow->IsEnabled () )
 				{
-					//if ( m_pFocussedWindow->HandleMouse ( uMsg, pos, wParam, lParam ) )
-					//	return;
-		
-				
-				//else
-				//{			
+					if ( m_pFocussedWindow->HandleMouse ( uMsg, pos, wParam, lParam ) )
+						return;
+				}
+				else
+				{
 					// If the window is in focus, and if the mouse is outside the window, then leave 
 					// the click event
 					if ( uMsg == WM_LBUTTONUP )
 					{
-						//if ( m_pFocussedWindow->OnClickEvent () )
-							m_pFocussedWindow->OnClickLeave (); 
-							m_pFocussedWindow->OnFocusOut (); 
-							m_pFocussedWindow = NULL;
+						if ( m_pFocussedWindow->OnClickEvent () )
+							m_pFocussedWindow->OnClickLeave ();
 					}
 				}
 			}
@@ -650,8 +668,8 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 					// See if the window has a focused control
 					CControl *pControl = m_pFocussedWindow->GetFocussedControl ();
 
-					// If the control is in focus, and if the mouse is outside the window, if there
-					// was a window which had focus then leave the click event
+					// If the control is in focus, if the mouse is outside the window, and if there
+					// was a window which had focus, then leave the click event
 					if ( pWindow != m_pFocussedWindow &&
 						 uMsg == WM_LBUTTONUP &&
 						 pControl &&
@@ -659,10 +677,8 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 					{
 						pControl->OnClickLeave ();
 					}
-
-					//m_pFocussedWindow->HandleMouse ( uMsg, pos, wParam, lParam );
 				}
-				
+
 				if ( pWindow->HandleMouse ( uMsg, pos, wParam, lParam ) )
 					return;
 			}
@@ -685,7 +701,7 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 					else
 					{
 						// If the control is in focus, and if the mouse is outside the window, then leave 
-					    // the click event
+						// the click event
 						if ( uMsg == WM_LBUTTONUP &&
 							 pControl &&
 							 pControl->OnClickEvent () )
@@ -696,7 +712,7 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 				}
 			}
 
-			if ( !( GetAsyncKeyState ( VK_LBUTTON ) && pWindow ) && 
+			if ( !( GetAsyncKeyState ( VK_LBUTTON ) && pWindow ) &&
 				 uMsg == WM_MOUSEMOVE )
 			{
 				// If the mouse is still over the same window, nothing needs to be done
@@ -707,10 +723,8 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 				if ( m_pMouseOverWindow )
 				{
 					m_pMouseOverWindow->OnMouseLeave ();
-				
 					//m_pMouseOverWindow->ClearControlFocus ();
 				}
-
 				// Handle mouse entering the new window
 				m_pMouseOverWindow = pWindow;
 				if ( pWindow != NULL )
@@ -730,7 +744,7 @@ void CDialog::AddWindow ( CWindow *pWindow )
 		return;
 
 	m_vWindows.push_back ( pWindow );
-	m_pFocussedWindow = pWindow;
+	SetFocussedWindow ( pWindow );
 }
 
 //--------------------------------------------------------------------------------------
@@ -778,6 +792,7 @@ void CDialog::SetFocussedWindow ( CWindow *pWindow )
 	LeaveCriticalSection ( &cs );
 }
 
+//--------------------------------------------------------------------------------------
 void CDialog::ClearFocussedWindow ( void )
 {
 	if ( m_pFocussedWindow )
@@ -858,6 +873,9 @@ void CDialog::OnLostDevice ( void )
 
 	SAFE_INVALIDATE ( m_pRender );
 
+	if ( m_pState )
+		m_pState->Invalidate ();
+
 	LeaveCriticalSection ( &cs );
 }
 
@@ -874,6 +892,9 @@ void CDialog::OnResetDevice ( void )
 
 	if ( m_pRender )
 		m_pRender->Initialize ( m_pDevice );
+
+	if ( m_pState )
+		m_pState->Initialize ( m_pDevice );
 
 	LeaveCriticalSection ( &cs );
 }
@@ -899,8 +920,18 @@ IDirect3DDevice9* CDialog::GetDevice ( void )
 //--------------------------------------------------------------------------------------
 CD3DFont* CDialog::GetFont ( int ID )
 {
-	if ( ID > -1 && ID < m_vFont.size () )
+	if ( ID > -1 &&
+		 ID < m_vFont.size () )
 		return m_vFont [ ID ];
+
+	return NULL;
+}
+
+CD3DTexture *CDialog::GetTexture ( int ID )
+{
+	if ( ID > -1 &&
+		 ID < m_vTexture.size () )
+		return m_vTexture [ ID ];
 
 	return NULL;
 }
