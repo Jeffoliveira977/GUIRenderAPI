@@ -1,99 +1,116 @@
 ﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(368,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
 C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(936,5): warning MSB8027: Two or more files with the name of Graphics.cpp will produce outputs to the same location. This can lead to an incorrect build result.  The files involved are Graphics.cpp, GUI\renderers\Graphics.cpp.
   stdafx.cpp
-  GUIRenderAPI.cpp
-  Generating Code...
-  Compiling...
   TrackBar.cpp
   ScrollbarHorizontal.cpp
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\scrollbarhorizontal.cpp(38): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\scrollbarhorizontal.cpp(45): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\scrollbarhorizontal.cpp(58): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\scrollbarhorizontal.cpp(65): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\scrollbarhorizontal.cpp(201): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\scrollbarhorizontal.cpp(218): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\scrollbarhorizontal.cpp(38): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\scrollbarhorizontal.cpp(45): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\scrollbarhorizontal.cpp(58): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\scrollbarhorizontal.cpp(65): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\scrollbarhorizontal.cpp(201): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\scrollbarhorizontal.cpp(218): warning C4305: 'argument': truncation from 'double' to 'float'
   ScrollablePane.cpp
+  Texture.cpp
+  Graphics.cpp
+  CGraphics.cpp
+c:\users\asus\source\repos\guirenderapi\gui\renderers\cgraphics.cpp(415): warning C4244: '=': conversion from 'wint_t' to 'TCHAR', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\renderers\cgraphics.cpp(726): warning C4244: '+=': conversion from 'FLOAT' to 'LONG', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\renderers\cgraphics.cpp(1206): warning C4244: 'argument': conversion from 'D3DCOLOR' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\renderers\cgraphics.cpp(1206): warning C4244: 'argument': conversion from 'UINT' to 'float', possible loss of data
   ProgressBarVertical.cpp
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\progressbarvertical.cpp(32): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\progressbarvertical.cpp(37): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\progressbarvertical.cpp(75): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\progressbarvertical.cpp(114): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\progressbarvertical.cpp(166): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\progressbarvertical.cpp(32): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\progressbarvertical.cpp(37): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\progressbarvertical.cpp(75): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\progressbarvertical.cpp(114): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\progressbarvertical.cpp(166): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
+  LogFile.cpp
   Entry.cpp
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\entry.cpp(68): warning C4002: too many actual parameters for macro 'max'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\entry.cpp(96): warning C4018: '<': signed/unsigned mismatch
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\entry.cpp(297): warning C4018: '<': signed/unsigned mismatch
+c:\users\asus\source\repos\guirenderapi\gui\entry.cpp(68): warning C4002: too many actual parameters for macro 'max'
+c:\users\asus\source\repos\guirenderapi\gui\entry.cpp(96): warning C4018: '<': signed/unsigned mismatch
+c:\users\asus\source\repos\guirenderapi\gui\entry.cpp(297): warning C4018: '<': signed/unsigned mismatch
   CWindow.cpp
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cwindow.cpp(19): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cwindow.cpp(20): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cwindow.cpp(21): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cwindow.cpp(86): warning C4244: 'argument': conversion from 'int' to 'FLOAT', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cwindow.cpp(100): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cwindow.cpp(100): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cwindow.cpp(100): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cwindow.cpp(101): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cwindow.cpp(101): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cwindow.cpp(984): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cwindow.cpp(985): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cwindow.cpp(19): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
+c:\users\asus\source\repos\guirenderapi\gui\cwindow.cpp(20): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
+c:\users\asus\source\repos\guirenderapi\gui\cwindow.cpp(21): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
+c:\users\asus\source\repos\guirenderapi\gui\cwindow.cpp(86): warning C4244: 'argument': conversion from 'int' to 'FLOAT', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cwindow.cpp(100): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cwindow.cpp(100): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cwindow.cpp(100): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cwindow.cpp(101): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cwindow.cpp(101): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cwindow.cpp(992): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cwindow.cpp(993): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
   CVar.cpp
   CTrackBar.cpp
   CTimer.cpp
   CTextBox.cpp
   CText.cpp
   CScrollBar.cpp
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cscrollbar.cpp(38): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cscrollbar.cpp(45): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cscrollbar.cpp(58): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cscrollbar.cpp(65): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cscrollbar.cpp(201): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cscrollbar.cpp(218): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\cscrollbar.cpp(38): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\cscrollbar.cpp(45): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\cscrollbar.cpp(58): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\cscrollbar.cpp(65): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\cscrollbar.cpp(201): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\cscrollbar.cpp(218): warning C4305: 'argument': truncation from 'double' to 'float'
   CRadioButton.cpp
   CProgressBar.cpp
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cprogressbar.cpp(32): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cprogressbar.cpp(37): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cprogressbar.cpp(75): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cprogressbar.cpp(115): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cprogressbar.cpp(167): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cprogressbar.cpp(32): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\cprogressbar.cpp(37): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\cprogressbar.cpp(75): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\asus\source\repos\guirenderapi\gui\cprogressbar.cpp(115): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cprogressbar.cpp(167): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
   CPos.cpp
   CMouse.cpp
+c:\users\asus\source\repos\guirenderapi\gui\cmouse.cpp(284): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cmouse.cpp(286): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cmouse.cpp(288): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cmouse.cpp(290): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cmouse.cpp(292): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cmouse.cpp(294): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cmouse.cpp(296): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  Generating Code...
+c:\users\asus\source\repos\guirenderapi\gui\ctrackbar.cpp(169): warning C4715: 'CTrackBarHorizontal::HandleKeyboard': not all control paths return a value
+c:\users\asus\source\repos\guirenderapi\gui\trackbar.cpp(169): warning C4715: 'CTrackBarVertical::HandleKeyboard': not all control paths return a value
+  Compiling...
   CListView.cpp
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\clistview.cpp(197): warning C4018: '>=': signed/unsigned mismatch
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\clistview.cpp(219): warning C4018: '<': signed/unsigned mismatch
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\clistview.cpp(345): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\clistview.cpp(345): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\clistview.cpp(383): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\clistview.cpp(383): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\clistview.cpp(386): warning C4018: '<': signed/unsigned mismatch
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\clistview.cpp(565): warning C4018: '<': signed/unsigned mismatch
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\clistview.cpp(706): warning C4018: '<': signed/unsigned mismatch
+c:\users\asus\source\repos\guirenderapi\gui\clistview.cpp(197): warning C4018: '>=': signed/unsigned mismatch
+c:\users\asus\source\repos\guirenderapi\gui\clistview.cpp(219): warning C4018: '<': signed/unsigned mismatch
+c:\users\asus\source\repos\guirenderapi\gui\clistview.cpp(345): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\clistview.cpp(345): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\clistview.cpp(383): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\clistview.cpp(383): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\clistview.cpp(386): warning C4018: '<': signed/unsigned mismatch
+c:\users\asus\source\repos\guirenderapi\gui\clistview.cpp(565): warning C4018: '<': signed/unsigned mismatch
+c:\users\asus\source\repos\guirenderapi\gui\clistview.cpp(706): warning C4018: '<': signed/unsigned mismatch
   CListBox.cpp
   CKeyboard.cpp
   CGUI.cpp
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cgui.cpp(103): warning C4244: 'argument': conversion from 'int' to 'FLOAT', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cgui.cpp(115): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cgui.cpp(115): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cgui.cpp(128): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cgui.cpp(128): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cgui.cpp(141): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cgui.cpp(141): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\cgui.cpp(908): warning C4018: '<': signed/unsigned mismatch
-  Generating Code...
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\ctrackbar.cpp(169): warning C4715: 'CTrackBarHorizontal::HandleKeyboard': not all control paths return a value
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\trackbar.cpp(169): warning C4715: 'CTrackBarVertical::HandleKeyboard': not all control paths return a value
-  Compiling...
+c:\users\asus\source\repos\guirenderapi\gui\cgui.cpp(123): warning C4244: 'argument': conversion from 'int' to 'FLOAT', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cgui.cpp(135): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cgui.cpp(135): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cgui.cpp(148): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cgui.cpp(148): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cgui.cpp(161): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cgui.cpp(161): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\asus\source\repos\guirenderapi\gui\cgui.cpp(924): warning C4018: '<': signed/unsigned mismatch
+c:\users\asus\source\repos\guirenderapi\gui\cgui.cpp(933): warning C4018: '<': signed/unsigned mismatch
   CFigure.cpp
   CElement.cpp
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\celement.cpp(73): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\celement.cpp(74): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\celement.cpp(75): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\celement.cpp(528): warning C4800: 'BOOL': forcing value to bool 'true' or 'false' (performance warning)
+c:\users\asus\source\repos\guirenderapi\gui\celement.cpp(73): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
+c:\users\asus\source\repos\guirenderapi\gui\celement.cpp(74): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
+c:\users\asus\source\repos\guirenderapi\gui\celement.cpp(75): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
+c:\users\asus\source\repos\guirenderapi\gui\celement.cpp(528): warning C4800: 'BOOL': forcing value to bool 'true' or 'false' (performance warning)
   CEditBox.cpp
   CDropDown.cpp
   CCheckBox.cpp
   CButton.cpp
+  GUIRenderAPI.cpp
+  Graphics.cpp
+  dllmain.cpp
   Generating Code...
-c:\users\dw\documents\visual studio 2015\projects\guirenderapi\guirenderapi\gui\celement.cpp(422): warning C4715: 'CControl::SendEvent': not all control paths return a value
+c:\users\asus\source\repos\guirenderapi\gui\celement.cpp(422): warning C4715: 'CControl::SendEvent': not all control paths return a value
 LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/FORCE' specification
 dllmain.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:LBR' specification
 Debug\Graphics.obj : warning LNK4042: object specified more than once; extras ignored
-  GUIRenderAPI.vcxproj -> E:\GTA San Andreas\scripts\GUIRenderAPI.asi
+  GUIRenderAPI.vcxproj -> C:\Users\asus\Source\Repos\GUIRenderAPI\..\..\..\Documents\GTA San Andreas\scripts\GUIRenderAPI.asi
+  GUIRenderAPI.vcxproj -> ..\..\..\Documents\GTA San Andreas\scripts\GUIRenderAPI.pdb (Full PDB)

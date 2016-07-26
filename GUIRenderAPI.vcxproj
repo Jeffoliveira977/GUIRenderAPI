@@ -76,7 +76,7 @@
     <LibraryPath>D3D9Headers;$(LibraryPath)</LibraryPath>
     <IncludePath>D3D9Headers;$(IncludePath)</IncludePath>
     <ReferencePath>D3D9Headers;$(ReferencePath)</ReferencePath>
-    <OutDir>E:\GTA San Andreas\scripts</OutDir>
+    <OutDir>..\..\..\Desktop\GTA San Andreas\scripts</OutDir>
     <TargetExt>.asi</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
