@@ -251,6 +251,7 @@ VOID Init ()
 
 	auto pProgressBar = pGui->AddProgressBarHorizontal ( fServBrowser1, 100, 100, 200, 20, 200, 180 );
 
+
 	auto pScrolls = pGui->AddScrollBarHorizontal ( fServBrowser1, 300, 200, 200, 18, 0, 20, 15, 199 );
 
 	fServBrowser->SetAlwaysOnTop ( true );
