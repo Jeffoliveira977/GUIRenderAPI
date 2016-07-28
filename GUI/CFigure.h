@@ -11,6 +11,12 @@ public:
 
 	void Draw ( void );
 
+	void SetTexture ( const SIMPLEGUI_CHAR *szPath );
+	void SetTexture ( LPCVOID pSrc, UINT uSrcSize );
+	CD3DTexture *GetTexture ( void );
+
+	void RotateImage ( float fRot);
+
 	void OnClickLeave ( void );
 	bool OnClickEvent ( void );
 
@@ -27,5 +33,9 @@ public:
 
 	void UpdateRects ( void );
 	bool ContainsRect ( CPos pos );
+
+private:
+	CD3DTexture *m_pTexture;
+	float m_fRotImage;
 };
 

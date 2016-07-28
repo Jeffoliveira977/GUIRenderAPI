@@ -172,10 +172,6 @@ public:
 	virtual bool HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam );
 	virtual bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
 
-	void SetTexture ( const SIMPLEGUI_CHAR *szPath );
-	void SetTexture ( LPCVOID pSrc, UINT uSrcSize );
-	CD3DTexture *GetTexture ( void );
-
 	void SetFont ( const SIMPLEGUI_CHAR *szFontName, DWORD dwHeight, bool bBold = false );
 	void SetFont ( CD3DFont *pFont );
 	CD3DFont *GetFont ( void );
