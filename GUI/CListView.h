@@ -2,15 +2,6 @@
 
 #include "CGUI.h"
 
-struct ImageColumn
-{
-	CTexture * tTrue;
-	CTexture * tFalse;
-	CTexture * tTitle;
-
-	int Width, Height;
-};
-
 class CListView : public CControl
 {
 public:
@@ -22,9 +13,9 @@ public:
 	void RemoveAllColumns ( void );
 
 	void SetColumnName ( UINT nColumnId, const SIMPLEGUI_CHAR *szColumnName );
-	const char *GetColumnName ( UINT nColumnId );
+	const SIMPLEGUI_CHAR *GetColumnName ( UINT nColumnId );
 
-	const char *GetColumnItemNameByRow ( UINT nColumnId, UINT nRow );
+	const SIMPLEGUI_CHAR *GetColumnItemNameByRow ( UINT nColumnId, UINT nRow );
 
 	void SetColumnWidth ( UINT nColumnId, int nWidth );
 	int GetColumnWidth ( UINT nColumnId );
@@ -41,7 +32,7 @@ public:
 
 	int GetAllColumnsWidth ( void );
 
-	const char *GetSelectedItem ( UINT nColumnId );
+	const SIMPLEGUI_CHAR *GetSelectedItem ( UINT nColumnId );
 
 	int GetNextColumn ( UINT nColumnId );
 	int GetPrevColumn ( UINT nColumnId );
@@ -55,7 +46,7 @@ public:
 	void SetTitleSizable ( bool bSizable );
 	void SetTitleMovable ( bool bMovable );
 
-	const char* FindItemInRow ( UINT nRow );
+	const SIMPLEGUI_CHAR *FindItemInRow ( UINT nRow );
 
 	void Draw ( void );
 
@@ -83,8 +74,8 @@ private:
 
 	struct SListViewColumn
 	{
-		std::vector<std::string> m_sItem;
-		std::string m_sColumnName;
+		std::vector<SIMPLEGUI_STRING> m_sItem;
+		SIMPLEGUI_STRING m_sColumnName;
 		int m_nWidth;
 	};
 
