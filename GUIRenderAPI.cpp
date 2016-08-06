@@ -107,7 +107,7 @@ VOID Init ()
 	pGui->LoadFont ( _UI ( "Tahoma" ), 10, false );
 
 	// Create Servers Brouser
-	fServBrowser = pGui->AddWindow ( s_iWidth / 2, s_iHeight / 2, 750, 500, _UI ( "SERVER BROWSER" ) );
+	fServBrowser = pGui->AddWindow ( s_iWidth / 2, s_iHeight / 2, 750, 500, _UI ( "SERVER BROWSER" ),true );
 
 	/*int ServerWidth [ 6 ] = { 16, 210, 60, 60, 100, 100 };
 	sbServList = new CListView ( pGui, 0, 29, ServerWidth, 350, 6, NULL, "SERVER_LIST"));
@@ -134,31 +134,26 @@ VOID Init ()
 	sbConnect = pGui->AddButton ( fServBrowser, 560, 380, 80, 20, _UI ( "Connect" ) );
 	sbRefresh = pGui->AddButton ( fServBrowser, 660, 380, 80, 20, _UI ( "Refresh" ) );
 	sbAddToFav = pGui->AddButton ( fServBrowser, 600, 405, 120, 20, _UI ( "Add to favourites" ) );
-
+	
 	sbFltNotFull = pGui->AddCheckBox ( fServBrowser, 150, 410, 100, true, _UI ( "Add to favourites" ) );
 
 	sbFltNotEmpty = pGui->AddCheckBox ( fServBrowser, 480, 385, 100, true, _UI ( "Add to favourites" ) );
 	sbFltNoPassword = pGui->AddCheckBox ( fServBrowser, 480, 410, 100, true, _UI ( "Add to favourites" ) );
 
-
+	
 	auto pScroll1 = pGui->AddScrollBar ( fServBrowser, 300, 200, 18, 200, 0, 100, 10, 1 );
+	pScroll1->SetEnabled ( false );
 	auto  pRadio2 = pGui->AddRadioButton ( fServBrowser, 0, 160, 220, 120, _UI ( "Refresh" ) );
 	auto  pRadios2 = pGui->AddRadioButton ( fServBrowser, 0, 160, 280, 120, _UI ( "Refresh" ) );
 
 	auto  pRadio12 = pGui->AddRadioButton ( fServBrowser, 1, 220, 220, 120, _UI ( "Refresh" ) );
 	auto  pRadios12 = pGui->AddRadioButton ( fServBrowser, 1, 220, 280, 1120, _UI ( "Refresh" ) );
+	
 
-	auto pDropa = pGui->AddListBox ( fServBrowser, 200, 300, 400, 200 );
-
-	for ( size_t i = 0; i < 20; i++ )
-	{
-
-		TCHAR szText [ MAX_PATH ];
-		sprintf ( szText, "text ASD  asd sasd sa sda sd asd sad sa sds asds asd%i", i );
-		pDropa->AddItem ( szText );
-	}
-
-	auto fServBrowser1 = pGui->AddWindow ( s_iWidth / 2, s_iHeight / 2 + 500, 750, 500, _UI ( "SERVER BROWSER" ) );
+	auto fServBrowser1 = pGui->AddWindow ( s_iWidth / 2, s_iHeight / 2 + 200, 750, 500, _UI ( "SERVER BROWSER" ), true );
+	
+	auto fServBrowser2 = pGui->AddWindow ( s_iWidth / 2, s_iHeight / 2 + 500, 750, 500, _UI ( "SERVER BROWSER" ) );
+	auto fServBrowser3 = pGui->AddWindow ( s_iWidth / 2, s_iHeight / 2 + 500, 750, 500, _UI ( "SERVER BROWSER" ) );
 
 
 	CButton *sbTab2 [ 4 ];
@@ -190,7 +185,7 @@ VOID Init ()
 	//	auto ptrack = pGui->AddTrackBarVertical ( fServBrowser1, 300, 200, 20, 400, -10, 1000, 990 );
 	auto pScroll = pGui->AddScrollBar ( fServBrowser1, 300, 200, 18, 200, 0, 100, 10, 1 );
 
-	auto pDrop = pGui->AddDropDown ( fServBrowser1, 500, 200, 200, 20, "WWWWWWWWWWWWW" );
+	auto pDrop = pGui->AddDropDown ( fServBrowser1, 500, 200, 200, 20, _UI ( "WWWWWWWWWWWWW") );
 
 
 
@@ -254,11 +249,10 @@ VOID Init ()
 
 	auto pScrolls = pGui->AddScrollBarHorizontal ( fServBrowser1, 300, 200, 200, 18, 0, 20, 15, 199 );
 
-	fServBrowser->SetAlwaysOnTop ( true );
-
+	
 	auto pLabel = pGui->AddLabel ( fServBrowser1, 400, 400, 300, 200, "Great Text asd sChanched" );
 
-	auto list = pGui->AddListView ( fServBrowser, 100, 100, 500, 200, "as" );
+	auto list = pGui->AddListView ( fServBrowser, 100, 100, 500, 100, "as" );
 
 	list->AddColumn ( "chassd ASDSAD ASD ASDSASD SADS", 100 );
 	list->AddColumn ( "chassd 1", 100 );
@@ -276,6 +270,7 @@ VOID Init ()
 		list->AddColumnItem ( 2, szText );
 	}
 	list->MoveColumn ( 2, 0 );
+	list->SetRelativeSizeX ( true );
 	pGui->SetVisible ( true );
 	//LeaveCriticalSection ( &cs_gui );
 

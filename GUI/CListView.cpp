@@ -71,7 +71,7 @@ void CListView::SetColumnName ( UINT nColumnId, const SIMPLEGUI_CHAR *szColumnNa
 	m_vColumnList [ nColumnId ].m_sColumnName = szColumnName;
 }
 
-const char *CListView::GetColumnName ( UINT nColumnId )
+const SIMPLEGUI_CHAR *CListView::GetColumnName ( UINT nColumnId )
 {
 	if ( nColumnId > m_vColumnList.size () )
 		return NULL;
@@ -79,7 +79,7 @@ const char *CListView::GetColumnName ( UINT nColumnId )
 	return m_vColumnList [ nColumnId ].m_sColumnName.c_str ();
 }
 
-const char *CListView::GetColumnItemNameByRow ( UINT nColumnId, UINT nRow )
+const SIMPLEGUI_CHAR *CListView::GetColumnItemNameByRow ( UINT nColumnId, UINT nRow )
 {
 	if ( nColumnId > m_vColumnList.size () || 
 		 nRow >= m_vColumnList [ nColumnId ].m_sItem.size () )
@@ -190,7 +190,7 @@ int CListView::GetAllColumnsWidth ( void )
 	return nWidth;
 }
 
-const char *CListView::GetSelectedItem ( UINT nColumnId )
+const SIMPLEGUI_CHAR *CListView::GetSelectedItem ( UINT nColumnId )
 {
 	if ( nColumnId > m_vColumnList.size () ||
 		 m_nSelected < 0 ||
@@ -285,12 +285,12 @@ int CListView::GetColumnOffset ( UINT nColumnId )
 	return 0;
 }
 
-const char* CListView::FindItemInRow ( UINT nRow )
+const SIMPLEGUI_CHAR* CListView::FindItemInRow ( UINT nRow )
 {
 	UINT nColumnId = 0;
 	while ( nColumnId < m_vColumnList.size () )
 	{
-		const char *szItem = GetColumnItemNameByRow ( nColumnId, nRow );
+		const SIMPLEGUI_CHAR *szItem = GetColumnItemNameByRow ( nColumnId, nRow );
 		if ( szItem )
 			return szItem;
 
@@ -352,7 +352,7 @@ void CListView::Draw ( void )
 	{
 		rTitleRect.pos.SetX ( rTitleRect.pos.GetX () + ( i ? GetColumnWidth ( i - 1 ) : 0 ) );
 
-		std::string szStr = GetColumnName ( i );
+		SIMPLEGUI_STRING szStr = GetColumnName ( i );
 		m_pTitleFont->CutString ( GetColumnWidth ( i ) - 4, szStr );
 
 		rTextRect.pos.SetX ( rTextRect.pos.GetX () + ( i ? GetColumnWidth ( i - 1 ) : 0 ) );
@@ -385,8 +385,8 @@ void CListView::Draw ( void )
 
 		for ( UINT j = nVerScrollTrackPos; j < nVerScrollTrackPos + pScrollbarVer->GetPageSize (); j++ )
 		{
-			std::string szStr;
-			const char *szText = GetColumnItemNameByRow ( i, j );
+			SIMPLEGUI_STRING szStr;
+			const SIMPLEGUI_CHAR *szText = GetColumnItemNameByRow ( i, j );
 			if ( szText )
 			{
 				szStr = szText;
@@ -500,7 +500,8 @@ bool CListView::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam 
 		return false;
 
 	if ( ( !m_bSizing && !m_bMoving ) &&
-		 ( m_bMovable || m_bSizable ) )
+		 ( m_bMovable || m_bSizable ) && 
+		 !m_pScrollbar->OnClickEvent() )
 	{
 		m_nOverColumnId = GetColumnIdAtArea ( pos );
 	}
@@ -530,7 +531,8 @@ bool CListView::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam 
 
 			if ( ( GetAsyncKeyState ( VK_LBUTTON ) &&
 				 !m_bHasFocus ) ||
-				 m_pScrollbar->ContainsRect ( pos ) )
+				 m_pScrollbar->ContainsRect ( pos ) ||
+				 m_pScrollbar ->OnClickEvent())
 			{
 				break;
 			}
@@ -564,7 +566,7 @@ bool CListView::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam 
 			{
 				if ( i < m_nRowSize )
 				{
-					const char *szItem = FindItemInRow ( i );
+					const SIMPLEGUI_CHAR *szItem = FindItemInRow ( i );
 
 					SIZE size;
 					m_pFont->GetTextExtent ( szItem, &size );
@@ -738,7 +740,7 @@ void CListView::UpdateRects ( void )
 	CControl::UpdateRects ();
 
 	SIZE size;
-	m_pTitleFont->GetTextExtent ( "Y", &size );
+	m_pTitleFont->GetTextExtent ( _UI ( "Y" ), &size );
 
 	rTitleRect = m_rBoundingBox;
 	rTitleRect.size.cy = size.cy + LISTVIEW_TITLESIZE;
@@ -748,7 +750,7 @@ void CListView::UpdateRects ( void )
 
 	m_rContentArea.size.cy = m_rContentArea.size.cy - rTitleRect.size.cy;
 
-	m_pFont->GetTextExtent ( "Y", &size );
+	m_pFont->GetTextExtent ( _UI ( "Y" ), &size );
 
 	// Set up scroll bar values
 	m_pScrollbar->SetPageSize ( m_rContentArea.size.cx - ( pScrollbarHor->GetHeight () + 4 ), m_rContentArea.size.cy / size.cy );

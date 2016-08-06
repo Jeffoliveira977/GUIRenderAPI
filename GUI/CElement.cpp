@@ -24,6 +24,7 @@ const SIZE GetControlMinSize ( CControl::EControlType eType )
 			break;
 		case CControl::TYPE_TEXTBOX:
 		case CControl::TYPE_LISTBOX:
+		case CControl::TYPE_LISTVIEW:
 			size.cx = 100;
 			size.cy = 100;
 			break;
@@ -72,7 +73,7 @@ void CControl::SetControl ( CDialog *pDialog, EControlType eType )
 	m_sControlColor.d3dColorBox [ SControlColor::STATE_NORMAL ] = D3DCOLOR_RGBA ( 80, 80, 80, 255 );
 	m_sControlColor.d3dColorBox [ SControlColor::STATE_MOUSE_OVER ] = D3DCOLOR_XRGB ( 100, 100, 100, 255 );
 	m_sControlColor.d3dColorBox [ SControlColor::STATE_PRESSED ] = D3DCOLOR_XRGB ( 60, 60, 60, 255 );
-	m_sControlColor.d3dColorBox [ SControlColor::STATE_DISABLED ] = D3DCOLOR_XRGB ( 180, 180, 180, 255 );
+	m_sControlColor.d3dColorBox [ SControlColor::STATE_DISABLED ] = D3DCOLOR_XRGB ( 220, 220, 220, 255 );
 
 	m_bEnabled = true;
 	m_bAntAlias = true;
@@ -188,13 +189,17 @@ void CControl::SetSize ( int iWidth, int iHeight )
 
 void CControl::SetMinSize ( int nMin, int nMax )
 {
-	m_minSize.cx = nMin;
-	m_minSize.cy = nMax;
+	SIZE size = GetControlMinSize ( m_eType );
+	if ( size.cx > nMin )
+		m_minSize.cx = nMin;
+
+	if ( size.cy > nMax )
+		m_minSize.cy = nMax;
 }
 
 void CControl::SetMinSize ( SIZE size )
 {
-	m_minSize = size;
+	SetMinSize ( size.cx, size.cy );
 }
 
 SIZE CControl::GetMinSize ( SIZE size )
@@ -270,7 +275,18 @@ const SIMPLEGUI_CHAR *CControl::GetText ( void )
 }
 
 void CControl::Draw ( void )
-{}
+{
+	if ( !m_bEnabledStateColor )
+		m_eState = SControlColor::STATE_NORMAL;
+	else if ( !m_bEnabled )
+		m_eState = SControlColor::STATE_DISABLED;
+	else if ( m_bPressed )
+		m_eState = SControlColor::STATE_PRESSED;
+	else if ( m_bMouseOver )
+		m_eState = SControlColor::STATE_MOUSE_OVER;
+	else
+		m_eState = SControlColor::STATE_NORMAL;
+}
 
 bool CControl::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
@@ -280,35 +296,6 @@ bool CControl::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 bool CControl::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
 {
 	return false;
-}
-
-void CControl::SetTexture ( const TCHAR *szPath )
-{
-	if ( !m_pDialog )
-		return;
-
-	// Check if there is already a texture
-	if ( m_pTexture )
-		m_pDialog->RemoveTexture ( m_pTexture );
-
-	m_pDialog->LoadTexture ( szPath, &m_pTexture );
-}
-
-void CControl::SetTexture ( LPCVOID pSrc, UINT uSrcSize )
-{
-	if ( !m_pDialog )
-		return;
-
-	// Check if there is already a texture
-	if ( m_pTexture )
-		m_pDialog->RemoveTexture ( m_pTexture );
-
-	m_pDialog->LoadTexture ( pSrc, uSrcSize, &m_pTexture );
-}
-
-CD3DTexture *CControl::GetTexture ( void )
-{
-	return m_pTexture;
 }
 
 void CControl::SetFont ( const TCHAR *szFontName, DWORD dwHeight, bool bBold )
@@ -419,6 +406,7 @@ bool CControl::SendEvent ( E_EVENT_CONTROL event, int params )
 		return false;
 
 	m_pAction ( this, event, params );
+	return true;
 }
 
 void CControl::UpdateRects ( void )

@@ -200,7 +200,7 @@ CProgressBarVertical *CDialog::AddProgressBarVertical ( CWindow *pWindow, int iX
 }
 
 //--------------------------------------------------------------------------------------
-CWindow *CDialog::AddWindow ( int X, int Y, int Width, int Height, const SIMPLEGUI_CHAR *szString, tAction Callback )
+CWindow *CDialog::AddWindow ( int X, int Y, int Width, int Height, const SIMPLEGUI_CHAR *szString, bool bAlwaysOnTop, tAction Callback )
 {
 	CWindow* pWindow = new CWindow ( this );
 
@@ -211,7 +211,7 @@ CWindow *CDialog::AddWindow ( int X, int Y, int Width, int Height, const SIMPLEG
 		pWindow->SetText ( szString );
 		pWindow->SetAction ( Callback );
 		pWindow->SetFont ( this->GetFont () );
-
+		pWindow->SetAlwaysOnTop ( bAlwaysOnTop );
 		AddWindow ( pWindow );
 	}
 
@@ -497,7 +497,7 @@ CScrollBarHorizontal *CDialog::AddScrollBarHorizontal ( CWindow *pWindow, int X,
 
 	return pScrollBar;
 }
-
+bool g_pWindowClick;
 //--------------------------------------------------------------------------------------
 void CDialog::Draw ( void )
 {
@@ -511,18 +511,20 @@ void CDialog::Draw ( void )
 
 	m_pState->SetRenderStates ();
 
+
 	for ( size_t i = 0; i < m_vWindows.size (); i++ )
 	{
 		if ( !m_vWindows [ i ] )
 			continue;
 
-		if ( !m_vWindows [ i ]->IsVisible () )
+		if ( !m_vWindows [ i ]->IsVisible ())
 			continue;
 
 		m_vWindows [ i ]->UpdateRects ();
 		m_vWindows [ i ]->Draw ();
 	}
 
+	
 	m_pMouse->Draw ();
 
 	m_pState->EndState ();
@@ -548,6 +550,8 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 	if ( !GetAsyncKeyState ( VK_LBUTTON ) )
 		m_pMouse->SetCursorType ( CMouse::DEFAULT );
 
+	// First handle messages from the windows widgets
+
 	// Check for any window with focus
 	if ( m_pFocussedWindow )
 	{
@@ -557,7 +561,6 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 		if ( pControl &&
 			 ( pControl->GetType () == CControl::TYPE_DROPDOWN ) )
 		{
-
 			m_pFocussedWindow->OnMouseMove ( pControl, uMsg );
 
 			// Let then give it the first chance at handling keyboard.
@@ -569,8 +572,6 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 				return;
 		}
 	}
-
-	// First handle messages from the windows widgets
 
 	// See if the mouse is over any windows
 	CWindow* pWindow = GetWindowAtPos ( pos );
@@ -620,12 +621,12 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 		case WM_RBUTTONDBLCLK:
 		case WM_XBUTTONDBLCLK:
 		case WM_MOUSEWHEEL:
-		{
+		{	
+			if ( pWindow && pWindow->IsEnabled () )		
+				pWindow->HandleMouse ( uMsg, pos, wParam, lParam ); 				
+			
 			if ( m_pFocussedWindow )
 			{
-				// See if the mouse is over any windows		
-				CWindow* pWindow = GetWindowAtPos ( pos );
-
 				// If the control is in focus, and if the mouse is outside the window, then leave 
 				// the click event
 				if ( uMsg == WM_LBUTTONUP )
@@ -639,77 +640,8 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 					}
 				}
 
-				// If the window is not always on top, and it's enabled, then give
-				// it the first chance at handling the message.
-				if ( !( pWindow && pWindow->GetAlwaysOnTop () ) &&
-					 m_pFocussedWindow->IsEnabled () )
-				{
-					if ( m_pFocussedWindow->HandleMouse ( uMsg, pos, wParam, lParam ) )
-						return;
-				}
-				else
-				{
-					// If the window is in focus, and if the mouse is outside the window, then leave 
-					// the click event
-					if ( uMsg == WM_LBUTTONUP )
-					{
-						if ( m_pFocussedWindow->OnClickEvent () )
-							m_pFocussedWindow->OnClickLeave ();
-					}
-				}
-			}
-
-			// Not yet handled, see if the mouse is over any windows		
-			CWindow* pWindow = GetWindowAtPos ( pos );
-			if ( pWindow && pWindow->IsEnabled () )
-			{
-				if ( m_pFocussedWindow )
-				{
-					// See if the window has a focused control
-					CControl *pControl = m_pFocussedWindow->GetFocussedControl ();
-
-					// If the control is in focus, if the mouse is outside the window, and if there
-					// was a window which had focus, then leave the click event
-					if ( pWindow != m_pFocussedWindow &&
-						 uMsg == WM_LBUTTONUP &&
-						 pControl &&
-						 pControl->OnClickEvent () )
-					{
-						pControl->OnClickLeave ();
-					}
-				}
-
-				if ( pWindow->HandleMouse ( uMsg, pos, wParam, lParam ) )
-					return;
-			}
-			else
-			{
-				if ( m_pFocussedWindow )
-				{
-					// See if the window has a focused control
-					CControl *pControl = m_pFocussedWindow->GetFocussedControl ();
-
-					if ( uMsg == WM_LBUTTONDOWN )
-					{
-						// Clear the focused control
-						m_pFocussedWindow->ClearControlFocus ();
-
-						// Which had focus it just lost it
-						m_pFocussedWindow->OnFocusOut ();
-						m_pFocussedWindow = NULL;
-					}
-					else
-					{
-						// If the control is in focus, and if the mouse is outside the window, then leave 
-						// the click event
-						if ( uMsg == WM_LBUTTONUP &&
-							 pControl &&
-							 pControl->OnClickEvent () )
-						{
-							pControl->OnClickLeave ();
-						}
-					}
-				}
+				if ( m_pFocussedWindow->IsEnabled () )
+					m_pFocussedWindow->HandleMouse ( uMsg, pos, wParam, lParam );
 			}
 
 			if ( !( GetAsyncKeyState ( VK_LBUTTON ) && pWindow ) &&
@@ -723,8 +655,8 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 				if ( m_pMouseOverWindow )
 				{
 					m_pMouseOverWindow->OnMouseLeave ();
-					//m_pMouseOverWindow->ClearControlFocus ();
 				}
+
 				// Handle mouse entering the new window
 				m_pMouseOverWindow = pWindow;
 				if ( pWindow != NULL )
@@ -750,22 +682,22 @@ void CDialog::AddWindow ( CWindow *pWindow )
 //--------------------------------------------------------------------------------------
 void CDialog::RemoveWindow ( CWindow *pWindow )
 {
-	for ( size_t i = 0; i < m_vWindows.size (); i++ )
-	{
-		if ( m_vWindows [ i ] == pWindow )
-		{
-			SAFE_DELETE ( pWindow );
-			m_vWindows.erase ( m_vWindows.begin () + i );
-			return;
-		}
-	}
+	if ( !pWindow )
+		return;
+
+	std::vector<CWindow*>::iterator iter = std::find ( m_vWindows.begin (), m_vWindows.end (), pWindow );
+	if ( iter == m_vWindows.end () )
+		return;
+
+	m_vWindows.erase ( iter );
+	SAFE_DELETE ( pWindow );
 }
 
 //--------------------------------------------------------------------------------------
 void CDialog::RemoveAllWindows ( void )
 {
-	for ( size_t i = 0; i < m_vWindows.size (); i++ )
-		SAFE_DELETE ( m_vWindows [ i ] );
+	for ( auto &window : m_vWindows )
+		SAFE_DELETE ( window );
 
 	m_vWindows.clear ();
 }
@@ -811,25 +743,22 @@ CWindow *CDialog::GetFocussedWindow ( void )
 //--------------------------------------------------------------------------------------
 void CDialog::BringWindowToTop ( CWindow *pWindow )
 {
-	for ( size_t i = 0; i < m_vWindows.size (); i++ )
+	// Get amount of windows on top
+	int nCount = 0;
+	for ( auto &window : m_vWindows )
 	{
-		if ( !m_vWindows [ i ] )
-			continue;
+		if ( window->GetAlwaysOnTop () )
+			nCount++;
+	}
 
-		if ( !m_vWindows [ i ]->GetAlwaysOnTop () && 
-			 m_vWindows [ i ] == pWindow )
-		{
-			m_vWindows.erase ( m_vWindows.begin () + i );
-			m_vWindows.insert ( m_vWindows.end (), pWindow );
-		}
+	auto iter = std::find ( m_vWindows.begin (), m_vWindows.end (), pWindow );
+	if ( iter == m_vWindows.end () )
+		return;
 
-		if ( m_vWindows [ i ]->GetAlwaysOnTop () )
-		{
-			CWindow *pOldWin = m_vWindows [ i ];
-
-			m_vWindows.erase ( m_vWindows.begin () + i );
-			m_vWindows.insert ( m_vWindows.end (), pOldWin );
-		}
+	if ( !pWindow->GetAlwaysOnTop () )
+	{
+		m_vWindows.erase ( iter );
+		m_vWindows.insert ( m_vWindows.end () - nCount, pWindow );
 	}
 }
 
@@ -841,19 +770,18 @@ CWindow *CDialog::GetWindowAtPos ( CPos pos )
 		if ( m_vWindows [ i ]->ContainsRect ( pos ) )
 			return m_vWindows [ i ];
 	}
-
 	return NULL;
 }
 
 //--------------------------------------------------------------------------------------
 CWindow* CDialog::GetWindowByText ( const SIMPLEGUI_CHAR *pszText )
 {
-	for ( size_t i = 0; i < m_vWindows.size (); i++ )
+	for ( auto &window : m_vWindows )
 	{
-		if ( m_vWindows [ i ] )
+		if ( window )
 		{
-			if ( !SIMPLEGUI_STRCMP ( m_vWindows [ i ]->GetText (), pszText ) )
-				return m_vWindows [ i ];
+			if ( !SIMPLEGUI_STRCMP ( window->GetText (), pszText ) )
+				return window;
 		}
 	}
 

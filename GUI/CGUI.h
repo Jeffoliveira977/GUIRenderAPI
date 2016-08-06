@@ -69,8 +69,8 @@ public:
 
 	CProgressBarHorizontal *AddProgressBarHorizontal ( CWindow *pWindow, int X, int Y, int Width, int iHeight, float fMax, float fValue, tAction Callback = NULL );
 	CProgressBarVertical *AddProgressBarVertical ( CWindow *pWindow, int X, int Y, int Width, int iHeight, float fMax, float fValue, tAction Callback = NULL );
-	
-	CWindow* AddWindow ( int X, int Y, int Width, int Height, const SIMPLEGUI_CHAR *szString = NULL, tAction Callback = NULL );
+
+	CWindow* AddWindow ( int X, int Y, int Width, int Height, const SIMPLEGUI_CHAR *szString = NULL, bool bAlwaysOnTop = false, tAction Callback = NULL );
 	CButton* AddButton ( CWindow *pWindow, int X, int Y, int Width, int Height, const SIMPLEGUI_CHAR *szString = NULL, tAction Callback = NULL );
 	CCheckBox* AddCheckBox ( CWindow *pWindow, int X, int Y, int Width, bool bChecked, const SIMPLEGUI_CHAR *szString = NULL, tAction Callback = NULL );
 	CLogBox* AddTextBox ( CWindow *pWindow, int X, int Y, int Width, int Height, tAction Callback = NULL );
@@ -81,13 +81,13 @@ public:
 	CDropDown* AddDropDown ( CWindow *pWindow, int X, int Y, int Width, int Height, const SIMPLEGUI_CHAR *szString = NULL, tAction Callback = NULL );
 	CRadioButton *AddRadioButton ( CWindow *pWindow, int iGroup, int X, int Y, int Width, const SIMPLEGUI_CHAR *szString = NULL, tAction Callback = NULL );
 	CPictureBox *AddImage ( CWindow *pWindow, const TCHAR *szPath, int X, int Y, int Width, int Height, tAction Callback = NULL );
-	
+
 	CTrackBarHorizontal *AddTrackBar ( CWindow *pWindow, int X, int Y, int Width, int Height, int nMin, int nMax, int nValue, tAction Callback = NULL );
 	CTrackBarVertical *AddTrackBarVertical ( CWindow *pWindow, int X, int Y, int Width, int Height, int nMin, int nMax, int nValue, tAction Callback = NULL );
 
 	CScrollBarVertical *AddScrollBar ( CWindow *pWindow, int X, int Y, int Width, int Height, int nMin, int nMax, int nPagSize, int nValue, tAction Callback = NULL );
 	CScrollBarHorizontal *AddScrollBarHorizontal ( CWindow *pWindow, int X, int Y, int Width, int Height, int nMin, int nMax, int nPagSize, int nValue, tAction Callback = NULL );
-	
+
 	void LoadTexture ( const SIMPLEGUI_CHAR *szPath, CD3DTexture **ppTexture = NULL );
 	void LoadTexture ( LPCVOID pSrc, UINT uSrcSize, CD3DTexture **ppTexture = NULL );
 
@@ -145,8 +145,8 @@ private:
 	std::vector<CD3DTexture*>m_vTexture;
 	std::vector<CWindow*> m_vWindows;
 
-	CWindow *m_pFocussedWindow;
-	CWindow *m_pMouseOverWindow;
+	CWindow *m_pFocussedWindow; 
+	CWindow *m_pMouseOverWindow; 
 
-	CRITICAL_SECTION cs;
-};
+	CRITICAL_SECTION cs;   
+}; 

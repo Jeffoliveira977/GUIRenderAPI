@@ -32,7 +32,7 @@ void CListBox::Draw ( void )
 		return;
 	}
 
-	if ( m_pEntryList ) 
+	if ( !m_pEntryList ) 
 		return;
 
 	m_pDialog->DrawBox ( m_rBoundingBox, m_sControlColor.d3dColorBoxBack, m_sControlColor.d3dColorOutline, m_bAntAlias );
