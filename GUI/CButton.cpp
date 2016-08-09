@@ -11,16 +11,7 @@ void CButton::Draw ( void )
 	if ( !m_bVisible )
 		return;
 
-	if ( !m_bEnabledStateColor )
-		m_eState = SControlColor::STATE_NORMAL;
-	else if ( !m_bEnabled )
-		m_eState = SControlColor::STATE_DISABLED;
-	else if ( m_bPressed )
-		m_eState = SControlColor::STATE_PRESSED;
-	else if ( m_bMouseOver )
-		m_eState = SControlColor::STATE_MOUSE_OVER;
-	else
-		m_eState = SControlColor::STATE_NORMAL;
+	CControl::Draw ();
 
 	std::string str = GetText ();
 	m_pFont->CutString ( m_rBoundingBox.size.cx - 4, str );
