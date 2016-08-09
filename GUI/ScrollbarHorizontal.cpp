@@ -66,21 +66,9 @@ void CScrollBarHorizontal::Draw ( void )
 		}
 	}
 
-	if ( !m_bEnabledStateColor )
-		m_eState = SControlColor::STATE_NORMAL;
-	else if ( !m_bEnabled )
-		m_eState = SControlColor::STATE_DISABLED;
-	else if ( m_bPressed  )
-		m_eState = SControlColor::STATE_PRESSED;
-	else if ( m_bMouseOver )
-		m_eState = SControlColor::STATE_MOUSE_OVER;
-	else
-		m_eState = SControlColor::STATE_NORMAL;
+	CControl::Draw ();
 
-	// Background track layer
-	m_pDialog->DrawBox ( m_rBoundingBox, m_sControlColor.d3dColorBoxBack, m_sControlColor.d3dColorOutline, m_bAntAlias );
-
-	SControlColor::SControlState eState = m_bShowThumb ?
+	SControlColor::SControlState eState = m_bShowThumb && m_bEnabled ?
 		SControlColor::STATE_NORMAL :
 		SControlColor::STATE_DISABLED;
 
@@ -97,6 +85,9 @@ void CScrollBarHorizontal::Draw ( void )
 		else if ( m_rDownButton.InControlArea ( m_LastMouse ) )
 			d3dColorDown = m_sControlColor.d3dColorBox [ m_eState ];
 	}
+
+	// Background track layer
+	m_pDialog->DrawBox ( m_rBoundingBox, m_sControlColor.d3dColorBoxBack, m_sControlColor.d3dColorOutline, m_bAntAlias );
 
 	// Up Arrow
 	m_pDialog->DrawBox ( m_rUpButton, d3dColorUp, m_sControlColor.d3dColorOutline, m_bAntAlias );
@@ -347,11 +338,11 @@ void CScrollBarHorizontal::UpdateThumbRect ( void )
 {
 	if ( m_nEnd - m_nStart > m_nPageSize )
 	{
-		int nThumbWidth = __max ( ( m_rBoundingBox.size.cx - ( m_rBoundingBox.size.cy*2  ) )  * m_nPageSize / ( m_nEnd - m_nStart ) , SCROLLBAR_MINTHUMBSIZE );
+		int nThumbWidth = __max ( ( m_rBoundingBox.size.cx - ( m_rBoundingBox.size.cy * 2 ) )  * m_nPageSize / ( m_nEnd - m_nStart ), SCROLLBAR_MINTHUMBSIZE );
 		int nMaxPosition = m_nEnd - m_nStart - m_nPageSize + 1;
 
 		m_rThumb.pos.SetX ( ( m_rBoundingBox.pos.GetX () + m_rBoundingBox.size.cy ) +
-							( m_nPosition - m_nStart ) *
+			( m_nPosition - m_nStart ) *
 							( ( m_rBoundingBox.size.cx - ( m_rBoundingBox.size.cy * 2 ) ) - nThumbWidth ) / nMaxPosition );
 
 		m_rThumb.size.cx = nThumbWidth;
