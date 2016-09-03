@@ -7,8 +7,12 @@ public:
 	CScrollablePane ( CDialog *pDialog );
 	~CScrollablePane ( void );
 
-	void OnMouseWheel ( int nDelta );
+	void OnMouseWheel ( int zDelta );
 	void OnDraw ( void );
+
+	bool OnMouseButtonDown ( CPos pos );
+	bool OnMouseButtonUp ( CPos pos );
+	bool OnMouseMove ( CPos pos );
 
 	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
 	void OnClickLeave ( void );

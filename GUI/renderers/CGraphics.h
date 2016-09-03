@@ -141,8 +141,15 @@ public:
 
 	void CutString ( int iWidth, D3DSTRING &sString );
 
+	void RemoveColorTableFromString ( D3DSTRING &sString );
+
 	// Function to get extent of text
 	HRESULT GetTextExtent ( const TCHAR* strText, SIZE* pSize );
+
+	HDC GetHDC ( void )
+	{
+		return m_hDC;
+	}
 
 	// Initializing and destroying device-dependent objects
 	HRESULT Initialize ( LPDIRECT3DDEVICE9 pd3dDevice );
@@ -150,7 +157,7 @@ public:
 	HRESULT Invalidate ( void );
 
 	void SetWidth ( float fWidth ) { m_fWidth = fWidth; };
-
+	
 	LPDIRECT3DDEVICE9 getDevice () const { return m_pd3dDevice; }
 
 private:
@@ -166,7 +173,7 @@ private:
 		FLOAT   m_fTextScale;
 		FLOAT   m_fTexCoords [ 255 ] [ 4 ];
 		DWORD   m_dwSpacing;                  // Character pixel spacing per side
-
+		HDC m_hDC;
 		IDirect3DDevice9 *m_pd3dDevice;
 		float m_fWidth;
 };

@@ -20,7 +20,6 @@ void CProgressBarHorizontal::Draw ( void )
 		return;
 
 	CMouse *pMouse = m_pDialog->GetMouse ();
-	assert ( pMouse && "Invalid mouse pointer" );
 
 	if ( pMouse &&
 		 m_bPressed &&
@@ -70,7 +69,7 @@ bool CProgressBarHorizontal::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, L
 				m_bPressed = true;
 
 				if ( m_pParent )
-					m_pParent->RequestControlFocus ( this );
+					m_pParent->SetFocussedControl ( this );
 
 				m_timer.Start ( PROGRESSBAR_ARROWCLICK_START );
 

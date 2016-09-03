@@ -165,12 +165,12 @@ CMouse::CMouse ( CDialog *pDialog )
 	m_pDialog = pDialog;
 	m_eCursorType = DEFAULT;
 
-	m_pDialog->LoadTexture ( "FMPGUI/Untitled-2.png", &m_pTexture [ DEFAULT ] );
-	m_pDialog->LoadTexture ( "FMPGUI/Semtulo-3.png", &m_pTexture [ E_RESIZE ] );
-	m_pDialog->LoadTexture ( "FMPGUI/Semtulo-4.png", &m_pTexture [ NE_RESIZE ] );
-	m_pDialog->LoadTexture ("FMPGUI/Semtulo-2.png", &m_pTexture [ S_RESIZE ] );
-	m_pDialog->LoadTexture ( "FMPGUI/Semtulo-1.png", &m_pTexture [ SE_RESIZE ] );
-	m_pDialog->LoadTexture (  "FMPGUI/move_cursor.png", &m_pTexture [ MOVE ] );
+	m_pDialog->LoadTexture ( _UI("FMPGUI/Untitled-2.png"), &m_pTexture [ DEFAULT ] );
+	m_pDialog->LoadTexture ( _UI ( "FMPGUI/Semtulo-3.png"), &m_pTexture [ E_RESIZE ] );
+	m_pDialog->LoadTexture ( _UI ( "FMPGUI/Semtulo-4.png"), &m_pTexture [ NE_RESIZE ] );
+	m_pDialog->LoadTexture ( _UI ( "FMPGUI/Semtulo-2.png"), &m_pTexture [ S_RESIZE ] );
+	m_pDialog->LoadTexture ( _UI ( "FMPGUI/Semtulo-1.png"), &m_pTexture [ SE_RESIZE ] );
+	m_pDialog->LoadTexture ( _UI ( "FMPGUI/move_cursor.png"), &m_pTexture [ MOVE ] );
 
 	SetSize ( 12 );
 

@@ -3,7 +3,7 @@
 CLogFile::CLogFile ( TCHAR *szFile )
 {
 	InitializeCriticalSection ( &m_cs );
-	m_hFile = SIMPLEGUI_FOPEN ( szFile, _UI ( "a" ) );
+	m_hFile = SIMPLEGUI_FOPEN ( szFile, _UI ( "w" ) );
 
 	if ( !m_hFile )
 		exit ( 1 );

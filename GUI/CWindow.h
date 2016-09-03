@@ -14,10 +14,21 @@ public:
 
 	void Draw ( void );
 
+	bool SetControlMouseStates ( UINT uMsg, int zDelta, CPos pos, CControl *pControl );
+
 	bool ControlMessages ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
 
 	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
 	bool HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam );
+
+	bool OnMouseButtonDown ( CPos pos );
+	bool OnMouseButtonUp ( CPos pos );
+	bool OnMouseMove ( CPos pos );
+	bool OnMouseWheel ( int zDelta );
+
+	bool OnKeyDown ( WPARAM wParam );
+	bool OnKeyUp ( WPARAM wParam );
+	bool OnKeyCharacter ( WPARAM wParam );
 
 	void UpdateRects ( void );
 	bool ContainsRect ( CPos pos );
@@ -38,7 +49,7 @@ public:
 
 	void SetCloseButton ( bool bEnabled );
 
-	void RequestControlFocus ( CControl *pControl );
+	void SetFocussedControl ( CControl *pControl );
 	CControl *GetFocussedControl ( void );
 
 	void ClearControlFocus ( void );
@@ -52,6 +63,9 @@ public:
 	int GetTitleBarHeight ( void );
 
 	CControl *GetControlAtArea ( CPos pos );
+	
+	CControl *GetControlClicked ( void );
+
 	bool IsSizing ( void );
 
 	void SetAlwaysOnTop ( bool bEnable );
@@ -71,7 +85,7 @@ public:
 
 	SIZE GetRealSize ( void );
 
-	void UpdateScrollbars ( void );
+	void UpdateScrollbars ( bool bUpdateHor, bool bUpdateVer );
 	void ScrollPage ( int nDelta );
 
 private:
@@ -82,20 +96,26 @@ private:
 	bool m_bOnTop;
 	bool m_bMaximized;
 	bool m_bShowScrollbar;
+	bool m_bControlClicked;
 
 	SIZE m_realSize;
 	SIZE m_maxControlSize;
 
 	CScrollablePane *m_pScrollbar;
-
+	
 	enum E_WINDOW_AREA
 	{
-		CLEAR,
-		TOP_LEFT, LEFT_BOTTOM, TOP_RIGHT, RIGHT_BOTTOM,
-		TOP, LEFT, RIGHT, BOTTOM
+		OutArea,
+		TopLeft, BottomLeft, TopRight, BottomRight,
+		Top, Left, Right, Bottom
 
 	};
 
+	void SetCursorForPoint ( CPos pos );
+	E_WINDOW_AREA GetSizingBorderAtPoint ( CPos pos );
+
+
+	E_WINDOW_AREA GetSizingBorderAtArea ( CPos pos );
 	SControlRect *GetWindowRect ( E_WINDOW_AREA eArea );
 
 	SControlRect m_rButton;
@@ -107,13 +127,13 @@ private:
 	SControlRect m_rWindowBottom;
 
 	SControlRect m_rWindowTopLeft;
-	SControlRect m_rWindowLeftBottom;
+	SControlRect m_rWindowBottomLeft;
 	SControlRect m_rWindowTopRight;
-	SControlRect m_rWindowRightBottom;
+	SControlRect m_rWindowBottomRight;
 
 	CControl *m_pControlMouseOver;
 	CControl *m_pFocussedControl;
-
+	SControlRect rFrame;
 	int m_iTitleBarSize;
 	int m_nDragX;
 	int m_nDragY;

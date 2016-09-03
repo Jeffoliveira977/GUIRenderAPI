@@ -70,7 +70,7 @@ bool CProgressBarVertical::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPA
 				m_bPressed = true;
 
 				if ( m_pParent )
-					m_pParent->RequestControlFocus ( this );
+					m_pParent->SetFocussedControl ( this );
 
 				m_timer.Start ( PROGRESSBAR_ARROWCLICK_START );
 

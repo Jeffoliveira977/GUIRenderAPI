@@ -34,17 +34,7 @@ void CDropDown::Draw ()
 		 !m_pEntryList )
 		return;
 
-	if ( !m_bEnabledStateColor )
-		m_eState = SControlColor::STATE_NORMAL;
-	else if ( !m_bEnabled )
-		m_eState = SControlColor::STATE_DISABLED;
-	else if ( m_bPressed )
-		m_eState = SControlColor::STATE_PRESSED;
-	else if ( m_bMouseOver &&
-			  CControl::ContainsRect ( m_pDialog->GetMouse ()->GetPos () ) )
-		m_eState = SControlColor::STATE_MOUSE_OVER;
-	else
-		m_eState = SControlColor::STATE_NORMAL;
+	CControl::Draw ();
 
 	m_pDialog->DrawBox ( m_rBoundingBox, m_sControlColor.d3dColorBox [ m_eState ], m_sControlColor.d3dColorOutline, m_bAntAlias );
 
@@ -57,7 +47,7 @@ void CDropDown::Draw ()
 	rShape.pos.SetY ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cy / 2 - 1 );
 	rShape.size.cx = 7;
 
-	std::string str ( GetSelectedItem () ?
+	SIMPLEGUI_STRING str ( GetSelectedItem () ?
 					  GetSelectedItem ()->m_sText.c_str () :
 					  GetText () );
 
@@ -86,7 +76,7 @@ void CDropDown::AddItem ( SEntryItem *pEntry )
 
 void CDropDown::AddItem ( const SIMPLEGUI_CHAR *szText, const SIMPLEGUI_CHAR *szValue )
 {
-	m_pEntryList->AddEntry ( new SEntryItem ( szText ) );
+	m_pEntryList->AddEntry ( new SEntryItem ( szText, szValue ) );
 }
 
 void CDropDown::RemoveItem ( SEntryItem *pEntry )
@@ -169,6 +159,154 @@ void CDropDown::OnMouseLeave ( void )
 		pScrollbar->OnMouseLeave ();
 }
 
+bool CDropDown::OnKeyDown ( WPARAM wParam )
+{
+	if ( !CanHaveFocus () )
+		return false;
+
+	return false;
+}
+
+bool CDropDown::OnKeyUp ( WPARAM wParam )
+{
+	return false;
+}
+
+bool CDropDown::OnMouseButtonDown ( CPos pos )
+{
+	if ( !CanHaveFocus () )
+		return false;
+
+	// Let the scroll bar handle it first.
+	if ( m_pEntryList->GetScrollbar ()->OnMouseButtonDown ( pos ) )
+		return true;
+
+	if ( CControl::ContainsRect ( pos ) )
+	{
+		// Toggle dropdown
+		m_bPressed ? CloseBox () : OpenBox ();
+
+		return true;
+	}
+
+	// Mouse click not on main control or in dropdown
+	if ( m_bPressed &&
+		 !m_rBack.InControlArea ( pos ) )
+	{
+		CloseBox ();
+		return true;
+	}
+
+	return false;
+}
+
+bool CDropDown::OnMouseButtonUp ( CPos pos )
+{
+	// Let the scroll bar handle it first.
+	if ( m_pEntryList->GetScrollbar ()->OnMouseButtonDown ( pos ) )
+		return true;
+
+	if ( m_bPressed )
+	{
+		// Perhaps this click is within the dropdown
+		if ( m_rBack.InControlArea ( pos ) )
+		{
+			m_iSelected = m_iIndex;
+			m_pEntryList->SetSelectedEntryByIndex ( m_iSelected, true );
+
+			CloseBox ();
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+bool CDropDown::OnMouseMove ( CPos pos )
+{
+	if ( !CanHaveFocus () )
+		return false;
+
+	// Let the scroll bar handle it first.
+	if ( m_pEntryList->GetScrollbar ()->OnMouseButtonDown ( pos ) )
+		return true;
+
+	CScrollBarVertical *pScrollbarVer = m_pEntryList->GetScrollbar ()->GetVerScrollbar ();
+
+	m_iIndex = -1;
+	if ( m_bPressed )
+	{
+		SControlRect rText = m_rBack;
+		rText.pos.SetX ( rText.pos.GetX () + 4 );
+		rText.size.cx -= ( pScrollbarVer->GetWidth () + 3 );
+		rText.size.cy = TEXTBOX_TEXTSPACE - 2;
+
+		for ( int i = pScrollbarVer->GetTrackPos (); i < pScrollbarVer->GetTrackPos () + pScrollbarVer->GetPageSize (); i++ )
+		{
+			if ( i < ( int ) m_pEntryList->GetSize () )
+			{
+				if ( i != pScrollbarVer->GetTrackPos () )
+					rText.pos.SetY ( rText.pos.GetY () + m_pEntryList->GetTextSize ().cy );
+
+				SEntryItem *pEntry = m_pEntryList->GetEntryByIndex ( i );
+
+				// Check for a valid 'pEntry' pointer and if text is not NULL
+				// and determine which item has been selected
+				if ( pEntry &&
+					 pEntry->m_sText.c_str () != NULL &&
+					 rText.InControlArea ( pos ) )
+				{
+					m_iIndex = i;
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+bool CDropDown::OnMouseWheel ( int zDelta )
+{
+	if ( !CanHaveFocus () )
+		return false;
+
+	if ( m_bPressed )
+	{
+		UINT uLines;
+		SystemParametersInfo ( SPI_GETWHEELSCROLLLINES, 0, &uLines, 0 );
+
+		m_pEntryList->GetScrollbar ()->OnMouseWheel ( -zDelta * uLines );
+		return true;
+	}
+	else
+	{
+		if ( zDelta > 0 )
+		{
+			if ( m_iSelected > 0 )
+			{
+				m_iSelected--;
+
+				if ( !m_bPressed )
+					SendEvent ( EVENT_CONTROL_SELECT, m_iSelected );
+			}
+		}
+		else
+		{
+			if ( m_iSelected + 1 < ( int ) m_pEntryList->GetSize () )
+			{
+				m_iSelected--;
+
+				if ( !m_bPressed )
+					SendEvent ( EVENT_CONTROL_SELECT, m_iSelected );
+			}
+		}
+	}
+
+	return false;
+}
+
 bool CDropDown::CanHaveFocus ( void )
 {
 	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
@@ -186,7 +324,7 @@ void CDropDown::OpenBox ( void )
 {
 	if ( m_pParent && 
 		 !m_bHasFocus )
-		m_pParent->RequestControlFocus ( this );
+		m_pParent->SetFocussedControl ( this );
 
 	m_bPressed = true;
 }

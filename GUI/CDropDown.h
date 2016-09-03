@@ -32,6 +32,14 @@ public:
 	void OnMouseEnter ( void );
 	void OnMouseLeave ( void );
 
+	bool OnKeyDown ( WPARAM wParam );
+	bool OnKeyUp ( WPARAM wParam );
+
+	bool OnMouseButtonDown ( CPos pos );
+	bool OnMouseButtonUp ( CPos pos );
+	bool OnMouseMove ( CPos pos );
+	bool OnMouseWheel ( int zDelta );
+
 	bool CanHaveFocus ( void );
 
 	void SetSortedList ( bool bSort );

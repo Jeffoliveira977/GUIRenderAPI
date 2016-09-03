@@ -2,7 +2,7 @@
 
 #include "CGUI.h"
 
-class CScrollBarHorizontal : public CControl
+class CScrollBarHorizontal : public CScrollbar, public CControl
 {
 public:
 	CScrollBarHorizontal ( CDialog *pDialog );
@@ -14,65 +14,12 @@ public:
 
 	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
 
-	void OnClickLeave ( void )
-	{
-		m_bPressed = m_bDrag = false;
-		m_Arrow = CLEAR;
-	}
+	bool OnMouseButtonDown ( CPos pos );
+	bool OnMouseButtonUp ( CPos pos );
+	bool OnMouseMove ( CPos pos );
 
-	bool OnClickEvent ( void )
-	{
-		return  m_bPressed || m_bDrag || m_Arrow != CLEAR;
-	}
-
-	void SetTrackRange ( int nStart, int nEnd );
-
-	int GetMinSize ( void ) { return m_nStart; }
-	int GetEndSize ( void ) { return m_nEnd; }
-
-	int GetTrackPos ( void )
-	{
-		return m_nPosition;
-	}
-
-	void SetTrackPos ( int nPosition )
-	{
-		m_nPosition = nPosition;
-		Cap ();
-		UpdateThumbRect ();
-	}
-
-	int GetPageSize ( void )
-	{
-		return m_nPageSize;
-	}
-
-	void SetPageSize ( int nPageSize )
-	{
-		if ( nPageSize > 0 )
-			m_nPageSize = nPageSize;
-
-		Cap ();
-		UpdateThumbRect ();
-	}
-
-	void SetStepSize ( int nStep )
-	{
-		m_nStep=nStep;
-	}
-
-	int GetStepSize ( void )
-	{
-		return m_nStep;
-	}
-
-	bool IsThumbShowing ( void ) { return m_bShowThumb; }
-
-	// Scroll by nDelta items (plus or minus)
-	void Scroll ( int nDelta );
-
-	// Ensure that item nIndex is displayed, scroll if necessary
-	void ShowItem ( int nIndex );
+	void OnClickLeave ( void );
+	bool OnClickEvent ( void );
 
 private:
 
@@ -92,23 +39,13 @@ private:
 		HELD_DOWN,
 	};
 
-	void UpdateThumbRect ( void );
-	void Cap ( void );  // Clips position at boundaries. Ensures it stays within legal range.
-
 	SControlRect m_rUpButton;
 	SControlRect m_rDownButton;
 	SControlRect m_rThumb;
 
-	int m_nStep;	  // Step size used for increase / decrease button clicks.
-	int m_nPosition;  // Position of the first displayed item
-	int m_nPageSize;  // How many items are displayable in one page
-	int m_nStart;     // First item
-	int m_nEnd;       // The index after the last item
-
 	bool m_bShowThumb;
 	bool m_bDrag;
-
+	int nThumbOffset;
 	CTimer m_timer;
-	CPos m_LastMouse;
 	ARROWSTATE m_Arrow; // State of the arrows
 };

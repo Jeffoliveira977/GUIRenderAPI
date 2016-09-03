@@ -61,3 +61,17 @@ CPos CPos::operator - ( int iPos )
 {
 	return CPos ( GetX () - iPos, GetY () - iPos );
 }
+
+bool CPos::operator == ( CPos otherPos )
+{
+	return ( GetX () == otherPos.GetX() &&
+				  GetY () == otherPos.GetY () );
+}
+
+bool CPos::operator!=( CPos otherPos )
+{
+	return ( GetX () != otherPos.GetX () ||
+			 GetY () != otherPos.GetY () );
+}
+
+

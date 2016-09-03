@@ -25,7 +25,6 @@ const SIZE GetControlMinSize ( CControl::EControlType eType )
 		case CControl::TYPE_TEXTBOX:
 		case CControl::TYPE_LISTBOX:
 		case CControl::TYPE_LISTVIEW:
-			size.cx = 100;
 			size.cy = 100;
 			break;
 		case CControl::TYPE_SCROLLBARHORIZONTAL:
@@ -43,6 +42,9 @@ const SIZE GetControlMinSize ( CControl::EControlType eType )
 		case CControl::TYPE_LABEL:
 			size.cx = 400;
 			break;
+		case CControl::TYPE_TABPANEL:
+			size.cx = 200;
+			break;
 		case CControl::TYPE_WINDOW:
 			size.cx = 100;
 			size.cy = 100;
@@ -57,42 +59,47 @@ const SIZE GetControlMinSize ( CControl::EControlType eType )
 
 void CControl::SetControl ( CDialog *pDialog, EControlType eType )
 {
-	assert ( pDialog && "To fix hook up CDialog to device callbacks" );
-
 	// Default state
-	m_eState = SControlColor::STATE_NORMAL;
+	m_eState														= SControlColor::STATE_NORMAL;
 
 	// Set default colors
-	m_sControlColor.d3dColorSelectedFont = D3DCOLOR_RGBA ( 0, 0, 0, 255 );
-	m_sControlColor.d3dColorFont = D3DCOLOR_RGBA ( 255, 255, 255, 255 );
-	m_sControlColor.d3dColorShape = D3DCOLOR_RGBA ( 0, 0, 0, 255 );
-	m_sControlColor.d3dColorOutline = D3DCOLOR_RGBA ( 0, 0, 0, 255 );
-	m_sControlColor.d3dColorBoxBack = D3DCOLOR_RGBA ( 40, 40, 40, 255 );
-	m_sControlColor.d3dColorBoxSel = D3DCOLOR_RGBA ( 100, 100, 100, 255 );
+	m_sControlColor.d3dColorSelectedFont							= D3DCOLOR_RGBA ( 0, 0, 0, 255 );
+	m_sControlColor.d3dColorFont									= D3DCOLOR_RGBA ( 255, 255, 255, 255 );
+	m_sControlColor.d3dColorShape									= D3DCOLOR_RGBA ( 0, 0, 0, 255 );
+	m_sControlColor.d3dColorOutline									= D3DCOLOR_RGBA ( 0, 0, 0, 255 );
+	m_sControlColor.d3dColorBoxBack									= D3DCOLOR_RGBA ( 40, 40, 40, 255 );
+	m_sControlColor.d3dColorBoxSel									= D3DCOLOR_RGBA ( 100, 100, 100, 255 );
 
-	m_sControlColor.d3dColorBox [ SControlColor::STATE_NORMAL ] = D3DCOLOR_RGBA ( 80, 80, 80, 255 );
+	m_sControlColor.d3dColorBox [ SControlColor::STATE_NORMAL ]		= D3DCOLOR_RGBA ( 80, 80, 80, 255 );
 	m_sControlColor.d3dColorBox [ SControlColor::STATE_MOUSE_OVER ] = D3DCOLOR_XRGB ( 100, 100, 100, 255 );
-	m_sControlColor.d3dColorBox [ SControlColor::STATE_PRESSED ] = D3DCOLOR_XRGB ( 60, 60, 60, 255 );
-	m_sControlColor.d3dColorBox [ SControlColor::STATE_DISABLED ] = D3DCOLOR_XRGB ( 220, 220, 220, 255 );
+	m_sControlColor.d3dColorBox [ SControlColor::STATE_PRESSED ]	= D3DCOLOR_XRGB ( 60, 60, 60, 255 );
+	m_sControlColor.d3dColorBox [ SControlColor::STATE_DISABLED ]	= D3DCOLOR_XRGB ( 220, 220, 220, 255 );
 
-	m_bEnabled = true;
-	m_bAntAlias = true;
-	m_bEnabledStateColor = true;
-	m_bVisible = true;
+	m_bEnabled														= true;
+	m_bAntAlias														= true;
+	m_bEnabledStateColor											= true;
+	m_bVisible														= true;
 
-	m_eType = eType;
-	m_pParent = NULL;
-	m_pFont = NULL;
-	m_pTexture = NULL;
 
-	m_minSize = GetControlMinSize ( eType );
+	m_eType															= eType;
+	m_pParent														= NULL;
+	m_pFont															= pDialog->GetFont ();
+	m_pTexture														= NULL;
+	m_pDialog														= pDialog;
+
+	m_minSize														= GetControlMinSize ( eType );
 
 	ZeroMemory ( &m_size, sizeof ( SIZE ) );
 	ZeroMemory ( &m_pos, sizeof ( CPos ) );
+	ZeroMemory ( &m_oldPos, sizeof ( CPos ) );
 	ZeroMemory ( &m_rContentBox, sizeof ( SControlRect ) );
-
-	m_pDialog = pDialog;
 }
+
+void CControl::ClearControlFocus ( void )
+{}
+
+void CControl::SetFocussedControl ( CControl *pControl )
+{}
 
 void CControl::SetColor ( SControlColor sColor )
 {
@@ -104,15 +111,16 @@ SControlColor CControl::GetColor ( SControlColor sColor )
 	return m_sControlColor;
 }
 
-void CControl::SetParent ( CWindow *pParent )
+void CControl::SetParent ( CControl *pParent )
 {
-	if ( m_pParent == pParent )
-		return;
-
-	m_pParent = pParent;
+	if ( pParent && ( pParent->GetType () == EControlType::TYPE_TABPANEL || 
+		 pParent->GetType () == EControlType::TYPE_WINDOW ) )
+	{
+		m_pParent = pParent;
+	}
 }
 
-CWindow *CControl::GetParent ( void )
+CControl *CControl::GetParent ( void )
 {
 	return m_pParent;
 }
@@ -209,9 +217,9 @@ SIZE CControl::GetMinSize ( SIZE size )
 
 bool CControl::IsSizingX ( void )
 {
-	if ( m_size.cx != m_rContentBox.size.cx )
+	if ( m_rBoundingBox.size.cx != m_rContentBox.size.cx )
 	{
-		m_rContentBox.size.cx = m_size.cx;
+		m_rContentBox.size.cx = m_rBoundingBox.size.cx;
 		return true;
 	}
 
@@ -220,9 +228,9 @@ bool CControl::IsSizingX ( void )
 
 bool CControl::IsSizingY ( void )
 {
-	if ( m_size.cy != m_rContentBox.size.cy )
+	if ( m_rBoundingBox.size.cy != m_rContentBox.size.cy )
 	{
-		m_rContentBox.size.cy = m_size.cy;
+		m_rContentBox.size.cy = m_rBoundingBox.size.cy;
 		return true;
 	}
 
@@ -235,23 +243,42 @@ bool CControl::IsSizing ( void )
 			 IsSizingY () );
 }
 
-bool CControl::IsMoving ( void )
+bool CControl::IsMovingX ( void )
 {
-	if ( m_pos.GetX () == m_rContentBox.pos.GetX () &&
-		 m_pos.GetY () == m_rContentBox.pos.GetY () )
+	if ( m_rBoundingBox.pos.GetX () != m_rContentBox.pos.GetX () )
 	{
-		return false;
-	}
-	else
-	{
-		m_rContentBox.pos = m_pos;
+		m_rContentBox.pos.SetX ( m_rBoundingBox.pos.GetX() );
 		return true;
 	}
+
+	return false;
+}
+
+bool CControl::IsMovingY ( void )
+{
+	if ( m_rBoundingBox.pos.GetY () != m_rContentBox.pos.GetY () )
+	{
+		m_rContentBox.pos.SetY ( m_rBoundingBox.pos.GetY () );
+		return true;
+	}
+
+	return false;
+}
+
+bool CControl::IsMoving ( void )
+{
+	return ( IsMovingX () ||
+			 IsMovingY () );
 }
 
 SIZE CControl::GetSize ( void )
 {
 	return m_rBoundingBox.size;
+}
+
+SIZE CControl::GetRealSize ( void )
+{
+	return m_size;
 }
 
 bool CControl::CanHaveFocus ( void )
@@ -264,7 +291,7 @@ bool CControl::HasFocus ( void )
 	return m_bHasFocus;
 }
 
-void CControl::SetText ( SIMPLEGUI_STRING sString )
+void CControl::SetText ( SIMPLEGUI_STRING sString, bool )
 {
 	m_sText = sString;
 }
@@ -286,6 +313,11 @@ void CControl::Draw ( void )
 		m_eState = SControlColor::STATE_MOUSE_OVER;
 	else
 		m_eState = SControlColor::STATE_NORMAL;
+}
+
+bool CControl::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	return false;
 }
 
 bool CControl::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
@@ -400,6 +432,40 @@ bool CControl::OnClickEvent ( void )
 	return m_bPressed;
 }
 
+bool CControl::OnMouseButtonDown ( CPos pos )
+{
+	return false;
+}
+
+bool CControl::OnMouseButtonUp ( CPos pos )
+{
+	return false;
+}
+
+bool CControl::OnMouseMove ( CPos pos )
+{
+	return false;
+}
+bool CControl::OnMouseWheel ( int nDelta )
+{
+	return false;
+}
+
+bool CControl::OnKeyDown ( WPARAM wParam )
+{
+	return false;
+}
+
+bool CControl::OnKeyUp ( WPARAM wParam )
+{
+	return false;
+}
+
+bool CControl::OnKeyCharacter ( WPARAM wParam )
+{
+	return false;
+}
+
 bool CControl::SendEvent ( E_EVENT_CONTROL event, int params )
 {
 	if ( !m_pAction )
@@ -417,28 +483,32 @@ void CControl::UpdateRects ( void )
 	{
 		SIZE size = m_pParent->GetSize ();
 
-		if ( m_bRelativeSX )
+		if ( m_bRelativeSizeX )
 			m_rBoundingBox.size.cx = max ( m_minSize.cx, m_rBoundingBox.size.cx + ( ( size.cx - m_pParent->GetRealSize ().cx ) ) );
 
-		if ( m_bRelativeSY )
+		if ( m_bRelativeSizeY )
 			m_rBoundingBox.size.cy = max ( m_minSize.cy, m_rBoundingBox.size.cy + ( ( size.cy - m_pParent->GetRealSize ().cy ) ) );
+
+	
 	}
 }
 
 void CControl::EnterScissorRect ( SControlRect rRect )
 {
+	m_rScissorCpy = rRect;
 	m_rScissor = m_rBoundingBox;
+	int nDragOffSet;
 
 	if ( rRect.pos.GetY () + rRect.size.cy < m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cy - 1 )
 	{
 		m_rScissor.size.cy = rRect.pos.GetY () + rRect.size.cy - m_rBoundingBox.pos.GetY () - 1;
 	}
 
-	if ( m_rBoundingBox.pos.GetY () < rRect.pos.GetY () + m_pParent->GetTitleBarHeight () + 1 )
+	if ( m_rBoundingBox.pos.GetY () < rRect.pos.GetY () + 1 )
 	{
-		int iDragOffSetY = ( rRect.pos.GetY () + m_pParent->GetTitleBarHeight () + 1 ) - m_rBoundingBox.pos.GetY ();
-		m_rScissor.pos.SetY ( m_rScissor.pos.GetY () + iDragOffSetY );
-		m_rScissor.size.cy = m_rScissor.size.cy - iDragOffSetY;
+		nDragOffSet = rRect.pos.GetY () + 1 - m_rBoundingBox.pos.GetY ();
+		m_rScissor.pos.SetY ( m_rScissor.pos.GetY () + nDragOffSet );
+		m_rScissor.size.cy = m_rScissor.size.cy - nDragOffSet;
 	}
 
 	if ( rRect.pos.GetX () + rRect.size.cx < m_rBoundingBox.pos.GetX () + m_rBoundingBox.size.cx + 1 )
@@ -448,37 +518,36 @@ void CControl::EnterScissorRect ( SControlRect rRect )
 
 	if ( m_rBoundingBox.pos.GetX () < rRect.pos.GetX () + 1 )
 	{
-		int iDragOffSetX = rRect.pos.GetX () - m_rBoundingBox.pos.GetX () + 1;
-		m_rScissor.pos.SetX ( m_rScissor.pos.GetX () + iDragOffSetX );
-		m_rScissor.size.cx = m_rScissor.size.cx - iDragOffSetX;
+		nDragOffSet = rRect.pos.GetX () - m_rBoundingBox.pos.GetX () + 1;
+		m_rScissor.pos.SetX ( m_rScissor.pos.GetX () + nDragOffSet );
+		m_rScissor.size.cx = m_rScissor.size.cx - nDragOffSet;
 	}
 
 	SetScissor ( m_pDialog->GetDevice (), m_rScissor.GetRect () );
-	m_rScissor = rRect;
 }
 
 void CControl::LeaveScissorRect ( void )
 {
-	SetScissor ( m_pDialog->GetDevice (), m_rScissor.GetRect () );
+	SetScissor ( m_pDialog->GetDevice (), m_rScissorCpy.GetRect () );
 }
 
 void CControl::SetRelativePosX ( bool bRelative )
 {
-	m_bRelativeX = bRelative;
+	m_bRelativePosX = bRelative;
 }
 void CControl::SetRelativePosY ( bool bRelative )
 {
-	m_bRelativeY = bRelative;
+	m_bRelativePosY = bRelative;
 }
 
 void CControl::SetRelativeSizeX ( bool bRelative )
 {
-	m_bRelativeSX = bRelative;
+	m_bRelativeSizeX = bRelative;
 }
 
 void CControl::SetRelativeSizeY ( bool bRelative )
 {
-	m_bRelativeSY = bRelative;
+	m_bRelativeSizeY = bRelative;
 }
 
 void CControl::LinkPos ( CPos pos )
@@ -486,24 +555,36 @@ void CControl::LinkPos ( CPos pos )
 	SIZE size [ 2 ];
 	ZeroMemory ( size, sizeof ( SIZE ) * 2 );
 
-	if ( m_pParent && m_eType != TYPE_WINDOW )
+	if ( m_pParent &&
+		 m_eType != TYPE_WINDOW )
 	{
-		if ( m_bRelativeX &&
-			 m_size.cx > m_rBoundingBox.size.cx + ( ( m_pParent->GetWidth () - m_pParent->GetRealSize ().cx ) ) )
+		if ( m_bRelativePosX &&
+			 m_size.cx > m_rBoundingBox.size.cx + ( ( m_pParent->GetWidth () - m_pParent->GetWidth () ) ) )
 		{
 			size [ 0 ].cx = m_pParent->GetWidth ();
 			size [ 1 ].cx = m_pParent->GetRealSize ().cx;
 		}
 
-		if ( m_bRelativeY &&
-			 m_size.cy > m_rBoundingBox.size.cy + ( ( m_pParent->GetHeight () - m_pParent->GetRealSize ().cy ) ) )
+		if ( m_bRelativePosY )
 		{
 			size [ 0 ].cy = m_pParent->GetHeight ();
 			size [ 1 ].cy = m_pParent->GetRealSize ().cy;
 		}
 	}
 
-	m_rBoundingBox.pos = m_pos + CPos ( size [ 0 ].cx, size [ 0 ].cy ) + pos - CPos ( size [ 1 ].cx, size [ 1 ].cy );
+
+
+	/*if ( m_oldPos.GetX () && m_oldPos.GetY () )*/
+
+		m_rBoundingBox.pos = m_pos + CPos ( size [ 0 ].cx, size [ 0 ].cy ) +pos - CPos ( size [ 1 ].cx, size [ 1 ].cy ) /* - m_oldPos*/;
+	m_oldPos = pos;
+
+	/*int nPos = 0;
+	if ( m_pParent )
+		nPos = m_pParent->GetPos ()->GetY () + ( m_pParent->GetType () == EControlType::TYPE_WINDOW ?
+												 static_cast< CWindow* >( m_pParent )->GetTitleBarHeight () : 0 );
+	if ( m_rBoundingBox.pos.GetY () < nPos )
+		m_rBoundingBox.pos.SetY ( nPos );*/
 
 	UpdateRects ();
 }

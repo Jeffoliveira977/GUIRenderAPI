@@ -296,9 +296,9 @@ void CD3DStateBlock::SetRenderStates ( void )
 CD3DFont::CD3DFont ( const TCHAR* strFontName, DWORD dwHeight, DWORD dwFlags )
 {
 #ifdef _UNICODE 
-	wcsncpy_s ( m_strFontName, strFontName, sizeof ( m_strFontName ) / sizeof ( TCHAR ) );
+	wcsncpy_s ( m_strFontName, strFontName, sizeof ( m_strFontName ) / sizeof ( WCHAR ) );
 #else
-	strncpy_s ( m_strFontName, strFontName, sizeof ( m_strFontName ) / sizeof ( TCHAR ) );
+	strncpy_s ( m_strFontName, strFontName, sizeof ( m_strFontName ) / sizeof ( CHAR ) );
 #endif
 
 	m_strFontName [ sizeof ( m_strFontName ) / sizeof ( TCHAR ) - 1 ] = '\0';
@@ -453,12 +453,12 @@ HRESULT CD3DFont::Initialize ( LPDIRECT3DDEVICE9 pd3dDevice )
 
 		pDstRow += d3dlr.Pitch;
 	}
-
+	m_hDC = hDC;
 	// Done updating texture, so clean up used objects
 	m_pTexture->UnlockRect ( 0 );
 	DeleteObject ( hbmBitmap );
-	DeleteDC ( hDC );
-	DeleteObject ( hFont );
+	//DeleteDC ( hDC );
+	//DeleteObject ( hFont );
 
 	return S_OK;
 }
@@ -471,6 +471,7 @@ HRESULT CD3DFont::Invalidate ( void )
 {
 	SAFE_RELEASE ( m_pVB );
 	SAFE_RELEASE ( m_pTexture );
+	DeleteDC ( m_hDC );
 
 	return S_OK;
 }
@@ -485,12 +486,12 @@ HRESULT CD3DFont::GetTextExtent ( const TCHAR* str, SIZE* pSize )
 		 !pSize )
 		return E_FAIL;
 
-	FLOAT fRowWidth = 0.0f;
-	FLOAT fRowHeight = ( m_fTexCoords [ 0 ] [ 3 ] - m_fTexCoords [ 0 ] [ 1 ] )*m_dwTexHeight;
-	FLOAT fWidth = 0.0f;
-	FLOAT fHeight = fRowHeight;
+	FLOAT fRowWidth		= 0.0f;
+	FLOAT fRowHeight	= ( m_fTexCoords [ 0 ] [ 3 ] - m_fTexCoords [ 0 ] [ 1 ] ) * m_dwTexHeight;
+	FLOAT fWidth		= 0.0f;
+	FLOAT fHeight		= fRowHeight;
 
-	TCHAR *strText = ( TCHAR* ) str;
+	TCHAR *strText		= ( TCHAR* ) str;
 
 	while ( *strText )
 	{
@@ -498,11 +499,11 @@ HRESULT CD3DFont::GetTextExtent ( const TCHAR* str, SIZE* pSize )
 
 		if ( c == '{' )
 		{
-			std::vector<TCHAR> costumColor;
-			TCHAR *strData = strText;
+			std::vector<TCHAR>	costumColor;
+			TCHAR				*strData = strText;
 
-			bool bTagFound = true;
-			size_t count = 0;
+			bool				bTagFound = true;
+			size_t				count = 0;
 
 			while ( *strData != '}' )
 			{
@@ -646,7 +647,7 @@ HRESULT CD3DFont::Print ( FLOAT sx, FLOAT sy, DWORD dwColor,
 		{
 			addSize = 0;
 			sx = fStartX;
-			sy += ( m_fTexCoords [ 0 ] [ 3 ] - m_fTexCoords [ 0 ] [ 1 ] )*m_dwTexHeight;
+			sy += ( m_fTexCoords [ 0 ] [ 3 ] - m_fTexCoords [ 0 ] [ 1 ] ) * m_dwTexHeight;
 		}
 
 		FLOAT tx1 = m_fTexCoords [ c - 32 ] [ 0 ];
@@ -737,6 +738,9 @@ HRESULT CD3DFont::Print ( FLOAT sx, FLOAT sy, DWORD dwColor,
 
 void CD3DFont::CutString ( int iMaxWidth, D3DSTRING &sString )
 {
+	if ( sString.empty () )
+		return;
+
 	SIZE size;
 	GetTextExtent ( sString.c_str (), &size );
 
@@ -747,6 +751,47 @@ void CD3DFont::CutString ( int iMaxWidth, D3DSTRING &sString )
 
 		sString.pop_back ();
 		GetTextExtent ( sString.c_str (), &size );
+	}
+}
+
+void CD3DFont::RemoveColorTableFromString ( D3DSTRING &sString )
+{
+	for ( size_t i = 0; i < sString.size (); i++ )
+	{
+		if ( sString [ i ] == '{' )
+		{
+			bool				bTagFound	= true;
+
+			size_t				nTagCount	= 0;
+			size_t				nColorCount = 0;
+
+			while ( i + nTagCount < sString.size () && sString [ i + nTagCount ] != '}' )
+			{
+				if ( nColorCount > 8 )
+				{
+					bTagFound = false;
+					break;
+				}
+
+				TCHAR c = toupper ( sString [ i + nTagCount ] );
+				bool bKey = ( c >= '0' && c <= '9' ) || 
+					( c >= 'A' && c <= 'F' );
+
+				if ( bKey )
+				{
+					nColorCount++;
+				}
+
+				nTagCount++;
+			}
+
+			if ( bTagFound &&
+				 nColorCount == 8 )
+			{
+				sString.erase ( i, 10 );
+				continue;
+			}
+		}
 	}
 }
 
@@ -1001,9 +1046,13 @@ void CD3DRender::D3DBox ( float fX, float fY,
 	vVector [ 5 ].x = fX;
 	vVector [ 5 ].y = fY + fHeight;
 
+
+	// Rotate box
 	if ( fAngle )
 		RotateVerts ( vVector, iVertexSize, fX, fY, fAngle );
 
+
+	// Draw Box
 	if ( SUCCEEDED ( BeginRender ( D3DPT_TRIANGLEFAN ) ) )
 	{
 		m_pd3dDevice->SetRenderState ( D3DRS_MULTISAMPLEANTIALIAS, bAntAlias );
@@ -1016,6 +1065,7 @@ void CD3DRender::D3DBox ( float fX, float fY,
 		EndRender ();
 	}
 
+	// Draw line
 	if ( SUCCEEDED ( BeginRender ( D3DPT_LINESTRIP ) ) )
 	{
 		m_pd3dDevice->SetRenderState ( D3DRS_MULTISAMPLEANTIALIAS, bAntAlias );
@@ -1048,13 +1098,12 @@ CD3DTexture::CD3DTexture ( const TCHAR *szPath ) :
 	m_pTexture ( NULL )
 {
 #ifdef _UNICODE
-	m_szPath = new TCHAR [ wcslen ( szPath ) ];
+	m_szPath = new WCHAR [ wcslen ( szPath ) ];
 	wcscpy ( m_szPath, szPath );
 #else
-	m_szPath = new TCHAR [ strlen ( szPath ) ];
+	m_szPath = new CHAR [ strlen ( szPath ) ];
 	strcpy ( m_szPath, szPath );
 #endif
-
 }
 
 CD3DTexture::CD3DTexture ( LPCVOID pSrc, UINT uSrcSize ) :
@@ -1164,23 +1213,25 @@ void CD3DTexture::Draw ( float fX, float fY, float fScaleX, float fScaleY,
 	vVector [ 3 ].u = 0.0f;
 	vVector [ 3 ].v = 1.0f;
 
-	const int iVertexSize = 6;
-	D3DXVECTOR2 v[ iVertexSize ];
-
-	for ( size_t i = 0; i < iVertexSize; i++ )
-	{
-		v [ i ].x = vVector [ i ].x;
-		v [ i ].y = vVector [ i ].y;
-	}
-
 	if ( fRotation )
-		RotateVerts ( v, iVertexSize, fX, fY, fRotation );
-	
-	for ( size_t i = 0; i < iVertexSize; i++ )
 	{
-		vVector [ i ].x = v [ i ].x;
-		vVector [ i ].y = v [ i ].y;
-	}	
+		const int iVertexSize = 4;
+		D3DXVECTOR2 v [ iVertexSize ];
+
+		for ( size_t i = 0; i < iVertexSize; i++ )
+		{
+			v [ i ].x = vVector [ i ].x;
+			v [ i ].y = vVector [ i ].y;
+		}
+
+		RotateVerts ( v, iVertexSize, fX, fY, fRotation );
+
+		for ( size_t i = 0; i < iVertexSize; i++ )
+		{
+			vVector [ i ].x = v [ i ].x;
+			vVector [ i ].y = v [ i ].y;
+		}
+	}
 
 	//Unlock the vertex buffer
 	m_pVB->Unlock ();
@@ -1203,5 +1254,5 @@ void CD3DTexture::Draw ( float fX, float fY, D3DCOLOR d3dColor )
 
 	//Get texture dimensions
 	m_pTexture->GetLevelDesc ( 0, &surfaceDesc );
-	Draw ( fX, fY, surfaceDesc.Width, surfaceDesc.Height, d3dColor );
+	Draw ( fX, fY, surfaceDesc.Width, surfaceDesc.Height, 0.f, d3dColor );
 }

@@ -17,16 +17,7 @@ void CTrackBarVertical::Draw ( void )
 	if ( !m_bVisible )
 		return;
 
-	if ( !m_bEnabledStateColor )
-		m_eState = SControlColor::STATE_NORMAL;
-	else if ( !m_bEnabled )
-		m_eState = SControlColor::STATE_DISABLED;
-	else if ( m_bPressed )
-		m_eState = SControlColor::STATE_PRESSED;
-	else if ( m_bMouseOver )
-		m_eState = SControlColor::STATE_MOUSE_OVER;
-	else
-		m_eState = SControlColor::STATE_NORMAL;
+	CControl::Draw ();
 
 	SControlRect rBox = m_rBoundingBox;
 	rBox.pos.SetX ( rBox.pos.GetX () + m_rBoundingBox.size.cx / 2 - 2 );
@@ -58,7 +49,7 @@ bool CTrackBarVertical::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM
 				m_nDragOffset = pos.GetY () - m_rThumb.pos.GetY ();
 
 				if ( m_pParent && !m_bHasFocus )
-					m_pParent->RequestControlFocus ( this );
+					m_pParent->SetFocussedControl ( this );
 
 				return true;
 			}
@@ -71,7 +62,7 @@ bool CTrackBarVertical::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM
 				m_bPressed = true;
 
 				if ( m_pParent && !m_bHasFocus )
-					m_pParent->RequestControlFocus ( this );
+					m_pParent->SetFocussedControl ( this );
 
 				if ( pos.GetY () > m_rThumb.pos.GetY () )
 				{

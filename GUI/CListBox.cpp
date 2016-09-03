@@ -144,7 +144,7 @@ bool CListBox::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
 
 	// First acquire focus
 	if ( WM_LBUTTONDOWN == uMsg )
-			m_pParent->RequestControlFocus ( this );
+			m_pParent->SetFocussedControl ( this );
 
 	if ( m_pEntryList->GetScrollbar ()->HandleMouse ( uMsg, pos, wParam, lParam ) )
 	{

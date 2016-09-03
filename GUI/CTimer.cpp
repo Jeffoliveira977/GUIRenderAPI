@@ -11,7 +11,7 @@ CTimer::~CTimer()
 
 void CTimer::Start( float fSec )
 {
-	dwStop = (DWORD)( fSec * 1000 ) + timeGetTime();
+	dwStop = ( DWORD ) ( fSec * 1000 ) + timeGetTime ();
 }
 
 void CTimer::Stop()

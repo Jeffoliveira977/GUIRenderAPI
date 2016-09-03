@@ -23,4 +23,7 @@ public:
 
 	CPos operator + ( int iPos );
 	CPos operator - ( int iPos );
+
+	bool operator == ( CPos otherPos );
+	bool operator != ( CPos otherPos );
 };

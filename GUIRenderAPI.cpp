@@ -107,26 +107,12 @@ VOID Init ()
 	pGui->LoadFont ( _UI ( "Tahoma" ), 10, false );
 
 	// Create Servers Brouser
-	fServBrowser = pGui->AddWindow ( s_iWidth / 2, s_iHeight / 2, 750, 500, _UI ( "SERVER BROWSER" ),true );
+	fServBrowser = pGui->AddWindow ( s_iWidth / 2, s_iHeight / 2, 750, 500, _UI ( "SERVER BROWSER" ),1 );
 
-	/*int ServerWidth [ 6 ] = { 16, 210, 60, 60, 100, 100 };
-	sbServList = new CListView ( pGui, 0, 29, ServerWidth, 350, 6, NULL, "SERVER_LIST"));
-	sbServList->SetColumnImage ( 0, "FMPGUI/Pass.png", "FMPGUI/noPass.png", "FMPGUI/Pass.png", 16, 16 );
-
-	sbServList->SetTitle ( "P"));
-	sbServList->SetTitle ( "Server Name"));
-	sbServList->SetTitle ( "Slots"));
-	sbServList->SetTitle ( "Ping"));
-	sbServList->SetTitle ( "Mode"));
-	sbServList->SetTitle ( "Location"));
-
-	int PlayerWidth [ 2 ] = { 128, 76 };
-	sbPlayerList = new CListView ( pGui, 546, 49, PlayerWidth, 200, 2, NULL, "PLAYER_LIST"));
-
-	sbPlayerList->SetTitle ( "Player"));
-	sbPlayerList->SetTitle ( "Score"));*/
+	
 
 	sbTab [ 0 ] = pGui->AddButton ( fServBrowser, 20, 0, 200, 20, _UI ( "Internet" ) );
+	sbTab [ 0 ]->SetRelativePosX ( true );
 	sbTab [ 1 ] = pGui->AddButton ( fServBrowser, 169, 0, 200, 20, _UI ( "LAN" ) );
 	sbTab [ 2 ] = pGui->AddButton ( fServBrowser, 318, 0, 200, 20, _UI ( "VIP" ) );
 	sbTab [ 3 ] = pGui->AddButton ( fServBrowser, 467, 0, 200, 20, _UI ( "Favourite" ) );
@@ -150,10 +136,10 @@ VOID Init ()
 	auto  pRadios12 = pGui->AddRadioButton ( fServBrowser, 1, 220, 280, 1120, _UI ( "Refresh" ) );
 	
 
-	auto fServBrowser1 = pGui->AddWindow ( s_iWidth / 2, s_iHeight / 2 + 200, 750, 500, _UI ( "SERVER BROWSER" ), true );
-	
-	auto fServBrowser2 = pGui->AddWindow ( s_iWidth / 2, s_iHeight / 2 + 500, 750, 500, _UI ( "SERVER BROWSER" ) );
-	auto fServBrowser3 = pGui->AddWindow ( s_iWidth / 2, s_iHeight / 2 + 500, 750, 500, _UI ( "SERVER BROWSER" ) );
+	auto fServBrowser1 = pGui->AddWindow ( s_iWidth / 2 + 800, s_iHeight / 2, 750, 500, _UI ( "SERVER BROWSER" ), 1 );
+	fServBrowser1->AddControl ( fServBrowser );
+	auto fServBrowser2 = pGui->AddWindow ( s_iWidth / 2, s_iHeight / 2 + 600, 750, 500, _UI ( "SERVER BROWSER" ) );
+	auto fServBrowser3 = pGui->AddWindow ( s_iWidth / 2 + 800, s_iHeight / 2 + 600, 750, 500, _UI ( "SERVER BROWSER" ) );
 
 
 	CButton *sbTab2 [ 4 ];
@@ -166,10 +152,10 @@ VOID Init ()
 	auto sbRefresh2 = pGui->AddButton ( fServBrowser1, 660, 380, 80, 20, _UI ( "Refresh" ) );
 	auto sbAddToFav2 = pGui->AddButton ( fServBrowser1, 600, 405, 120, 20, _UI ( "Add to favourites" ) );
 
-	sbAddToFav2->SetRelativePosX ( true );
-	sbAddToFav2->SetRelativePosY ( true );
+	//sbAddToFav2->SetRelativePosX ( true );
+	//sbAddToFav2->SetRelativePosY ( true );
 	sbAddToFav2->SetRelativeSizeX ( true );
-
+	sbAddToFav2->SetRelativeSizeY ( true );
 	auto sbFltNotFull2 = pGui->AddCheckBox ( fServBrowser1, 150, 410, 150, true, _UI ( "Add to favourites" ) );
 
 	auto sbFltNotEmpty2 = pGui->AddCheckBox ( fServBrowser1, 480, 385, 40, 0, _UI ( "Add to favourites" ) );
@@ -182,67 +168,27 @@ VOID Init ()
 	auto  pRadio122 = pGui->AddRadioButton ( fServBrowser1, 1, 220, 220, 115, _UI ( "Refresh" ) );
 	auto  pRadios122 = pGui->AddRadioButton ( fServBrowser1, 1, 220, 280, 115, _UI ( "Refresh" ) );
 
-	//	auto ptrack = pGui->AddTrackBarVertical ( fServBrowser1, 300, 200, 20, 400, -10, 1000, 990 );
+		auto ptrack = pGui->AddTrackBarVertical ( fServBrowser1, 300, 200, 20, 400, -10, 1000, 990 );
 	auto pScroll = pGui->AddScrollBar ( fServBrowser1, 300, 200, 18, 200, 0, 100, 10, 1 );
+	pScroll->SetTrackRange ( 0, 300 );
+	/*auto pDrop = pGui->AddDropDown ( fServBrowser1, 500, 200, 200, 20, _UI ( "WWWWWWWWWWWWW") );
 
-	auto pDrop = pGui->AddDropDown ( fServBrowser1, 500, 200, 200, 20, _UI ( "WWWWWWWWWWWWW") );
+	*/
 
-
-
-	pDrop->SetSelectedItemByIndex ( 229, true );
+	
 	auto pTextBox = pGui->AddTextBox ( fServBrowser1, 20, 350, 350, 108 );
-	pTextBox->SetRelativeSizeX ( true );
-	pTextBox->SetRelativeSizeY ( true );
+	pTextBox->AddText ( CLogBox::LOG_INFO,_UI ( "ASD" ) );
+	pTextBox->AddText ( CLogBox::LOG_INFO,_UI ( "ASD" ) );
+	pTextBox->AddText ( CLogBox::LOG_INFO,_UI ( "ASD" ) );
+	pTextBox->AddText ( CLogBox::LOG_INFO,_UI ( "ASD" ) );
+	pTextBox->AddText ( CLogBox::LOG_INFO,_UI ( "ASD" ) );
+	pTextBox->AddText ( CLogBox::LOG_INFO, _UI ( "ASD" ) );
+	pTextBox->AddText ( CLogBox::LOG_INFO, _UI ( "ASD" ) );
+	pTextBox->AddText ( CLogBox::LOG_INFO, _UI ( "ASD" ) );
+	pTextBox->AddText ( CLogBox::LOG_INFO, _UI ( "ASD" ) );
 
-	struct sds
-	{
-		TCHAR szText [ MAX_PATH ];
-	};	pDrop->SetSortedList ( true );
-	sds sd [] = { { "ANDRE" }, { "BBTHIN" }, { "BB" },
-	{ "CAT" }, { "CESAR", }, { "COPGRL1" },
-	{ "COPGRL2" }, { "CLAUDE" }, { "CROGRL1" },
-	{ "CROGRL2" }, { "DWAYNE" },
-	{ "EMMET" }, { "FORELLI" }, { "JANITOR" },
-	{ "JETHRO" }, { "JIZZY" }, { "HERN" },
-	{ "GANGRL1" }, { "GANGRL2" },
-	{ "GUNGRL1" }, { "GUNGRL2" },
-	{ "KENDL" }, { "MACCER" }, { "MADDOGG" },
-	{ "MECGRL1" }, { "MECGRL2" },
-	{ "NURGRL1" }, { "NURGRL2" },
-	{ "OGLOC" }, { "PAUL" }, { "PULASKI" },
-	{ "ROSE" }, { "RYDER" }, { "RYDER2" },
-	{ "RYDER3" }, { "SINDACO" }, { "SMOKE" },
-	{ "SMOKEV", }, { "SUZIE" }, { "SWEET" },
-	{ "TBONE", }, { "TENPEN" }, { "TORINO" },
-	{ "TRUTH", }, { "WUZIMU" }, { "ZERO" }, { "SINDACO" }, { "SMOKE" },
-	{ "SMOKEV", }, { "SUZIE" }, { "SWEET" },
-	{ "TBONE", }, { "TENPEN" }, { "TORINO" },
-	{ "TRUTH", }, { "WUZIMU" }, { "ZERO" }, { "CROGRL2" }, { "DWAYNE" },
-	{ "EMMET" }, { "FORELLI" }, { "JANITOR" },
-	{ "JETHRO" }, { "JIZZY" }, { "HERN" },
-	{ "GANGRL1" }, { "GANGRL2" },
-	{ "GUNGRL1" }, { "GUNGRL2" },
-	{ "KENDL" }, { "MACCER" }, { "MADDOGG" },
-	{ "MECGRL1" }, { "MECGRL2" },
-	{ "NURGRL1" }, { "NURGRL2" },
-	{ "OGLOC" }, { "PAUL" }, { "PULASKI" },
-	{ "ROSE" }, { "RYDER" }, { "RYDER2" },
-	{ "RYDER3" }, { "SINDACO" }, { "SMOKE" },
-	{ "SMOKEV", }, { "SUZIE" }, { "SWEET" },
-	{ "TBONE", }, { "TENPEN" }, { "TORINO" },
-	{ "TRUTH", }, { "WUZIMU" }, { "RYDER3" }, { "SINDACO" }, { "SMOKE" },
-	{ "SMOKEV", }, { "SUZIE" }, { "SWEET" },
-	{ "TBONE", } };
 
-	for ( size_t i = 0; i < 100; i++ )
-	{
-		pDrop->AddItem ( sd [ i ].szText );
-	}
-
-	for ( size_t i = 0; i < 111; i++ )
-	{
-		pTextBox->AddText ( CLogBox::LOG_DEBUG, "%i", i );
-	}
+	
 
 	auto pProgressBar = pGui->AddProgressBarHorizontal ( fServBrowser1, 100, 100, 200, 20, 200, 180 );
 
@@ -250,27 +196,46 @@ VOID Init ()
 	auto pScrolls = pGui->AddScrollBarHorizontal ( fServBrowser1, 300, 200, 200, 18, 0, 20, 15, 199 );
 
 	
-	auto pLabel = pGui->AddLabel ( fServBrowser1, 400, 400, 300, 200, "Great Text asd sChanched" );
+	auto pLabel = pGui->AddLabel ( fServBrowser1, 400, 400, 300, 200, _UI ( "Great Text asd sChanched" ));
 
-	auto list = pGui->AddListView ( fServBrowser, 100, 100, 500, 100, "as" );
-
-	list->AddColumn ( "chassd ASDSAD ASD ASDSASD SADS", 100 );
-	list->AddColumn ( "chassd 1", 100 );
-	list->AddColumn ( "chassd 2", 100 );
-	for ( size_t i = 0; i < 112; i++ )
-	{
-		TCHAR szText [ MAX_PATH ];
-		sprintf ( szText, "textasd%i", i );
-		list->AddColumnItem ( 0, szText );
-
-		sprintf ( szText, "text asd%i 1", i );
-		list->AddColumnItem ( 1, szText );
-
-		sprintf ( szText, "text asd%i 2", i );
-		list->AddColumnItem ( 2, szText );
-	}
-	list->MoveColumn ( 2, 0 );
+	/*auto list = pGui->AddListView ( fServBrowser, 100, 100, 500, 100, _UI ( "as") );
 	list->SetRelativeSizeX ( true );
+*/
+
+	auto psd = pGui->AddEditBox ( fServBrowser3, 0, 0, 100, 0,_UI ("sasd{FF750000}asaaddssddsadssaddsasd") );
+
+	auto sds = pGui->AddTabPanel ( fServBrowser3, 200, 200, 300, 200 );
+	sds->AddTab ( _UI ( "ASDA 12" ), 100 );
+	sds->AddTab ( _UI ( "ASDAAS 13" ), 60 );
+	sds->AddTab ( _UI ( "ASDSA 14" ), 100 );
+	sds->AddTab ( _UI ( "ASDSA 15" ), 120 );
+	sds->AddTab ( _UI ( "ASDSA 16" ), 100 );
+	sds->SetRelativePosY ( true );
+	
+	sds->SetRelativeSizeX ( true );
+
+	CButton* pButton = new CButton ( pGui );
+
+	CEditBox *pEdit = new CEditBox ( pGui );
+
+	if ( pEdit )
+	{
+		pEdit->SetPos ( CPos ( 150, 0 ) );
+		pEdit->SetSize ( 100, 0 );
+		pEdit->SetText ( _UI ( "sasd{FF750000}asaaddssddsadssaddsasd" ) );
+	}
+
+	if ( pButton )
+	{
+		pButton->SetPos ( CPos (250, 200 ) );
+		pButton->SetSize ( 100, 100 );
+		pButton->SetText ( _UI ( "ASDSA" ) );
+ 
+	}
+
+	sds->AddControl ( 1, pEdit );
+	sds->AddControl ( 2, pButton );
+
 	pGui->SetVisible ( true );
 	//LeaveCriticalSection ( &cs_gui );
 

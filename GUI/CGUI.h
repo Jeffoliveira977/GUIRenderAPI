@@ -24,8 +24,26 @@ class CScrollBarHorizontal;
 class CTrackBarVertical;
 class CEntryList;
 class CScrollablePane;
-
+class CTabPanel;
+class CScrollbar;
 #include "renderers\CGraphics.h"
+#define UNISCRIBE_DLLNAME _UI("usp10.dll")
+
+#define GETPROCADDRESS( Module, APIName, Temp ) \
+    Temp = GetProcAddress( Module, #APIName ); \
+    if( Temp ) \
+        *(FARPROC*)&_##APIName = Temp
+
+#define PLACEHOLDERPROC( APIName ) \
+    _##APIName = Dummy_##APIName
+
+#define IMM32_DLLNAME _UI("imm32.dll")
+#define VER_DLLNAME _UI("version.dll")
+
+#define DXUT_MAX_EDITBOXLENGTH 0xFFFF
+
+#include <usp10.h>
+#include <dimm.h>
 
 #include "LogFile.h"
 #include "CTexture.h"
@@ -35,7 +53,7 @@ class CScrollablePane;
 #include "CTimer.h"
 
 #include "CPos.h"
-
+#include "Scrollbar.h"
 #include "CMouse.h"
 #include "CKeyboard.h"
 #include "CElement.h"
@@ -46,7 +64,7 @@ class CScrollablePane;
 #include "CTrackBar.h"
 #include "CText.h"
 #include "CWindow.h"
-#include "CScrollBar.h"
+#include "CScrollBarVertical.h"
 #include "CButton.h"
 #include "CRadioButton.h"
 #include "CCheckBox.h"
@@ -59,6 +77,7 @@ class CScrollablePane;
 #include "ProgressBarVertical.h"
 #include "ScrollablePane.h"
 #include "TrackBar.h"
+#include "CTabPanel.h"
 
 
 class CDialog
@@ -77,10 +96,11 @@ public:
 	CListBox* AddListBox ( CWindow *pWindow, int X, int Y, int Width, int Height, tAction Callback = NULL );
 	CListView* AddListView ( CWindow *pWindow, int X, int Y, int Width, int Height, const SIMPLEGUI_CHAR *szString = NULL, tAction Callback = NULL );
 	CLabel* AddLabel ( CWindow *pWindow, int X, int Y, int Width, int Height, const SIMPLEGUI_CHAR *szString = NULL, tAction Callback = NULL );
-	CEditBox* AddEditBox ( CWindow *pWindow, int X, int Y, int Width, int Height, const SIMPLEGUI_CHAR *szString = NULL, tAction Callback = NULL );
+	CEditBox* AddEditBox ( CWindow *pWindow, int X, int Y, int Width, int Height, const SIMPLEGUI_CHAR *szString = NULL, bool bSelected = false, tAction Callback = NULL );
 	CDropDown* AddDropDown ( CWindow *pWindow, int X, int Y, int Width, int Height, const SIMPLEGUI_CHAR *szString = NULL, tAction Callback = NULL );
 	CRadioButton *AddRadioButton ( CWindow *pWindow, int iGroup, int X, int Y, int Width, const SIMPLEGUI_CHAR *szString = NULL, tAction Callback = NULL );
 	CPictureBox *AddImage ( CWindow *pWindow, const TCHAR *szPath, int X, int Y, int Width, int Height, tAction Callback = NULL );
+	CTabPanel *AddTabPanel ( CWindow *pWindow, int X, int Y, int Width, int Height, tAction Callback = NULL );
 
 	CTrackBarHorizontal *AddTrackBar ( CWindow *pWindow, int X, int Y, int Width, int Height, int nMin, int nMax, int nValue, tAction Callback = NULL );
 	CTrackBarVertical *AddTrackBarVertical ( CWindow *pWindow, int X, int Y, int Width, int Height, int nMin, int nMax, int nValue, tAction Callback = NULL );
@@ -117,6 +137,8 @@ public:
 
 	void OnLostDevice ( void );
 	void OnResetDevice ( void );
+
+	bool SetWindowMouseStates ( UINT uMsg, int zDelta, CPos pos, CWindow *pControl );
 
 	void MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam );
 

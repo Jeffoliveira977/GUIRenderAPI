@@ -14,7 +14,8 @@ public:
 
 	void SetChecked ( bool bChecked )
 	{
-		SendEvent ( EVENT_CONTROL_SELECT, m_bChecked = bChecked );
+		m_bChecked = bChecked;
+		SendEvent ( EVENT_CONTROL_SELECT, m_bChecked );
 	}
 
 	void Draw ( void );

@@ -29,7 +29,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>NotSet</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -43,7 +43,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>NotSet</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -76,11 +76,13 @@
     <LibraryPath>D3D9Headers;$(LibraryPath)</LibraryPath>
     <IncludePath>D3D9Headers;$(IncludePath)</IncludePath>
     <ReferencePath>D3D9Headers;$(ReferencePath)</ReferencePath>
-    <OutDir>..\..\..\Desktop\GTA San Andreas\scripts</OutDir>
+    <OutDir>..\..\..\Documents\GTA San Andreas\scripts</OutDir>
     <TargetExt>.asi</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>D3D9Headers;$(IncludePath)</IncludePath>
+    <LibraryPath>D3D9Headers;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -95,12 +97,20 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;GUIRENDERAPI_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <MinimalRebuild>false</MinimalRebuild>
+      <ProgramDataBaseFileName />
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>No</GenerateDebugInformation>
       <AdditionalOptions>/FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
+      <ProgramDatabaseFile />
+      <ProfileGuidedDatabase />
+      <ImportLibrary />
     </Link>
+    <BuildLog>
+      <Path />
+    </BuildLog>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -169,7 +179,8 @@
     <ClInclude Include="GUI\CPos.h" />
     <ClInclude Include="GUI\CProgressBar.h" />
     <ClInclude Include="GUI\CRadioButton.h" />
-    <ClInclude Include="GUI\CScrollBar.h" />
+    <ClInclude Include="GUI\CScrollBarVertical.h" />
+    <ClInclude Include="GUI\CTabPanel.h" />
     <ClInclude Include="GUI\CText.h" />
     <ClInclude Include="GUI\CTextBox.h" />
     <ClInclude Include="GUI\CTimer.h" />
@@ -181,9 +192,8 @@
     <ClInclude Include="GUI\ProgressBarVertical.h" />
     <ClInclude Include="GUI\renderers\CGraphics.h" />
     <ClInclude Include="GUI\renderers\Define.h" />
-    <ClInclude Include="GUI\renderers\Graphics.h" />
-    <ClInclude Include="GUI\renderers\Texture.h" />
     <ClInclude Include="GUI\ScrollablePane.h" />
+    <ClInclude Include="GUI\Scrollbar.h" />
     <ClInclude Include="GUI\ScrollbarHorizontal.h" />
     <ClInclude Include="GUI\TrackBar.h" />
     <ClInclude Include="GUI\unistr.h" />
@@ -209,7 +219,8 @@
     <ClCompile Include="GUI\CPos.cpp" />
     <ClCompile Include="GUI\CProgressBar.cpp" />
     <ClCompile Include="GUI\CRadioButton.cpp" />
-    <ClCompile Include="GUI\CScrollBar.cpp" />
+    <ClCompile Include="GUI\CScrollBarVertical.cpp" />
+    <ClCompile Include="GUI\CTabPanel.cpp" />
     <ClCompile Include="GUI\CText.cpp" />
     <ClCompile Include="GUI\CTextBox.cpp" />
     <ClCompile Include="GUI\CTimer.cpp" />
@@ -220,9 +231,8 @@
     <ClCompile Include="GUI\LogFile.cpp" />
     <ClCompile Include="GUI\ProgressBarVertical.cpp" />
     <ClCompile Include="GUI\renderers\CGraphics.cpp" />
-    <ClCompile Include="GUI\renderers\Graphics.cpp" />
-    <ClCompile Include="GUI\renderers\Texture.cpp" />
     <ClCompile Include="GUI\ScrollablePane.cpp" />
+    <ClCompile Include="GUI\Scrollbar.cpp" />
     <ClCompile Include="GUI\ScrollbarHorizontal.cpp" />
     <ClCompile Include="GUI\TrackBar.cpp" />
     <ClCompile Include="stdafx.cpp">

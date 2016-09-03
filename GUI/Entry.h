@@ -18,56 +18,56 @@ struct SEntryItem
 class CEntryList
 {
 public:
-	CEntryList ( CDialog *pDialog );
-	~CEntryList ( void );
+						CEntryList					( CDialog *pDialog );
+						~CEntryList					( void );
 
-	void SetFont ( CD3DFont *pFont );
+	void				SetFont						( CD3DFont *pFont );
 
-	void AddEntry (  SEntryItem *pEntry );
-	void RemoveEntry (  SEntryItem *pEntry );
+	void				AddEntry					(  SEntryItem *pEntry );
+	void				RemoveEntry					(  SEntryItem *pEntry );
 
-	int GetIndexByEntry (  SEntryItem *pEntry );
-	SEntryItem *GetEntryByIndex ( int nIndex );
+	int					GetIndexByEntry				(  SEntryItem *pEntry );
+	SEntryItem			*GetEntryByIndex			( int nIndex );
 
-	SIZE GetTextSize ( void );
+	SIZE				GetTextSize					( void );
 
-	void Render ( SControlRect rRect, D3DCOLOR d3dColorSelected, D3DCOLOR d3dColorNormal, D3DCOLOR d3dColorSelectedFont, D3DCOLOR d3dColorFont, UINT uIndex );
+	void				Render						( SControlRect rRect, D3DCOLOR d3dColorSelected, D3DCOLOR d3dColorNormal, D3DCOLOR d3dColorSelectedFont, D3DCOLOR d3dColorFont, UINT uIndex );
 	
-	bool IsEntryInList (  SEntryItem *pEntry );
-	void InsertItem (  SEntryItem *pEntry,  SEntryItem *pEntryPos );
+	bool				IsEntryInList				(  SEntryItem *pEntry );
+	void				InsertItem					(  SEntryItem *pEntry,  SEntryItem *pEntryPos );
 
-	void SetSortedList ( bool bSort );
-	void ResetList ( void );
+	void				SetSortedList				( bool bSort );
+	void				ResetList					( void );
 
-	size_t GetSize ( void );
+	size_t				GetSize						( void );
 
-	SEntryItem *GetPrevItem ( SEntryItem *pEntry );
-	SEntryItem *GetNextItem ( SEntryItem *pEntry );
+	SEntryItem			*GetPrevItem				( SEntryItem *pEntry );
+	SEntryItem			*GetNextItem				( SEntryItem *pEntry );
 
-	void SetSelectedEntryByIndex ( int nIndex, bool bSelect );
-	void SetSelectedEntry ( SEntryItem *pEntry, bool bSelect );
+	void				SetSelectedEntryByIndex		( int nIndex, bool bSelect );
+	void				SetSelectedEntry			( SEntryItem *pEntry, bool bSelect );
 
-	bool IsEntrySelectedByIndex ( int nIndex );
-	bool IsEntrySelected (  SEntryItem *pEntry );
-	SEntryItem *GetSelectedEntry ( void );
-	int GetSelectedEntryIndex ( void );
+	bool				IsEntrySelectedByIndex		( int nIndex );
+	bool				IsEntrySelected				(  SEntryItem *pEntry );
+	SEntryItem			*GetSelectedEntry			( void );
+	int					GetSelectedEntryIndex		( void );
 
-	void UpdateScrollbars ( SControlRect rRect );
-	bool ContainsRects ( SControlRect rRect, CPos pos );
-
-	CScrollablePane *GetScrollbar ( void );
+	void				UpdateScrollbars			( SControlRect rRect );
+	bool				ContainsRects				( SControlRect rRect, CPos pos );
+		
+	CScrollablePane		*GetScrollbar				( void );
 private:
-	bool m_bSort;
-	SEntryItem* m_pSelectedEntry;
+	bool						m_bSort;
+	SEntryItem					*m_pSelectedEntry;
 
-	std::vector<SEntryItem*> m_vEntryList;
+	std::vector<SEntryItem*>	m_vEntryList;
 	std::map<SEntryItem*, bool> m_mSelectedItem;
 
-	SIZE m_TextSize;
+	SIZE						m_TextSize;
 
-	CD3DFont *m_pFont;
-	CDialog *m_pDialog;
+	CD3DFont					*m_pFont;
+	CDialog						*m_pDialog;
 
-	CScrollablePane *m_pScrollbar;
+	CScrollablePane				*m_pScrollbar;
 };
 

@@ -50,6 +50,13 @@ struct SControlRect
 		this->size = size;
 	}
 
+	SControlRect ( RECT rect )
+	{
+		this->pos.SetX ( rect.left );
+		this->pos.SetY ( rect.top );
+		this->size.cx =  rect.right- rect.left;
+		this->size.cy =  rect.bottom- rect.top;
+	}
 
 	BOOL InControlArea ( CPos pos )
 	{
@@ -65,6 +72,7 @@ struct SControlRect
 		SetRect ( &rect, pos.GetX (), pos.GetY (), pos.GetX () + size.cx, pos.GetY () + size.cy );
 		return rect;
 	}
+
 
 };
 
@@ -115,6 +123,7 @@ public:
 		TYPE_LABEL,
 		TYPE_TEXTBOX,
 		TYPE_LISTVIEW,
+		TYPE_TABPANEL,
 		TYPE_WINDOW
 	};
 
@@ -126,8 +135,13 @@ public:
 
 	void SetControl ( CDialog *pGui, EControlType eType );
 
-	void SetParent ( CWindow *pParent );
-	CWindow *GetParent ( void );
+	virtual void ClearControlFocus ( void );
+	virtual void SetFocussedControl ( CControl *pControl );
+
+	void SetParent ( CControl *pParent );
+	CControl *GetParent ( void );
+
+	virtual SIZE GetRealSize ( void );
 
 	void SetAction ( tAction pAction );
 	tAction GetAction ( void );
@@ -155,6 +169,9 @@ public:
 	virtual bool IsSizingY ( void );
 
 	virtual bool IsSizing ( void );
+
+	virtual bool IsMovingX ( void );
+	virtual bool IsMovingY ( void );
 	virtual bool IsMoving ( void );
 
 	SIZE GetSize ( void );
@@ -162,13 +179,14 @@ public:
 	virtual bool CanHaveFocus ( void );
 	bool HasFocus ( void );
 
-	void SetText ( SIMPLEGUI_STRING sString );
+	virtual void SetText ( SIMPLEGUI_STRING sString, bool = false );
 	const SIMPLEGUI_CHAR *GetText ( void );
 
 	void SendMsg ( E_EVENT_CONTROL, int );
 
 	virtual void Draw ( void );
 
+	virtual bool MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam );
 	virtual bool HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam );
 	virtual bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
 
@@ -189,10 +207,21 @@ public:
 	virtual void OnClickLeave ( void );
 	virtual	bool OnClickEvent ( void );
 
+	virtual bool OnMouseButtonDown ( CPos pos );
+	virtual bool OnMouseButtonUp ( CPos pos );
+	virtual bool OnMouseMove ( CPos pos );
+	virtual bool OnMouseWheel ( int zDelta );
+
+	virtual bool OnKeyDown ( WPARAM wParam );
+	virtual bool OnKeyUp ( WPARAM wParam );
+	virtual bool OnKeyCharacter ( WPARAM wParam );
+
 	bool SendEvent ( E_EVENT_CONTROL event, int params );
 
 	void LinkPos ( CPos pos );
 
+
+	bool IsRelativePos ( void ) { return m_bRelativePosX|| m_bRelativePosY; }
 	void SetRelativePosX ( bool bRelative );
 	void SetRelativePosY ( bool bRelative );
 
@@ -217,14 +246,17 @@ protected:
 	SIZE m_size;
 	SIZE m_minSize;
 
+	SIZE m_realSize;
+
 	SControlRect m_rScissor;
+	SControlRect m_rScissorCpy;
 
 	SControlRect m_rContentBox;
 	SControlRect m_rBoundingBox;
 
 	CD3DTexture *m_pTexture;
 	CD3DFont* m_pFont;
-	CWindow* m_pParent;
+	CControl* m_pParent;
 	CDialog *m_pDialog;
 
 	SIMPLEGUI_STRING m_sText;
@@ -238,18 +270,23 @@ protected:
 
 	CRITICAL_SECTION cs;
 	CPos m_pos;
+	CPos m_oldPos;
 
-	bool m_bRelativeX;
-	bool m_bRelativeY;
-	bool m_bRelativeSX;
-	bool m_bRelativeSY;
+	bool m_bRelativePosX;
+	bool m_bRelativePosY;
+
+	bool m_bRelativeSizeX;
+	bool m_bRelativeSizeY;
 
 	bool m_bAntAlias;
 	bool m_bPressed;
 	bool m_bMouseOver;
+
 	bool m_bHasFocus;
+
 	bool m_bEnabled;
-	bool m_bEnabledStateColor;
 	bool m_bVisible;
+
+	bool m_bEnabledStateColor;
 };
 

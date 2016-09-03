@@ -5,98 +5,124 @@
 class CListView : public CControl
 {
 public:
-	CListView( CDialog *pDialog );
-	~CListView ( void );
+	CListView											( CDialog *pDialog );
+	~CListView											( void );
 
-	void AddColumn ( const SIMPLEGUI_CHAR *szColumnName, int nWidth );
-	void RemoveColumn ( UINT nColumnId );
-	void RemoveAllColumns ( void );
+	void					AddColumn					( const SIMPLEGUI_CHAR *szColumnName, int nWidth );
+	void					RemoveColumn				( UINT nColumnId );
+	void					RemoveAllColumns			( void );
 
-	void SetColumnName ( UINT nColumnId, const SIMPLEGUI_CHAR *szColumnName );
-	const SIMPLEGUI_CHAR *GetColumnName ( UINT nColumnId );
+	void					SetColumnName				( UINT nColumnId, const SIMPLEGUI_CHAR *szColumnName );
+	const SIMPLEGUI_CHAR*	GetColumnName				( UINT nColumnId );
 
-	const SIMPLEGUI_CHAR *GetColumnItemNameByRow ( UINT nColumnId, UINT nRow );
+	const SEntryItem*		GetColumnItemByRow			( UINT nColumnId, UINT nRow );
 
-	void SetColumnWidth ( UINT nColumnId, int nWidth );
-	int GetColumnWidth ( UINT nColumnId );
+	void					SetColumnWidth				( UINT nColumnId, int nWidth );
+	int						GetColumnWidth				( UINT nColumnId );
 
-	void AddColumnItem ( UINT nColumnId, const SIMPLEGUI_CHAR *szItem );
-	void RemoveColumnItem ( UINT nColumnId, UINT nIndex );
+	void					AddColumnItem				( UINT nColumnId, const SIMPLEGUI_CHAR *szItem, const SIMPLEGUI_CHAR *szValue = _UI ( "" ) );
+	void					AddColumnItem				( UINT nColumnId, SEntryItem *pEntry );
 
-	void RemoveAllItemsFromColumn ( UINT nColumnId );
-	void RemoveAllItems ( void );
+	void					SetColumnItemName			( UINT nColumnId, UINT nIndex, const SIMPLEGUI_CHAR *szItem );
+	void					RemoveColumnItem			( UINT nColumnId, UINT nIndex );
 
-	size_t GetNumOfColumns ( void );
-	size_t GetNumOfItemsFromColumn ( UINT nColumnId );
-	size_t GetNumOfItems ( void );
+	void					RemoveAllItemsFromColumn	( UINT nColumnId );
+	void					RemoveAllItems				( void );
 
-	int GetAllColumnsWidth ( void );
+	size_t					GetNumOfColumns				( void );
+	size_t					GetNumOfItemsFromColumn		( UINT nColumnId );
+	size_t					GetNumOfItems				( void );
 
-	const SIMPLEGUI_CHAR *GetSelectedItem ( UINT nColumnId );
+	int						GetAllColumnsWidth			( void );
 
-	int GetNextColumn ( UINT nColumnId );
-	int GetPrevColumn ( UINT nColumnId );
+	const SEntryItem*		GetSelectedItem				( UINT nColumnId );
 
-	int GetGreatColumn ( void );
+	int						GetColumnIdAtArea			( CPos pos );
+	int						GetColumnIdAtAreaBorder		( CPos pos );
+	int						GetColumnOffset				( UINT nColumnId );
 
-	int GetColumnIdAtArea ( CPos pos );
-	int GetColumnIdAtAreaBorder ( CPos pos );
-	int GetColumnOffset ( UINT nColumnId );
+	void					SetSortable					( bool bSortable );
+	void					SetTitleSizable				( bool bSizable );
+	void					SetTitleMovable				( bool bMovable );
 
-	void SetTitleSizable ( bool bSizable );
-	void SetTitleMovable ( bool bMovable );
+	const SEntryItem*		FindItemInRow				( UINT nRow );
 
-	const SIMPLEGUI_CHAR *FindItemInRow ( UINT nRow );
+	void					Draw						( void );
 
-	void Draw ( void );
+	void					MoveColumn					( UINT nColumnId, UINT nPosition );
+	void					SortColumn					( UINT nColumnId );
 
-	void MoveColumn ( UINT nColumnId, UINT nPosition );
+	void					OnClickLeave				( void );
+	bool					OnClickEvent				( void );
 
-	void OnClickLeave ( void );
-	bool OnClickEvent ( void );
+	void					OnFocusIn					( void );
+	void					OnFocusOut					( void );
 
-	void OnFocusIn ( void );
-	void OnFocusOut ( void );
+	void					OnMouseEnter				( void );
+	void					OnMouseLeave				( void );
 
-	void OnMouseEnter ( void );
-	void OnMouseLeave ( void );
+	bool					CanHaveFocus				( void );
 
-	bool CanHaveFocus ( void );
+	bool					HandleMouse					( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
+	bool					HandleKeyboard				( UINT uMsg, WPARAM wParam, LPARAM lParam );
 
-	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
-	bool HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam );
-
-	void UpdateRects ( void );
-	bool ContainsRect ( CPos pos );
+	void					UpdateRects					( void );
+	bool					ContainsRect				( CPos pos );
 
 private:
-	CD3DFont *m_pTitleFont;
 
 	struct SListViewColumn
 	{
-		std::vector<SIMPLEGUI_STRING> m_sItem;
-		SIMPLEGUI_STRING m_sColumnName;
-		int m_nWidth;
+		std::vector<SEntryItem*>		m_sItem;
+		SIMPLEGUI_STRING				m_sColumnName;
+		int								m_nWidth;
 	};
 
-	std::vector<SListViewColumn> m_vColumnList;
-	CScrollablePane *m_pScrollbar;
+	int					m_nDragX;
+	int					m_nOverColumnId;
+	int					m_nId;
+	int					m_nIndex;
+	int					m_nSelected;
 
-	int m_nDragX;
+	bool				m_bSizable;
+	bool				m_bMovable;
+	bool				m_bSortable;
 
-	int m_nIndex;
-	int m_nSelected;
+	bool				m_bSizing;
+	bool				m_bMoving;
+	bool				m_bSorting;
 
-	bool m_bSizable;
-	bool m_bMovable;
 
-	bool m_bSizing;
-	bool m_bMoving;
+	UINT				m_nRowSize;
+	CD3DFont			*m_pTitleFont;
+	CScrollablePane		*m_pScrollbar;
 
-	int m_nOverColumnId;
-	int m_nId;
+	SControlRect		m_rColumnArea;
+	SControlRect		m_rListBoxArea;
 
-	UINT m_nRowSize;
-	SControlRect rTitleRect;
-	SControlRect m_rContentArea;
+	static UINT									m_nColumnSort;
+	std::vector<SListViewColumn>				m_vColumnList;
+	typedef std::map<UINT, SEntryItem*>			ColumnItem;
+
+	static bool				ColumnItemLess				( ColumnItem a, ColumnItem b )
+	{
+		SEntryItem* pEntrya = a [ m_nColumnSort ];
+		SEntryItem* pEntryb = b [ m_nColumnSort ];
+
+		if ( !pEntrya || !pEntryb )
+			return false;
+
+		return ( pEntrya->m_sText < pEntryb->m_sText );
+	}
+
+	static bool				ColumnItemGreater			( ColumnItem a, ColumnItem b )
+	{
+		SEntryItem* pEntrya = a [ m_nColumnSort ];
+		SEntryItem* pEntryb = b [ m_nColumnSort ];
+
+		if ( !pEntrya || !pEntryb )
+			return false;
+
+		return ( pEntrya->m_sText > pEntryb->m_sText );
+	}
 };

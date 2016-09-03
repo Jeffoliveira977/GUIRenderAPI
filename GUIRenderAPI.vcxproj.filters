@@ -78,9 +78,6 @@
     <ClInclude Include="GUI\CRadioButton.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\CScrollBar.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
     <ClInclude Include="GUI\CText.h">
       <Filter>GUI</Filter>
     </ClInclude>
@@ -126,14 +123,17 @@
     <ClInclude Include="Graphics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\renderers\Texture.h">
-      <Filter>GUI\renderers</Filter>
-    </ClInclude>
-    <ClInclude Include="GUI\renderers\Graphics.h">
-      <Filter>GUI\renderers</Filter>
-    </ClInclude>
     <ClInclude Include="GUI\LogFile.h">
       <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\CTabPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\CScrollBarVertical.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Scrollbar.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -185,9 +185,6 @@
     <ClCompile Include="GUI\CRadioButton.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\CScrollBar.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
     <ClCompile Include="GUI\CText.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
@@ -227,16 +224,19 @@
     <ClCompile Include="Graphics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\renderers\Texture.cpp">
-      <Filter>GUI\renderers</Filter>
-    </ClCompile>
-    <ClCompile Include="GUI\renderers\Graphics.cpp">
-      <Filter>GUI\renderers</Filter>
-    </ClCompile>
     <ClCompile Include="GUI\LogFile.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
     <ClCompile Include="dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\CTabPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\CScrollBarVertical.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Scrollbar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

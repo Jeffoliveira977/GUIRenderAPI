@@ -210,9 +210,9 @@ CWindow *CDialog::AddWindow ( int X, int Y, int Width, int Height, const SIMPLEG
 		pWindow->SetSize ( Width, Height );
 		pWindow->SetText ( szString );
 		pWindow->SetAction ( Callback );
-		pWindow->SetFont ( this->GetFont () );
 		pWindow->SetAlwaysOnTop ( bAlwaysOnTop );
-		AddWindow ( pWindow );
+
+		this->AddWindow ( pWindow );
 	}
 
 	return pWindow;
@@ -229,7 +229,6 @@ CButton *CDialog::AddButton ( CWindow *pWindow, int X, int Y, int Width, int Hei
 		pButton->SetSize ( Width, Height );
 		pButton->SetText ( szString );
 		pButton->SetAction ( Callback );
-		pButton->SetFont ( this->GetFont () );
 
 		if ( pWindow )
 			pWindow->AddControl ( pButton );
@@ -250,7 +249,6 @@ CCheckBox *CDialog::AddCheckBox ( CWindow *pWindow, int X, int Y, int Width, boo
 		pCheckBox->SetText ( szString );
 		pCheckBox->SetAction ( Callback );
 		pCheckBox->SetChecked ( bChecked );
-		pCheckBox->SetFont ( this->GetFont () );
 
 		if ( pWindow )
 			pWindow->AddControl ( pCheckBox );
@@ -269,7 +267,6 @@ CListBox *CDialog::AddListBox ( CWindow *pWindow, int X, int Y, int Width, int H
 		pListBox->SetPos ( CPos ( X, Y ) );
 		pListBox->SetSize ( Width, Height );
 		pListBox->SetAction ( Callback );
-		pListBox->SetFont ( this->GetFont () );
 
 		if ( pWindow )
 			pWindow->AddControl ( pListBox );
@@ -287,7 +284,6 @@ CListView *CDialog::AddListView ( CWindow *pWindow, int X, int Y, int Width, int
 		pListView->SetPos ( CPos ( X, Y ) );
 		pListView->SetSize ( Width, Height );
 		pListView->SetAction ( Callback );
-		pListView->SetFont ( this->GetFont () );
 
 		if ( pWindow )
 			pWindow->AddControl ( pListView );
@@ -306,7 +302,6 @@ CLogBox *CDialog::AddTextBox ( CWindow *pWindow, int X, int Y, int Width, int He
 		pTextBox->SetPos ( CPos ( X, Y ) );
 		pTextBox->SetSize ( Width, Height );
 		pTextBox->SetAction ( Callback );
-		pTextBox->SetFont ( this->GetFont () );
 
 		if ( pWindow )
 			pWindow->AddControl ( pTextBox );
@@ -324,7 +319,6 @@ CLabel *CDialog::AddLabel ( CWindow *pWindow, int X, int Y, int Width, int Heigh
 	{
 		pLabel->SetPos ( CPos ( X, Y ) );
 		pLabel->SetText ( szString );
-		pLabel->SetFont ( this->GetFont () );
 		pLabel->SetSize ( Width, Height );
 		pLabel->SetAction ( Callback );
 
@@ -334,9 +328,9 @@ CLabel *CDialog::AddLabel ( CWindow *pWindow, int X, int Y, int Width, int Heigh
 
 	return pLabel;
 }
-/*
+
 //--------------------------------------------------------------------------------------
-CEditBox *CDialog::AddEditBox ( CWindow *pWindow, int X, int Y, int Width, int Height, const SIMPLEGUI_CHAR *szString, tAction Callback )
+CEditBox *CDialog::AddEditBox ( CWindow *pWindow, int X, int Y, int Width, int Height, const SIMPLEGUI_CHAR *szString, bool bSelected, tAction Callback )
 {
 	CEditBox* pEditBox = new CEditBox ( this );
 
@@ -344,9 +338,8 @@ CEditBox *CDialog::AddEditBox ( CWindow *pWindow, int X, int Y, int Width, int H
 	{
 		pEditBox->SetPos ( CPos ( X, Y ) );
 		pEditBox->SetSize ( Width, Height );
-		pEditBox->SetText ( szString );
+		pEditBox->SetText ( szString, bSelected );
 		pEditBox->SetAction ( Callback );
-		pEditBox->SetFont ( this->GetFont () );
 
 		if ( pWindow )
 			pWindow->AddControl ( pEditBox );
@@ -354,7 +347,7 @@ CEditBox *CDialog::AddEditBox ( CWindow *pWindow, int X, int Y, int Width, int H
 
 	return pEditBox;
 }
-*/
+
 //--------------------------------------------------------------------------------------
 CDropDown *CDialog::AddDropDown ( CWindow *pWindow, int X, int Y, int Width, int Height, const SIMPLEGUI_CHAR *szString, tAction Callback )
 {
@@ -366,7 +359,6 @@ CDropDown *CDialog::AddDropDown ( CWindow *pWindow, int X, int Y, int Width, int
 		pDropDown->SetSize ( Width, Height );
 		pDropDown->SetText ( szString );
 		pDropDown->SetAction ( Callback );
-		pDropDown->SetFont ( this->GetFont () );
 
 		if ( pWindow )
 			pWindow->AddControl ( pDropDown );
@@ -387,13 +379,29 @@ CRadioButton *CDialog::AddRadioButton ( CWindow *pWindow, int iGroup, int X, int
 		pRadioButton->SetSize ( Width, 20 );
 		pRadioButton->SetText ( szString );
 		pRadioButton->SetAction ( Callback );
-		pRadioButton->SetFont ( this->GetFont () );
 
 		if ( pWindow )
 			pWindow->AddControl ( pRadioButton );
 	}
 
 	return pRadioButton;
+}
+
+CTabPanel *CDialog::AddTabPanel ( CWindow *pWindow, int X, int Y, int Width, int Height, tAction Callback )
+{
+	CTabPanel *pTabPanel = new CTabPanel ( this );
+
+	if ( pTabPanel )
+	{
+		pTabPanel->SetPos ( CPos ( X, Y ) );
+		pTabPanel->SetSize ( Width, Height );
+		pTabPanel->SetAction ( Callback );
+
+		if ( pWindow )
+			pWindow->AddControl ( pTabPanel );
+	}
+
+	return pTabPanel;
 }
 
 /*//--------------------------------------------------------------------------------------
@@ -467,7 +475,6 @@ CScrollBarVertical *CDialog::AddScrollBar ( CWindow *pWindow, int X, int Y, int 
 		pScrollBar->SetTrackRange ( nMin, nMax );
 		pScrollBar->SetPageSize ( nPagSize );
 		pScrollBar->ShowItem ( nValue );
-		pScrollBar->SetFont ( this->GetFont () );
 
 		if ( pWindow )
 			pWindow->AddControl ( pScrollBar );
@@ -488,16 +495,14 @@ CScrollBarHorizontal *CDialog::AddScrollBarHorizontal ( CWindow *pWindow, int X,
 		pScrollBar->SetAction ( Callback );
 		pScrollBar->SetTrackRange ( nMin, nMax );
 		pScrollBar->SetPageSize ( nPagSize );
-		pScrollBar->ShowItem ( nValue );
-		pScrollBar->SetFont ( this->GetFont () );
+		pScrollBar->ShowItem ( nValue );;
 
 		if ( pWindow )
 			pWindow->AddControl ( pScrollBar );
 	}
-
 	return pScrollBar;
 }
-bool g_pWindowClick;
+
 //--------------------------------------------------------------------------------------
 void CDialog::Draw ( void )
 {
@@ -511,7 +516,6 @@ void CDialog::Draw ( void )
 
 	m_pState->SetRenderStates ();
 
-
 	for ( size_t i = 0; i < m_vWindows.size (); i++ )
 	{
 		if ( !m_vWindows [ i ] )
@@ -524,7 +528,6 @@ void CDialog::Draw ( void )
 		m_vWindows [ i ]->Draw ();
 	}
 
-	
 	m_pMouse->Draw ();
 
 	m_pState->EndState ();
@@ -546,42 +549,63 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 		return;
 
 	CPos pos = m_pMouse->GetPos ();
-
-	if ( !GetAsyncKeyState ( VK_LBUTTON ) )
+	
+	/*if ( !GetAsyncKeyState(VK_LBUTTON) )
 		m_pMouse->SetCursorType ( CMouse::DEFAULT );
+*/
 
 	// First handle messages from the windows widgets
 
-	// Check for any window with focus
-	if ( m_pFocussedWindow )
-	{
-		CControl *pControl = m_pFocussedWindow->GetFocussedControl ();
+	//// Check for any window with focus
+	//if ( m_pFocussedWindow )
+	//{
+	//	CControl *pControl = NULL;
+	//	pControl = m_pFocussedWindow->GetFocussedControl ();
+	//	if ( pControl && pControl->GetType () == CControl::TYPE_TABPANEL )
+	//	{
+	//		pControl = static_cast< CTabPanel* >( pControl )->GetFocussedControl ();
+	//	}
 
-		// If the widget is a dropdown, leave handling message outside the windows
-		if ( pControl &&
-			 ( pControl->GetType () == CControl::TYPE_DROPDOWN ) )
-		{
-			m_pFocussedWindow->OnMouseMove ( pControl, uMsg );
+	//	// If the widget is a dropdown, leave handling message outside the windows
+	//	if ( pControl )
+	//	{
+	//		m_pFocussedWindow->OnMouseMove ( pControl, uMsg );
 
-			// Let then give it the first chance at handling keyboard.
-			if ( pControl->HandleKeyboard ( uMsg, wParam, lParam ) )
-				return;
+	//		if ( pControl->GetType () == CControl::TYPE_DROPDOWN )
+	//		{
+	//			// Let then give it the first chance at handling keyboard.
+	//			if ( pControl->HandleKeyboard ( uMsg, wParam, lParam ) )
+	//				return;
 
-			if ( pControl->HandleMouse ( uMsg, pos, wParam, lParam ) ||
-				 pControl->ContainsRect ( pos ) )
-				return;
-		}
-	}
+	//			if ( pControl->HandleMouse ( uMsg, pos, wParam, lParam ) ||
+	//				 pControl->ContainsRect ( pos ) )
+	//				return;
+	//		}
+	//		else if ( pControl->GetType () == CControl::TYPE_EDITBOX )
+	//		{
+	//			if ( uMsg == WM_CHAR && 
+	//				 pControl->MsgProc ( uMsg, wParam, lParam ) )
+	//				return;
+
+	//			if ( pControl->HandleKeyboard ( uMsg, wParam, lParam ) )
+	//				return;
+	//		}
+	//	}
+	//}
 
 	// See if the mouse is over any windows
 	CWindow* pWindow = GetWindowAtPos ( pos );
+
+	if ( m_pFocussedWindow && m_pFocussedWindow->ControlMessages ( uMsg, pos, wParam, lParam ) )
+		return;
+
 	if ( pWindow )
 	{
 		bool bOnClick = false;
 		if ( m_pFocussedWindow && m_pFocussedWindow->OnClickEvent () )
 			bOnClick = true;
 
-		if ( !bOnClick && pWindow->ControlMessages ( uMsg, pos, wParam, lParam ) )
+		if ( /*!bOnClick && */pWindow->ControlMessages ( uMsg, pos, wParam, lParam ) )
 			return;
 	}
 
@@ -621,28 +645,52 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 		case WM_RBUTTONDBLCLK:
 		case WM_XBUTTONDBLCLK:
 		case WM_MOUSEWHEEL:
-		{	
-			if ( pWindow && pWindow->IsEnabled () )		
-				pWindow->HandleMouse ( uMsg, pos, wParam, lParam ); 				
-			
+		{
+			int zDelta = int ( ( short ) HIWORD ( wParam ) ) / WHEEL_DELTA;
+
+			if ( SetWindowMouseStates ( uMsg, -zDelta, pos, pWindow ) )
+				return;
+			if ( pWindow )
+			{
+				
+				if ( m_pFocussedWindow )
+				{
+					/*if ( uMsg == WM_LBUTTONDOWN )
+					{
+						m_pFocussedWindow->ClearControlFocus();
+					}*/
+					/*if ( m_pFocussedWindow->HandleMouse ( uMsg, pos, wParam, lParam ) )
+						return;*/
+				}
+
+				
+				/*if ( pWindow->HandleMouse ( uMsg, pos, wParam, lParam ) )
+					return;*/
+			}
+			else
+			{
+				if ( uMsg == WM_LBUTTONDOWN )
+				{
+					ClearFocussedWindow ();
+				}
+			}
+
 			if ( m_pFocussedWindow )
 			{
 				// If the control is in focus, and if the mouse is outside the window, then leave 
 				// the click event
-				if ( uMsg == WM_LBUTTONUP )
+				if ( uMsg == WM_LBUTTONUP  )
 				{
-					// See if the window has a focused control
-					CControl *pControl = m_pFocussedWindow->GetFocussedControl ();
-					if ( pControl && pControl->OnClickEvent () )
-					{
-						pControl->OnClickLeave ();
-						m_pFocussedWindow->ClearControlFocus ();
-					}
+					m_pFocussedWindow->OnClickLeave ();
 				}
 
-				if ( m_pFocussedWindow->IsEnabled () )
-					m_pFocussedWindow->HandleMouse ( uMsg, pos, wParam, lParam );
+				
+
+			/*	if ( m_pFocussedWindow->HandleMouse ( uMsg, pos, wParam, lParam ) )
+					return;*/
 			}
+			if ( SetWindowMouseStates ( uMsg, zDelta, pos, m_pFocussedWindow ) )
+				return;
 
 			if ( !( GetAsyncKeyState ( VK_LBUTTON ) && pWindow ) &&
 				 uMsg == WM_MOUSEMOVE )
@@ -667,6 +715,31 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 	}
 
 	LeaveCriticalSection ( &cs );
+}
+
+bool CDialog::SetWindowMouseStates ( UINT uMsg, int zDelta, CPos pos, CWindow *pWindow )
+{
+	if ( pWindow &&
+		 pWindow->IsEnabled () )
+	{
+		if ( uMsg == WM_MOUSEMOVE )
+		{
+			if ( pWindow->OnMouseMove ( pos ) )
+				return true;
+		}
+		else if ( uMsg == WM_LBUTTONDOWN )
+		{
+			if ( pWindow->OnMouseButtonDown ( pos ) )
+				return true;
+		}
+		else if ( uMsg == WM_LBUTTONUP )
+		{
+			if ( pWindow->OnMouseButtonUp ( pos ) )
+				return true;
+		}
+	}
+
+	return false;
 }
 
 //--------------------------------------------------------------------------------------
@@ -729,6 +802,8 @@ void CDialog::ClearFocussedWindow ( void )
 {
 	if ( m_pFocussedWindow )
 	{
+		m_pFocussedWindow->ClearControlFocus ();
+		m_pFocussedWindow->OnClickLeave ();
 		m_pFocussedWindow->OnFocusOut ();
 		m_pFocussedWindow = NULL;
 	}
@@ -743,20 +818,20 @@ CWindow *CDialog::GetFocussedWindow ( void )
 //--------------------------------------------------------------------------------------
 void CDialog::BringWindowToTop ( CWindow *pWindow )
 {
-	// Get amount of windows on top
-	int nCount = 0;
-	for ( auto &window : m_vWindows )
-	{
-		if ( window->GetAlwaysOnTop () )
-			nCount++;
-	}
-
 	auto iter = std::find ( m_vWindows.begin (), m_vWindows.end (), pWindow );
 	if ( iter == m_vWindows.end () )
 		return;
 
 	if ( !pWindow->GetAlwaysOnTop () )
-	{
+
+	{	// Get amount of windows on top
+		int nCount = 0;
+		for ( auto &window : m_vWindows )
+		{
+			if ( window->GetAlwaysOnTop () )
+				nCount++;
+		}
+
 		m_vWindows.erase ( iter );
 		m_vWindows.insert ( m_vWindows.end () - nCount, pWindow );
 	}

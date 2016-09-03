@@ -26,7 +26,7 @@ void CLabel::Draw ( void )
 		m_eState = SControlColor::STATE_NORMAL;
 
 	m_pDialog->DrawFont ( SControlRect ( m_rBoundingBox.pos.GetX () + m_rBoundingBox.size.cx / 2, m_rBoundingBox.pos.GetY () ),
-						  m_sControlColor.d3dColorFont, GetText (), m_dwAlign, m_pFont );
+						  m_sControlColor.d3dColorBox [ m_eState ], GetText (), m_dwAlign, m_pFont );
 }
 
 bool CLabel::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
@@ -45,7 +45,7 @@ bool CLabel::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
 				m_bPressed = true;
 
 				if ( m_pParent && !m_bHasFocus )
-					m_pParent->RequestControlFocus ( this );
+					m_pParent->SetFocussedControl ( this );
 
 				return true;
 			}

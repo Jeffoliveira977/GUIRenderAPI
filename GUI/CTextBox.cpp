@@ -104,7 +104,7 @@ bool CLogBox::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
 
 	// First acquire focus
 	if ( WM_LBUTTONDOWN == uMsg )
-			m_pParent->RequestControlFocus ( this );
+			m_pParent->SetFocussedControl ( this );
 
 	if ( m_pEntryList->GetScrollbar ()->HandleMouse ( uMsg, pos, wParam, lParam ) )
 		return true;
@@ -137,7 +137,7 @@ bool CLogBox::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
 		case WM_MOUSEWHEEL:
 		{
 			int zDelta = ( short ) HIWORD ( wParam ) / WHEEL_DELTA;
-			m_pEntryList->GetScrollbar ()->GetVerScrollbar ()->Scroll ( -zDelta * m_pEntryList->GetScrollbar ()->GetVerScrollbar ()->GetStepSize () );
+			pScrollbarVer->Scroll ( -zDelta * pScrollbarVer->GetStepSize () );
 
 			return true;
 		}

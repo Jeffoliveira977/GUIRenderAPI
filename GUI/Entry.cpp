@@ -1,6 +1,6 @@
 #include "CGUI.h"
 
-CEntryList::CEntryList ( CDialog *pDialog ) : 
+CEntryList::CEntryList ( CDialog *pDialog ) :
 	m_bSort ( false )
 {
 	// Assert if 'pDialog' is invalid
@@ -8,16 +8,9 @@ CEntryList::CEntryList ( CDialog *pDialog ) :
 
 	m_pDialog = pDialog;
 
-	if ( m_pDialog )
-		m_pFont = m_pDialog->GetFont ();
-	else
-		m_pFont = NULL;
+	m_pFont = m_pDialog->GetFont ();
 
 	m_pScrollbar = new CScrollablePane ( pDialog );
-
-	// Assert if 'm_pScrollbarHor' is invalid
-	assert ( m_pScrollbar &&
-			 _UI ( "Error for creating scrollbar" ) );
 }
 
 CEntryList::~CEntryList ( void )
@@ -30,20 +23,12 @@ CEntryList::~CEntryList ( void )
 
 void CEntryList::SetFont ( CD3DFont *pFont )
 {
-	// Assert if 'pFont' is invalid
-	assert ( pFont &&
-			 _UI ( "Invalid CD3DFont parameter 'pFont' pointer" ) );
-
 	if ( pFont )
 		m_pFont = pFont;
 }
 
 void CEntryList::AddEntry ( SEntryItem *pEntry )
 {
-	// Assert if 'pEntry' is invalid
-	assert ( pEntry &&
-			 _UI ( "Insert an SEntryItem parameter 'pEntry' valid" ) );
-
 	if ( !pEntry )
 		return;
 
@@ -56,7 +41,9 @@ void CEntryList::AddEntry ( SEntryItem *pEntry )
 		} ), pEntry );
 	}
 	else
+	{
 		m_vEntryList.push_back ( pEntry );
+	}
 
 	if ( m_pScrollbar &&
 		 m_pFont )
@@ -69,15 +56,12 @@ void CEntryList::AddEntry ( SEntryItem *pEntry )
 
 		// Set up scroll bar values
 		m_pScrollbar->SetTrackRange ( m_TextSize.cx, m_vEntryList.size () );
+		m_pScrollbar->GetVerScrollbar ()->SetTrackPos ( m_vEntryList.size () );
 	}
 }
 
 void CEntryList::RemoveEntry ( SEntryItem *pEntry )
 {
-	// Assert if 'pEntry' is invalid
-	assert ( pEntry &&
-			 _UI ( "Insert an SEntryItem parameter 'pEntry' valid" ) );
-
 	if ( !IsEntryInList ( pEntry ) )
 		return;
 
@@ -89,15 +73,11 @@ void CEntryList::RemoveEntry ( SEntryItem *pEntry )
 
 SEntryItem *CEntryList::GetEntryByIndex ( int nIndex )
 {
-	// Assert if 'nIndex' is out of range
-	//assert ( nIndex < m_vEntryList.size () &&
-	//		 _UI ( "'nIdex' is out of range" ) );
-
-	if ( nIndex < m_vEntryList.size () && 
+	if ( nIndex >= m_vEntryList.size () &&
 		 nIndex > -1 )
-		return m_vEntryList [ nIndex ];
-	else
 		return NULL;
+
+	return m_vEntryList [ nIndex ];
 }
 
 SIZE CEntryList::GetTextSize ( void )
@@ -110,7 +90,8 @@ void CEntryList::Render ( SControlRect rRect, D3DCOLOR d3dColorSelected,
 						  D3DCOLOR d3dColorSelectedFont,
 						  D3DCOLOR d3dColorFont, UINT uIndex )
 {
-	if ( !m_pScrollbar )
+	if ( !m_pScrollbar || 
+		 !m_vEntryList.size () )
 		return;
 
 	CScrollBarVertical *pScrollbarVer = m_pScrollbar->GetVerScrollbar ();
@@ -171,10 +152,6 @@ the list.
 *************************************************************************/
 void CEntryList::InsertItem ( SEntryItem *pEntry, SEntryItem *pEntryPos )
 {
-	// Assert if 'pEntry' is invalid
-	assert ( pEntry &&
-			 _UI ( "Insert an SEntryItem parameter 'pEntry' valid" ) );
-
 	if ( !IsEntryInList ( pEntry ) )
 		return;
 
@@ -207,9 +184,6 @@ void CEntryList::SetSortedList ( bool bSort )
 
 int CEntryList::GetIndexByEntry (  SEntryItem *pEntry )
 {
-	// Assert if 'pEntry' is invalid
-	assert ( pEntry &&
-			 _UI ( "Insert an SEntryItem parameter 'pEntry' valid" ) );
 
 	if ( !IsEntryInList ( pEntry ) )
 		return 0;
@@ -253,9 +227,9 @@ SEntryItem *CEntryList::GetNextItem ( SEntryItem *pEntry )
 
 void CEntryList::ResetList ( void )
 {
-	for ( size_t i = 0; i < m_vEntryList.size(); i++ )
+	for ( auto entry : m_vEntryList )
 	{
-		SAFE_DELETE ( m_vEntryList [ i ] );
+		SAFE_DELETE ( entry );
 	}
 
 	m_vEntryList.clear ();
@@ -263,18 +237,11 @@ void CEntryList::ResetList ( void )
 
 void CEntryList::SetSelectedEntryByIndex ( int nIndex, bool bSelect )
 {
-	/// Assert if 'nIndex' is out of range
-	//assert ( nIndex < m_vEntryList.size () &&
-	//		 _UI ( "'nIdex' is out of range" ) );
-
 	SetSelectedEntry ( GetEntryByIndex ( nIndex ), bSelect );
 }
 
 void CEntryList::SetSelectedEntry ( SEntryItem *pEntry, bool bSelect )
 {
-	// Assert if 'pEntry' is invalid
-	//assert ( pEntry &&
-	//		 _UI ( "Insert an SEntryItem parameter 'pEntry' valid" ) );
 	if ( !pEntry ) 
 		return;
 
@@ -292,27 +259,21 @@ void CEntryList::SetSelectedEntry ( SEntryItem *pEntry, bool bSelect )
 
 bool CEntryList::IsEntrySelectedByIndex ( int nIndex )
 {
-	// Assert if 'nIndex' is out of range
-	assert ( nIndex < m_vEntryList.size () &&
-			 _UI ( "'nIdex' is out of range" ) );
-
 	return IsEntrySelected ( GetEntryByIndex ( nIndex ) );
 }
 
 bool CEntryList::IsEntrySelected (  SEntryItem *pEntry )
 {
-	// Assert if 'pEntry' is invalid
-	assert ( pEntry &&
-			 _UI ( "Insert an SEntryItem parameter 'pEntry' valid" ) );
-
 	return ( pEntry && m_mSelectedItem [ pEntry ] );
 }
 
 SEntryItem *CEntryList::GetSelectedEntry ( void )
 {
-	if ( m_pSelectedEntry && 
+	if ( m_pSelectedEntry &&
 		 m_mSelectedItem [ m_pSelectedEntry ] )
+	{
 		return m_pSelectedEntry;
+	}
 
 	return NULL;
 }
@@ -321,7 +282,7 @@ int CEntryList::GetSelectedEntryIndex ( void )
 {
 	SEntryItem *pEntry = GetSelectedEntry ();
 	if ( pEntry )
-		return ( int ) GetIndexByEntry ( pEntry );
+		return GetIndexByEntry ( pEntry );
 
 	return -1;
 }
@@ -335,7 +296,6 @@ void CEntryList::UpdateScrollbars ( SControlRect rRect )
 	CScrollBarHorizontal *pScrollbarHor = m_pScrollbar->GetHorScrollbar ();
 
 	// Set up scroll bar values
-
 	m_pScrollbar->SetPageSize ( rRect.size.cx - ( pScrollbarHor->GetHeight () + 4 ), rRect.size.cy / m_TextSize.cy );
 	m_pScrollbar->UpdateScrollbars ( rRect );
 }

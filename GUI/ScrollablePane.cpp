@@ -27,15 +27,15 @@ CScrollablePane::~CScrollablePane ( void )
 	SAFE_DELETE ( m_pScrollbarVer );
 }
 
-void CScrollablePane::OnMouseWheel ( int nDelta )
+void CScrollablePane::OnMouseWheel ( int zDelta )
 {
 	if ( IsVerScrollbarNeeded () )
 	{
-		m_pScrollbarVer->Scroll ( nDelta * m_pScrollbarVer->GetStepSize () );
+		m_pScrollbarVer->Scroll ( zDelta * m_pScrollbarVer->GetStepSize () );
 	}
 	else if ( IsHorScrollbarNeeded () )
 	{
-		m_pScrollbarHor->Scroll ( nDelta * m_pScrollbarHor->GetStepSize () );
+		m_pScrollbarHor->Scroll ( zDelta * m_pScrollbarHor->GetStepSize () );
 	}
 }
 
@@ -50,6 +50,63 @@ void CScrollablePane::OnDraw ( void )
 
 	if ( IsVerScrollbarNeeded () )
 		m_pScrollbarVer->Draw ();
+}
+
+bool CScrollablePane::OnMouseButtonDown ( CPos pos )
+{
+	if ( m_pScrollbarHor &&
+		 m_pScrollbarHor->OnMouseButtonDown ( pos ) )
+	{
+		SetFocussedControl ();
+		return true;
+	}
+
+	if ( m_pScrollbarVer &&
+		 m_pScrollbarVer->OnMouseButtonDown ( pos ) )
+	{
+		SetFocussedControl ();
+		return true;
+	}
+
+	return false;
+}
+
+bool CScrollablePane::OnMouseButtonUp ( CPos pos )
+{
+	if ( m_pScrollbarHor &&
+		 m_pScrollbarHor->OnMouseButtonUp ( pos ) )
+	{
+		SetFocussedControl ();
+		return true;
+	}
+
+	if ( m_pScrollbarVer &&
+		 m_pScrollbarVer->OnMouseButtonUp ( pos ) )
+	{
+		SetFocussedControl ();
+		return true;
+	}
+
+	return false;
+}
+
+bool CScrollablePane::OnMouseMove ( CPos pos )
+{
+	if ( m_pScrollbarHor &&
+		 m_pScrollbarHor->OnMouseMove ( pos ) )
+	{
+		SetFocussedControl ();
+		return true;
+	}
+
+	if ( m_pScrollbarVer &&
+		 m_pScrollbarVer->OnMouseMove ( pos ) )
+	{
+		SetFocussedControl ();
+		return true;
+	}
+
+	return false;
 }
 
 bool CScrollablePane::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
@@ -135,7 +192,7 @@ void CScrollablePane::SetFocussedControl ( void )
 				  !m_pControl->HasFocus () )
 		{
 			// Give it focus
-			m_pControl->GetParent ()->RequestControlFocus ( m_pControl );
+			m_pControl->GetParent ()->SetFocussedControl ( m_pControl );
 		}
 	}
 }
