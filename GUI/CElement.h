@@ -229,8 +229,8 @@ public:
 	virtual bool OnKeyUp ( WPARAM wParam );
 	virtual bool OnKeyCharacter ( WPARAM wParam );
 
-	bool InjectKeyboard ( sKeyEvents e );
-	bool InjectMouse ( sMouseEvents e );
+	virtual bool InjectKeyboard ( sKeyEvents e );
+	virtual bool InjectMouse ( sMouseEvents e );
 
 	bool SendEvent ( eEVentControl event, int params );
 
