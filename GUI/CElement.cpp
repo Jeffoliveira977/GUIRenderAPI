@@ -466,7 +466,33 @@ bool CControl::OnKeyCharacter ( WPARAM wParam )
 	return false;
 }
 
-bool CControl::SendEvent ( E_EVENT_CONTROL event, int params )
+bool CControl::InjectKeyboard ( sKeyEvents e )
+{
+	if ( e.uMsg == WM_KEYDOWN )
+	{
+		if ( OnKeyDown ( e.wKey ) )
+			return true;
+	}
+	else if ( e.uMsg == WM_KEYUP )
+	{
+		if ( OnKeyUp ( e.wKey ) )
+			return true;
+	}
+	else if ( e.uMsg == WM_CHAR )
+	{
+		if ( OnKeyCharacter ( e.wKey ) )
+			return true;
+	}
+
+	return false;
+}
+
+bool CControl::InjectMouse ( sMouseEvents e )
+{
+	return false;
+}
+
+bool CControl::SendEvent ( eEVentControl event, int params )
 {
 	if ( !m_pAction )
 		return false;

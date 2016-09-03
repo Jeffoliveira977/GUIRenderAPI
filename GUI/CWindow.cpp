@@ -237,11 +237,14 @@ void CWindow::ClearControlFocus ( void )
 {
 	if ( m_pFocussedControl )
 	{
-		//m_pFocussedControl->OnClickLeave ();
+		m_pFocussedControl->OnClickLeave ();
 		m_pFocussedControl->OnMouseLeave ();
 		m_pFocussedControl->OnFocusOut ();
 		m_pFocussedControl = NULL;
 	}
+	if ( m_pControlMouseOver )
+		m_pControlMouseOver->OnMouseLeave ();
+	m_pControlMouseOver = NULL;
 }
 
 //--------------------------------------------------------------------------------------
@@ -548,7 +551,7 @@ bool CWindow::ControlMessages ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lPara
 	if ( !CControl::CanHaveFocus () ||
 		 m_eWindowArea != OutArea ||
 		 m_pScrollbar->ContainsRect ( pos ) ||
-		 !CControl::ContainsRect ( pos ) ||
+		 GetSizingBorderAtArea(pos) != OutArea ||
 		 m_rTitle.InControlArea ( pos ) )
 	{
 		return false;
@@ -566,7 +569,7 @@ bool CWindow::ControlMessages ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lPara
 			if ( m_pFocussedControl &&
 				 m_pFocussedControl->IsEnabled ())
 			{
-				if ( uMsg == WM_KEYDOWN )
+				/*if ( uMsg == WM_KEYDOWN )
 				{
 					if ( m_pFocussedControl->OnKeyDown (  wParam) )
 						return true;
@@ -580,7 +583,11 @@ bool CWindow::ControlMessages ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lPara
 				{
 					if ( m_pFocussedControl->OnKeyCharacter ( wParam ) )
 						return true;
-				}
+				}*/
+				sKeyEvents e;
+				e.uMsg = uMsg;
+				e.wKey = wParam;
+				if ( m_pFocussedControl->InjectKeyboard ( e ) )return true;
 			}
 			break;
 		}
@@ -732,8 +739,8 @@ bool CWindow::OnMouseButtonDown ( CPos pos )
 
 	if ( m_rTitle.InControlArea ( pos ) )
 	{
-		m_pControlMouseOver = NULL;
-		m_pFocussedControl = NULL;
+		
+		//ClearControlFocus ();
 
 		if ( m_pDialog->GetMouse ()->GetLeftButton () == 2 )
 			m_bMaximized = !m_bMaximized;

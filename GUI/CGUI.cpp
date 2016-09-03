@@ -549,66 +549,70 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 		return;
 
 	CPos pos = m_pMouse->GetPos ();
-	
+
 	/*if ( !GetAsyncKeyState(VK_LBUTTON) )
 		m_pMouse->SetCursorType ( CMouse::DEFAULT );
 */
 
-	// First handle messages from the windows widgets
+// First handle messages from the windows widgets
 
-	//// Check for any window with focus
-	//if ( m_pFocussedWindow )
-	//{
-	//	CControl *pControl = NULL;
-	//	pControl = m_pFocussedWindow->GetFocussedControl ();
-	//	if ( pControl && pControl->GetType () == CControl::TYPE_TABPANEL )
-	//	{
-	//		pControl = static_cast< CTabPanel* >( pControl )->GetFocussedControl ();
-	//	}
+//// Check for any window with focus
+//if ( m_pFocussedWindow )
+//{
+//	CControl *pControl = NULL;
+//	pControl = m_pFocussedWindow->GetFocussedControl ();
+//	if ( pControl && pControl->GetType () == CControl::TYPE_TABPANEL )
+//	{
+//		pControl = static_cast< CTabPanel* >( pControl )->GetFocussedControl ();
+//	}
 
-	//	// If the widget is a dropdown, leave handling message outside the windows
-	//	if ( pControl )
-	//	{
-	//		m_pFocussedWindow->OnMouseMove ( pControl, uMsg );
+//	// If the widget is a dropdown, leave handling message outside the windows
+//	if ( pControl )
+//	{
+//		m_pFocussedWindow->OnMouseMove ( pControl, uMsg );
 
-	//		if ( pControl->GetType () == CControl::TYPE_DROPDOWN )
-	//		{
-	//			// Let then give it the first chance at handling keyboard.
-	//			if ( pControl->HandleKeyboard ( uMsg, wParam, lParam ) )
-	//				return;
+//		if ( pControl->GetType () == CControl::TYPE_DROPDOWN )
+//		{
+//			// Let then give it the first chance at handling keyboard.
+//			if ( pControl->HandleKeyboard ( uMsg, wParam, lParam ) )
+//				return;
 
-	//			if ( pControl->HandleMouse ( uMsg, pos, wParam, lParam ) ||
-	//				 pControl->ContainsRect ( pos ) )
-	//				return;
-	//		}
-	//		else if ( pControl->GetType () == CControl::TYPE_EDITBOX )
-	//		{
-	//			if ( uMsg == WM_CHAR && 
-	//				 pControl->MsgProc ( uMsg, wParam, lParam ) )
-	//				return;
+//			if ( pControl->HandleMouse ( uMsg, pos, wParam, lParam ) ||
+//				 pControl->ContainsRect ( pos ) )
+//				return;
+//		}
+//		else if ( pControl->GetType () == CControl::TYPE_EDITBOX )
+//		{
+//			if ( uMsg == WM_CHAR && 
+//				 pControl->MsgProc ( uMsg, wParam, lParam ) )
+//				return;
 
-	//			if ( pControl->HandleKeyboard ( uMsg, wParam, lParam ) )
-	//				return;
-	//		}
-	//	}
-	//}
+//			if ( pControl->HandleKeyboard ( uMsg, wParam, lParam ) )
+//				return;
+//		}
+//	}
+//}
 
 	// See if the mouse is over any windows
 	CWindow* pWindow = GetWindowAtPos ( pos );
-
-	if ( m_pFocussedWindow && m_pFocussedWindow->ControlMessages ( uMsg, pos, wParam, lParam ) )
-		return;
-
-	if ( pWindow )
+	if ( m_pFocussedWindow )
 	{
+		CControl *pControl = m_pFocussedWindow->GetFocussedControl ();
+
 		bool bOnClick = false;
-		if ( m_pFocussedWindow && m_pFocussedWindow->OnClickEvent () )
+		if ( pWindow && uMsg != WM_LBUTTONDOWN )
 			bOnClick = true;
 
-		if ( /*!bOnClick && */pWindow->ControlMessages ( uMsg, pos, wParam, lParam ) )
+		if ( pControl && GetAsyncKeyState ( VK_LBUTTON ) && uMsg == WM_MOUSEMOVE )
+			bOnClick = true;
+
+		if ( bOnClick && m_pFocussedWindow->ControlMessages ( uMsg, pos, wParam, lParam ) )
 			return;
 	}
 
+	if ( pWindow && pWindow->ControlMessages ( uMsg, pos, wParam, lParam ) )
+		return;
+	
 	// Handle windows messages
 	switch ( uMsg )
 	{

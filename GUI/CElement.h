@@ -4,7 +4,7 @@
 
 class CDialog;
 
-enum E_EVENT_CONTROL
+enum eEVentControl
 {
 	EVENT_CONTROL_KEY_DOWN,
 	EVENT_CONTROL_CLICKED,
@@ -18,7 +18,7 @@ enum E_EVENT_CONTROL
 	EVENT_CONTROL_DBCLICK
 };
 
-typedef void ( __cdecl *tAction )( CControl*, E_EVENT_CONTROL, int );
+typedef void ( __cdecl *tAction )( CControl*, eEVentControl, int );
 
 struct SControlRect
 {
@@ -98,6 +98,19 @@ struct SControlColor
 
 	D3DCOLOR d3dColorSelectedFont;
 	D3DCOLOR d3dColorFont;
+};
+
+struct sMouseEvents
+{
+	INT nDelta;
+	UINT uMsg;
+	CPos pos;
+};
+
+struct sKeyEvents
+{
+	WPARAM wKey;
+	UINT uMsg;
 };
 
 class CControl
@@ -182,7 +195,7 @@ public:
 	virtual void SetText ( SIMPLEGUI_STRING sString, bool = false );
 	const SIMPLEGUI_CHAR *GetText ( void );
 
-	void SendMsg ( E_EVENT_CONTROL, int );
+	void SendMsg ( eEVentControl, int );
 
 	virtual void Draw ( void );
 
@@ -216,7 +229,10 @@ public:
 	virtual bool OnKeyUp ( WPARAM wParam );
 	virtual bool OnKeyCharacter ( WPARAM wParam );
 
-	bool SendEvent ( E_EVENT_CONTROL event, int params );
+	bool InjectKeyboard ( sKeyEvents e );
+	bool InjectMouse ( sMouseEvents e );
+
+	bool SendEvent ( eEVentControl event, int params );
 
 	void LinkPos ( CPos pos );
 

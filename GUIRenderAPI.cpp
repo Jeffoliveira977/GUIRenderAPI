@@ -202,7 +202,7 @@ VOID Init ()
 	list->SetRelativeSizeX ( true );
 */
 
-	auto psd = pGui->AddEditBox ( fServBrowser3, 0, 0, 100, 0,_UI ("sasd{FF750000}asaaddssddsadssaddsasd") );
+	auto psd = pGui->AddEditBox ( fServBrowser3, 0, 0, 200, 0,_UI ("sasd{FF750000}asaaddssddsadssaddsasd") );
 
 	auto sds = pGui->AddTabPanel ( fServBrowser3, 200, 200, 300, 200 );
 	sds->AddTab ( _UI ( "ASDA 12" ), 100 );
