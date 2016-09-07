@@ -754,45 +754,49 @@ void CEditBox::OnClickLeave ( void )
 	m_bMouseDrag = false;
 }
 
-bool CEditBox::OnMouseButtonDown ( CPos pos )
+bool CEditBox::OnMouseButtonDown ( sMouseEvents e )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
-	if ( m_rBoundingBox.InControlArea ( pos ) )
+	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		// Pressed while inside the control
-		m_bPressed = m_bMouseDrag = true;
+		
 
-		if ( m_pParent && !m_bHasFocus )
+		// Determine the character corresponding to the coordinates.
+		int nCP, nTrail, nX1st;
+		m_Buffer.CPtoX ( m_nFirstVisible, FALSE, &nX1st );  // X offset of the 1st visible char
+		if ( SUCCEEDED ( m_Buffer.XtoCP ( e.pos.GetX () - m_rText.pos.GetX () + nX1st, &nCP, &nTrail ) ) )
 		{
-			m_pParent->SetFocussedControl ( this );
-		}
-	}
+			// Cap at the NULL character.
+			if ( nTrail && nCP < m_Buffer.GetTextSize () )
+			{
+				PlaceCaret ( nCP + 1 );
+			}
+			else
+			{
+				PlaceCaret ( nCP );
+			}
 
-	// Determine the character corresponding to the coordinates.
-	int nCP, nTrail, nX1st;
-	m_Buffer.CPtoX ( m_nFirstVisible, FALSE, &nX1st );  // X offset of the 1st visible char
-	if ( SUCCEEDED ( m_Buffer.XtoCP ( pos.GetX () - m_rText.pos.GetX () + nX1st, &nCP, &nTrail ) ) )
-	{
-		// Cap at the NULL character.
-		if ( nTrail && nCP < m_Buffer.GetTextSize () )
-		{
-			PlaceCaret ( nCP + 1 );
+			m_nSelStart = m_nCaret;
+			//return true;
 		}
-		else
+		if ( m_rBoundingBox.InControlArea ( e.pos ) )
 		{
-			PlaceCaret ( nCP );
-		}
+			// Pressed while inside the control
+			m_bPressed = m_bMouseDrag = true;
 
-		m_nSelStart = m_nCaret;
-		return true;
+			if ( m_pParent  )
+			{
+				m_pParent->SetFocussedControl ( this );
+			}return true;
+		}
 	}
 
 	return false;
 }
 
-bool CEditBox::OnMouseButtonUp ( CPos pos )
+bool CEditBox::OnMouseButtonUp ( sMouseEvents e )
 {
 	m_bMouseDrag = false;
 	return false;

@@ -258,100 +258,103 @@ bool CScrollBarVertical::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARA
 	return false;
 }
 
-bool CScrollBarVertical::OnMouseButtonDown ( CPos pos )
+bool CScrollBarVertical::OnMouseButtonDown ( sMouseEvents e )
 {
-	// Check for click on up button
-	if ( m_rUpButton.InControlArea ( pos ) )
+	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		if ( m_nPosition > m_nStart )
-			m_nPosition -= m_nStep;
-
-		UpdateThumbRect ();
-		m_Arrow = CLICKED_UP;
-		m_timer.Start ( SCROLLBAR_ARROWCLICK_REPEAT );
-		m_bPressed = true;
-
-		if ( m_pParent )
-			m_pParent->SetFocussedControl ( this );
-
-		return true;
-	}
-
-	// Check for click on down button
-	if ( m_rDownButton.InControlArea ( pos ) )
-	{
-		if ( m_nPosition + m_nPageSize <= m_nEnd )
-			m_nPosition += m_nStep;
-
-		UpdateThumbRect ();
-		m_Arrow = CLICKED_DOWN;
-		m_timer.Start ( SCROLLBAR_ARROWCLICK_REPEAT );
-		m_bPressed = true;
-
-		if ( m_pParent )
-			m_pParent->SetFocussedControl ( this );
-
-		return true;
-	}
-
-	// Check for click on thumb
-	if ( m_rThumb.InControlArea ( pos ) )
-	{
-		m_Arrow = CLICKED_THUMB;
-		m_bDrag = true;
-		nThumbOffset = pos.GetY () - m_rThumb.pos.GetY ();
-		m_bPressed = true;
-
-		if ( m_pParent )
-			m_pParent->SetFocussedControl ( this );
-
-		return true;
-	}
-
-	// Check for click on track
-	if ( m_rBoundingBox.InControlArea ( pos ) )
-	{
-		if ( m_rThumb.pos.GetY () > pos.GetY () &&
-			 m_rBoundingBox.pos.GetY () <= pos.GetY () )
+		// Check for click on up button
+		if ( m_rUpButton.InControlArea ( e.pos ) )
 		{
-			Scroll ( -( m_nPageSize - 1 ) );
+			if ( m_nPosition > m_nStart )
+				m_nPosition -= m_nStep;
+
+			UpdateThumbRect ();
+			m_timer.Start ( SCROLLBAR_ARROWCLICK_REPEAT );
+			m_bPressed = true;
+			m_Arrow = CLICKED_UP;
 
 			if ( m_pParent )
 				m_pParent->SetFocussedControl ( this );
-
-			m_timer.Start ( 0.5 );
-			m_bPressed = true;
-			m_Arrow = HELD_UP;
 
 			return true;
 		}
-		else if ( m_rThumb.pos.GetY () + m_rThumb.size.cy <= pos.GetY () &&
-				  ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cx ) + m_rBoundingBox.size.cy > pos.GetY () )
+
+		// Check for click on down button
+		if ( m_rDownButton.InControlArea ( e.pos ) )
 		{
-			Scroll ( m_nPageSize - 1 );
+			if ( m_nPosition + m_nPageSize <= m_nEnd )
+				m_nPosition += m_nStep;
+
+			UpdateThumbRect ();
+			m_timer.Start ( SCROLLBAR_ARROWCLICK_REPEAT );
+			m_bPressed = true;
+			m_Arrow = CLICKED_DOWN;
 
 			if ( m_pParent )
 				m_pParent->SetFocussedControl ( this );
 
-			m_timer.Start ( 0.5 );
+			return true;
+		}
+
+		// Check for click on thumb
+		if ( m_rThumb.InControlArea ( e.pos ) )
+		{
+			nThumbOffset = e.pos.GetY () - m_rThumb.pos.GetY ();
+			m_Arrow = CLICKED_THUMB;
+			m_bDrag = true;
 			m_bPressed = true;
-			m_Arrow = HELD_DOWN;
+
+			if ( m_pParent )
+				m_pParent->SetFocussedControl ( this );
 
 			return true;
+		}
+
+		// Check for click on track
+		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		{
+			if ( m_rThumb.pos.GetY () > e.pos.GetY () &&
+				 m_rBoundingBox.pos.GetY () <= e.pos.GetY () )
+			{
+				Scroll ( -( m_nPageSize - 1 ) );
+
+				if ( m_pParent )
+					m_pParent->SetFocussedControl ( this );
+
+				m_timer.Start ( 0.5 );
+				m_bPressed = true;
+				m_Arrow = HELD_UP;
+
+				return true;
+			}
+			else if ( m_rThumb.pos.GetY () + m_rThumb.size.cy <= e.pos.GetY () &&
+					  ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cx ) + m_rBoundingBox.size.cy > e.pos.GetY () )
+			{
+				Scroll ( m_nPageSize - 1 );
+
+				if ( m_pParent )
+					m_pParent->SetFocussedControl ( this );
+
+				m_timer.Start ( 0.5 );
+				m_bPressed = true;
+				m_Arrow = HELD_DOWN;
+
+				return true;
+			}
 		}
 	}
 
 	return false;
 }
 
-bool CScrollBarVertical::OnMouseButtonUp ( CPos pos )
+bool CScrollBarVertical::OnMouseButtonUp ( sMouseEvents e )
 {
 	if ( m_bPressed )
 	{
-		m_bPressed = false;
-		m_bDrag = false;
 		UpdateThumbRect ();
 		m_Arrow = CLEAR;
+		m_bPressed = false;
+		m_bDrag = false;
 
 		if ( m_pParent )
 			m_pParent->ClearControlFocus ();

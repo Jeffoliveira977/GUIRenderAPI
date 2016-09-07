@@ -2,7 +2,7 @@
 
 //--------------------------------------------------------------------------------------
 CWindow::CWindow ( CDialog *pDialog ) :
-	m_pFocussedControl ( NULL ),
+	/*m_pFocussedControl ( NULL ),*/
 	m_bDragging ( false ),
 	m_bCloseButtonEnabled ( true ),
 	m_iTitleBarSize ( 26 ),
@@ -214,7 +214,7 @@ void CWindow::SetFocussedControl ( CControl *pControl )
 			return;
 
 		if ( m_pFocussedControl )
-			m_pFocussedControl->OnFocusOut ();
+			ClearControlFocus ();
 
 		if ( pControl )
 			pControl->OnFocusIn ();
@@ -242,9 +242,12 @@ void CWindow::ClearControlFocus ( void )
 		m_pFocussedControl->OnFocusOut ();
 		m_pFocussedControl = NULL;
 	}
+
 	if ( m_pControlMouseOver )
+	{
 		m_pControlMouseOver->OnMouseLeave ();
-	m_pControlMouseOver = NULL;
+		m_pControlMouseOver = NULL;
+	}
 }
 
 //--------------------------------------------------------------------------------------
@@ -337,8 +340,7 @@ CControl *CWindow::GetControlClicked ( void )
 //--------------------------------------------------------------------------------------
 bool CWindow::IsSizing ( void )
 {
-	return ( ( m_eWindowArea != OutArea &&
-			 m_bSizable ) &&
+	return ( ( m_bSizable&& m_eWindowArea != OutArea ) &&
 			 CControl::IsSizing () );
 }
 
@@ -527,8 +529,8 @@ void CWindow::ShowScrollbars ( bool bShow )
 void CWindow::OnMouseMove ( CControl *pControl, UINT uMsg )
 {
 	if ( !( GetAsyncKeyState ( VK_LBUTTON ) /*&& 
-		 pControl */) &&
-		 uMsg == WM_MOUSEMOVE )
+		 pControl */) /*&&
+		 uMsg == WM_MOUSEMOVE */)
 	{
 		// If the mouse is still over the same control, nothing needs to be done
 		if ( pControl == m_pControlMouseOver )
@@ -546,190 +548,165 @@ void CWindow::OnMouseMove ( CControl *pControl, UINT uMsg )
 }
 
 //--------------------------------------------------------------------------------------
-bool CWindow::ControlMessages ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
+bool CWindow::ControlMessages ( sControlEvents e )
 {
 	if ( !CControl::CanHaveFocus () ||
 		 m_eWindowArea != OutArea ||
-		 m_pScrollbar->ContainsRect ( pos ) ||
-		 GetSizingBorderAtArea(pos) != OutArea ||
-		 m_rTitle.InControlArea ( pos ) )
+		/* m_pScrollbar->ContainsRect ( e.mouseEvent.pos ) ||*/
+		 GetSizingBorderAtArea ( e.mouseEvent.pos ) != OutArea ||
+		 m_rTitle.InControlArea ( e.mouseEvent.pos ) )
 	{
 		return false;
 	}
 
-	switch ( uMsg )
+	if ( m_pFocussedControl&&m_pFocussedControl->InjectKeyboard ( e.keyEvent ) )
+		return true;
+
+	CControl* pControl = GetControlAtArea ( e.mouseEvent.pos );
+	if ( !pControl
+		 && e.mouseEvent.eMouseMessages == sMouseEvents::ButtonDown &&
+		 e.mouseEvent.eButton == sMouseEvents::LeftButton &&
+		 m_pFocussedControl )
 	{
-		// Keyboard messages
-		case WM_KEYDOWN:
-		case WM_KEYUP:
-		case WM_CHAR:
-		{
-			// If a control is in focus, and it's enabled, then give
-			// it the first chance at handling the message.
-			if ( m_pFocussedControl &&
-				 m_pFocussedControl->IsEnabled ())
-			{
-				/*if ( uMsg == WM_KEYDOWN )
-				{
-					if ( m_pFocussedControl->OnKeyDown (  wParam) )
-						return true;
-				}
-				else if ( uMsg == WM_KEYUP )
-				{
-					if ( m_pFocussedControl->OnKeyUp ( wParam ) )
-						return true;
-				}
-				else if ( uMsg == WM_CHAR )
-				{
-					if ( m_pFocussedControl->OnKeyCharacter ( wParam ) )
-						return true;
-				}*/
-				sKeyEvents e;
-				e.uMsg = uMsg;
-				e.wKey = wParam;
-				if ( m_pFocussedControl->InjectKeyboard ( e ) )return true;
-			}
-			break;
-		}
-
-		// Mouse messages
-		case WM_MOUSEMOVE:
-		case WM_LBUTTONDOWN:
-		case WM_LBUTTONUP:
-		case WM_LBUTTONDBLCLK:
-		case WM_MOUSEWHEEL:
-		{
-			CControl* pControl = GetControlAtArea ( pos );
-			if ( !pControl&& uMsg == WM_LBUTTONDOWN &&
-				 m_pFocussedControl )
-			{
-				ClearControlFocus ();
-			}
-
-			int zDelta = int ( ( short ) HIWORD ( wParam ) ) / WHEEL_DELTA;
-
-			// it the first chance at handling the message.
-			if ( SetControlMouseStates ( uMsg, -zDelta, pos, m_pFocussedControl ) )
-				return true;
-
-			if ( SetControlMouseStates ( uMsg, -zDelta, pos, pControl ) )
-				return true;
-
-			OnMouseMove ( pControl, uMsg );
-
-			if ( !m_pControlMouseOver &&
-				 uMsg == WM_MOUSEWHEEL )
-			{
-				ScrollPage ( -zDelta );
-				return true;
-			}
-		}
-		break;
+		ClearControlFocus ();
 	}
 
-	return false;
-}
+	// it the first chance at handling the message.
+	if ( m_pFocussedControl && m_pFocussedControl->InjectMouse ( e.mouseEvent ) )
+		return true;
 
-bool CWindow::SetControlMouseStates ( UINT uMsg, int zDelta, CPos pos, CControl *pControl )
-{
-	if ( pControl &&
-		 pControl->IsEnabled () )
+	if ( pControl && pControl->InjectMouse ( e.mouseEvent ) )
+		return true;
+
+	if ( !( GetAsyncKeyState ( VK_LBUTTON ) /*&&
+											pControl */ ) /*&&
+											uMsg == WM_MOUSEMOVE */ )
 	{
-		if ( uMsg == WM_MOUSEMOVE )
-		{
-			if ( pControl->OnMouseMove ( pos ) )
-				return true;
-		}
-		else if ( uMsg == WM_LBUTTONDOWN )
-		{
-			if ( pControl->OnMouseButtonDown ( pos ) )
-				return true;
-		}
-		else if ( uMsg == WM_LBUTTONUP )
-		{
-			if ( pControl->OnMouseButtonUp ( pos ) )
-				return true;
-		}
-		else if ( uMsg == WM_MOUSEHWHEEL )
-		{
-			if ( pControl->OnMouseWheel ( zDelta ) )
-				return true;
-		}
+		// If the mouse is still over the same control, nothing needs to be done
+		if ( pControl == m_pControlMouseOver )
+			return false;
+
+		// Handle mouse leaving the old control
+		if ( m_pControlMouseOver )
+			m_pControlMouseOver->OnMouseLeave ();
+
+		// Handle mouse entering the new control
+		m_pControlMouseOver = pControl;
+		if ( m_pControlMouseOver )
+			m_pControlMouseOver->OnMouseEnter ();
 	}
 
-	return false;
-}
-
-bool CWindow::OnMouseButtonDown ( CPos pos )
-
-{	// Check if mouse is over window boundaries
-	if ( GetSizingBorderAtArea ( pos ) == OutArea )
+	if ( !m_pControlMouseOver &&
+		 e.mouseEvent.eMouseMessages == sMouseEvents::MouseWheel )
 	{
-		// Let the scroll bar handle it first.
-		if ( m_pScrollbar->OnMouseButtonDown ( pos ) )
-			return true;
-	}
-
-	if ( m_rButton.InControlArea ( pos ) &&
-		 m_bCloseButtonEnabled )
-	{
-		// Pressed while inside the control
-		m_bPressed = true;
-
-		if ( m_pDialog && !m_bHasFocus )
-			m_pDialog->SetFocussedWindow ( this );
-
+		ScrollPage ( -e.mouseEvent.nDelta );
 		return true;
 	}
 
-	if ( m_bSizable )
-	{
-		E_WINDOW_AREA eArea = GetSizingBorderAtArea ( pos );
-		if ( eArea != OutArea )
+	return false;
+}
+
+bool CWindow::OnMouseButtonDown ( sMouseEvents e )
+{	
+		// Check if mouse is over window boundaries
+		if ( GetSizingBorderAtArea ( e.pos ) == OutArea && !( m_pFocussedControl && m_pFocussedControl->HasFocus() && m_pFocussedControl->GetType() == CControl::TYPE_DROPDOWN))
 		{
-			//SetCursorForPoint ( pos );
+			// Let the scroll bar handle it first.
+			if ( m_pScrollbar->OnMouseButtonDown ( e ) )
+				return true;
+		}
 
-			m_eWindowArea = eArea;
+	if ( e.eButton == sMouseEvents::LeftButton )
+	{
+		//ClearControlFocus ();
+		if ( m_rButton.InControlArea ( e.pos ) &&
+			 m_bCloseButtonEnabled )
+		{
+			// Pressed while inside the control
+			m_bPressed = true;
 
-			if ( m_eWindowArea == Top ||
-				 m_eWindowArea == TopLeft ||
-				 m_eWindowArea == TopRight )
+			if ( m_pDialog && !m_bHasFocus )
+				m_pDialog->SetFocussedWindow ( this );
+
+			return true;
+		}
+
+		if ( m_bSizable )
+		{
+			E_WINDOW_AREA eArea = GetSizingBorderAtArea ( e.pos );
+			if ( eArea != OutArea )
 			{
-				m_nDragY = m_pos.GetY () - pos.GetY ();
-				if ( m_eWindowArea == TopLeft )
-				{
-					m_nDragX = m_pos.GetX () - pos.GetX ();
-				}
-				else if ( m_eWindowArea == TopRight )
-				{
-					m_nDragX = m_pos.GetX () + m_rBoundingBox.size.cx - pos.GetX ();
-				}
-			}
-			else if ( m_eWindowArea == Left ||
-					  m_eWindowArea == BottomLeft )
-			{
-				m_nDragX = m_pos.GetX () - pos.GetX ();
+				//SetCursorForPoint ( pos );
 
-				if ( m_eWindowArea == BottomLeft )
-				{
-					m_nDragY = m_pos.GetY () + m_rBoundingBox.size.cy - pos.GetY ();
-				}
-			}
-			else if ( m_eWindowArea == Right ||
-					  m_eWindowArea == BottomRight )
-			{
-				m_nDragX = m_pos.GetX () + m_rBoundingBox.size.cx - pos.GetX ();
+				m_eWindowArea = eArea;
 
-				if ( m_eWindowArea == BottomRight )
+				if ( m_eWindowArea == Top ||
+					 m_eWindowArea == TopLeft ||
+					 m_eWindowArea == TopRight )
 				{
-					m_nDragY = m_pos.GetY () + m_rBoundingBox.size.cy - pos.GetY ();
+					m_nDragY = m_pos.GetY () - e.pos.GetY ();
+					if ( m_eWindowArea == TopLeft )
+					{
+						m_nDragX = m_pos.GetX () - e.pos.GetX ();
+					}
+					else if ( m_eWindowArea == TopRight )
+					{
+						m_nDragX = m_pos.GetX () + m_rBoundingBox.size.cx - e.pos.GetX ();
+					}
 				}
+				else if ( m_eWindowArea == Left ||
+						  m_eWindowArea == BottomLeft )
+				{
+					m_nDragX = m_pos.GetX () - e.pos.GetX ();
+
+					if ( m_eWindowArea == BottomLeft )
+					{
+						m_nDragY = m_pos.GetY () + m_rBoundingBox.size.cy - e.pos.GetY ();
+					}
+				}
+				else if ( m_eWindowArea == Right ||
+						  m_eWindowArea == BottomRight )
+				{
+					m_nDragX = m_pos.GetX () + m_rBoundingBox.size.cx - e.pos.GetX ();
+
+					if ( m_eWindowArea == BottomRight )
+					{
+						m_nDragY = m_pos.GetY () + m_rBoundingBox.size.cy - e.pos.GetY ();
+					}
+				}
+				else if ( m_eWindowArea == Bottom )
+				{
+					m_nDragY = m_pos.GetY () + m_rBoundingBox.size.cy - e.pos.GetY ();
+				}
+
+				if ( m_pDialog && !m_bHasFocus )
+					m_pDialog->SetFocussedWindow ( this );
+
+				return true;
 			}
-			else if ( m_eWindowArea == Bottom )
+		}
+
+		if ( m_rTitle.InControlArea ( e.pos ) )
+		{
+			//ClearControlFocus ();
+
+			if ( m_pDialog->GetMouse ()->GetLeftButton () == 2 )
+				m_bMaximized = !m_bMaximized;
+
+			if ( m_bMovable )
 			{
-				m_nDragY = m_pos.GetY () + m_rBoundingBox.size.cy - pos.GetY ();
+				m_bDragging = true;
+				m_posDif = m_pos - e.pos;
 			}
 
+			if ( m_pDialog )
+				m_pDialog->SetFocussedWindow ( this );
+
+			return true;
+		}
+
+		if ( m_rBoundingBox.InControlArea ( e.pos ) && !m_bMaximized )
+		{
 			if ( m_pDialog && !m_bHasFocus )
 				m_pDialog->SetFocussedWindow ( this );
 
@@ -737,57 +714,32 @@ bool CWindow::OnMouseButtonDown ( CPos pos )
 		}
 	}
 
-	if ( m_rTitle.InControlArea ( pos ) )
-	{
-		
-		//ClearControlFocus ();
-
-		if ( m_pDialog->GetMouse ()->GetLeftButton () == 2 )
-			m_bMaximized = !m_bMaximized;
-
-		if ( m_bMovable )
-		{
-			m_bDragging = true;
-			m_posDif = m_pos - pos;
-		}
-
-		if ( m_pDialog )
-			m_pDialog->SetFocussedWindow ( this );
-
-		return true;
-	}
-
-	if ( m_rBoundingBox.InControlArea ( pos ) && !m_bMaximized )
-	{
-		if ( m_pDialog && !m_bHasFocus )
-			m_pDialog->SetFocussedWindow ( this );
-
-		return true;
-	}
-
 	return false;
 }
 
-bool CWindow::OnMouseButtonUp ( CPos pos )
+bool CWindow::OnMouseButtonUp ( sMouseEvents e )
 {
 	// Check if mouse is over window boundaries
-	if ( GetSizingBorderAtArea ( pos ) == OutArea )
+	if ( GetSizingBorderAtArea ( e.pos ) == OutArea && !( m_pFocussedControl && m_pFocussedControl->HasFocus () && m_pFocussedControl->GetType () == CControl::TYPE_DROPDOWN ) )
 	{
 		// Let the scroll bar handle it first.
-		if ( m_pScrollbar->OnMouseButtonUp ( pos ) )
+		if ( m_pScrollbar->OnMouseButtonUp ( e ) )
 			return true;
 	}
 
-	m_bDragging		= false;
-	m_eWindowArea	= OutArea;
-	m_size			= m_rBoundingBox.size;
+	if ( e.eButton == sMouseEvents::LeftButton )
+	{
+		m_bDragging = false;
+		m_eWindowArea = OutArea;
+		m_size = m_rBoundingBox.size;
+	}
 
 	if ( m_bPressed )
 	{
 		m_bPressed = false;
 
 		// Button click
-		if ( m_rButton.InControlArea ( pos ) )
+		if ( m_rButton.InControlArea ( e.pos ) )
 		{
 			SendEvent ( EVENT_CONTROL_CLICKED, true );
 			SetVisible ( false );
@@ -821,15 +773,15 @@ bool CWindow::OnMouseMove ( CPos pos )
 		m_pControlMouseOver = NULL;
 	}
 
-	if ( m_bSizable )
+	if ( m_bMouseOver &&
+		  m_eWindowArea == OutArea &&
+		  !m_rButton.InControlArea ( pos ) )
 	{
-		if ( m_bMouseOver &&
-			 m_eWindowArea == OutArea &&
-			 !m_rButton.InControlArea ( pos ) )
-		{
-			SetCursorForPoint ( pos );
-		}
+		SetCursorForPoint ( pos );
+	}
 
+	if ( m_bSizable && m_eWindowArea != OutArea )
+	{
 		if ( m_eWindowArea == Top ||
 			 m_eWindowArea == TopLeft ||
 			 m_eWindowArea == TopRight )
@@ -871,16 +823,19 @@ bool CWindow::OnMouseMove ( CPos pos )
 		if ( m_rBoundingBox.size.cy < m_minSize.cy )
 			m_rBoundingBox.size.cy = m_minSize.cy;
 
+		// Adjust position
+		m_rBoundingBox.pos = m_pos;
+		return true;
 	}
 
 	if ( m_bDragging &&
 		 m_bMovable )
 	{
-		m_pos = pos + m_posDif;
+		// Adjust position
+		m_rBoundingBox.pos= m_pos = pos + m_posDif;
+		return true;
 	}
 
-	// Adjust position
-	m_rBoundingBox.pos = m_pos;
 	return false;
 }
 
@@ -904,266 +859,6 @@ bool CWindow::OnKeyDown ( WPARAM wParam )
 	return false;
 }
 
-bool CWindow::OnKeyUp ( WPARAM wParam )
-{
-	return false;
-}
-
-bool CWindow::OnKeyCharacter ( WPARAM wParam )
-{
-	return false;
-}
-
-//--------------------------------------------------------------------------------------
-bool CWindow::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
-{
-	if ( !CControl::CanHaveFocus () ||
-		 !m_pScrollbar )
-		return false;
-
-	// Check if mouse is over window boundaries
-	if ( GetSizingBorderAtArea ( pos ) == OutArea )
-	{
-		// Let the scroll bar handle it first.
-		if ( m_pScrollbar->HandleMouse ( uMsg, pos, wParam, lParam ) )
-			return true;
-	}
-
-	switch ( uMsg )
-	{
-		case WM_LBUTTONDBLCLK:
-		case WM_LBUTTONDOWN:
-		{
-			if ( m_rButton.InControlArea ( pos ) &&
-				 m_bCloseButtonEnabled )
-			{
-				// Pressed while inside the control
-				m_bPressed = true;
-
-				if ( m_pDialog && !m_bHasFocus )
-					m_pDialog->SetFocussedWindow ( this );
-
-				return true;
-			}
-
-			if ( m_bSizable )
-			{
-				E_WINDOW_AREA eArea = GetSizingBorderAtArea ( pos );
-				if ( eArea != OutArea )
-				{
-					//SetCursorForPoint ( pos );
-
-					m_eWindowArea = eArea;
-
-					if ( m_eWindowArea == Top ||
-						 m_eWindowArea == TopLeft ||
-						 m_eWindowArea == TopRight )
-					{
-						m_nDragY = m_pos.GetY () - pos.GetY ();
-						if ( m_eWindowArea == TopLeft )
-						{
-							m_nDragX = m_pos.GetX () - pos.GetX ();
-						}
-						else if ( m_eWindowArea == TopRight )
-						{
-							m_nDragX = m_pos.GetX () + m_rBoundingBox.size.cx - pos.GetX ();
-						}
-					}
-					else if ( m_eWindowArea == Left ||
-							  m_eWindowArea == BottomLeft )
-					{
-						m_nDragX = m_pos.GetX () - pos.GetX ();
-
-						if ( m_eWindowArea == BottomLeft )
-						{
-							m_nDragY = m_pos.GetY () + m_rBoundingBox.size.cy - pos.GetY ();
-						}
-					}
-					else if ( m_eWindowArea == Right ||
-							  m_eWindowArea == BottomRight )
-					{
-						m_nDragX = m_pos.GetX () + m_rBoundingBox.size.cx - pos.GetX ();
-
-						if ( m_eWindowArea == BottomRight )
-						{
-							m_nDragY = m_pos.GetY () + m_rBoundingBox.size.cy - pos.GetY ();
-						}
-					}
-					else if ( m_eWindowArea == Bottom )
-					{
-						m_nDragY = m_pos.GetY () + m_rBoundingBox.size.cy - pos.GetY ();
-					}
-
-					if ( m_pDialog && !m_bHasFocus )
-						m_pDialog->SetFocussedWindow ( this );
-
-					return true;
-				}
-			}
-
-			if ( m_rTitle.InControlArea ( pos ) )
-			{
-				m_pControlMouseOver = NULL;
-				m_pFocussedControl = NULL;
-
-				if ( m_pDialog->GetMouse ()->GetLeftButton () == 2 )
-					m_bMaximized = !m_bMaximized;
-
-				if ( m_bMovable )
-				{
-					m_bDragging = true;
-					m_posDif = m_pos - pos;
-				}
-
-				if ( m_pDialog )
-					m_pDialog->SetFocussedWindow ( this );
-
-				return true;
-			}
-
-			if ( m_rBoundingBox.InControlArea ( pos ) && !m_bMaximized )
-			{
-				if ( m_pDialog && !m_bHasFocus )
-					m_pDialog->SetFocussedWindow ( this );
-
-				return true;
-			}
-
-			break;
-		}
-
-		case WM_LBUTTONUP:
-		{
-			m_bDragging = false;
-			m_eWindowArea = OutArea;
-			m_size = m_rBoundingBox.size;
-
-			if ( m_bPressed )
-			{
-				m_bPressed = false;
-
-				// Button click
-				if ( m_rButton.InControlArea ( pos ) )
-				{
-					SendEvent ( EVENT_CONTROL_CLICKED, true );
-					SetVisible ( false );
-
-					if ( m_pDialog )
-						m_pDialog->ClearFocussedWindow ();
-
-				}
-
-				return true;
-			}
-
-			break;
-		}
-
-		case WM_MOUSEMOVE:
-		{
-			if ( m_rTitle.InControlArea ( pos ) )
-			{
-				if ( m_pControlMouseOver )
-					m_pControlMouseOver->OnMouseLeave ();
-
-				m_pControlMouseOver = NULL;
-			}
-
-			if ( m_bSizable )
-			{
-				if ( m_bMouseOver &&
-					 m_eWindowArea == OutArea &&
-					 !m_rButton.InControlArea ( pos ) )
-				{
-					SetCursorForPoint ( pos );
-				}
-
-				if ( m_eWindowArea == Top ||
-					 m_eWindowArea == TopLeft ||
-					 m_eWindowArea == TopRight )
-				{
-					m_rBoundingBox.size.cy = m_rBoundingBox.size.cy + ( m_pos.GetY () - pos.GetY () ) - m_nDragY;
-					m_pos.SetY ( pos.GetY () + m_nDragY );
-
-					if ( m_eWindowArea == TopLeft )
-					{
-						m_rBoundingBox.size.cx = m_rBoundingBox.size.cx + ( m_pos.GetX () - pos.GetX () ) - m_nDragX;
-						m_pos.SetX ( pos.GetX () + m_nDragX );
-					}
-					else if ( m_eWindowArea == TopRight )
-						m_rBoundingBox.size.cx = pos.GetX () - m_pos.GetX () + m_nDragX;
-				}
-				else if ( m_eWindowArea == Left ||
-						  m_eWindowArea == BottomLeft )
-				{
-					m_rBoundingBox.size.cx = m_rBoundingBox.size.cx + ( m_pos.GetX () - pos.GetX () ) - m_nDragX;
-					m_pos.SetX ( pos.GetX () + m_nDragX );
-
-					if ( m_eWindowArea == BottomLeft )
-						m_rBoundingBox.size.cy = pos.GetY () - m_pos.GetY () + m_nDragY;
-				}
-				else if ( m_eWindowArea == Right ||
-						  m_eWindowArea == BottomRight )
-				{
-					m_rBoundingBox.size.cx = pos.GetX () - m_pos.GetX () + m_nDragX;
-
-					if ( m_eWindowArea == BottomRight )
-						m_rBoundingBox.size.cy = pos.GetY () - m_pos.GetY () + m_nDragY;
-				}
-				else if ( m_eWindowArea == Bottom )
-					m_rBoundingBox.size.cy = pos.GetY () - m_pos.GetY () + m_nDragY;
-
-				if ( m_rBoundingBox.size.cx < m_minSize.cx )
-					m_rBoundingBox.size.cx = m_minSize.cx;
-
-				if ( m_rBoundingBox.size.cy < m_minSize.cy )
-					m_rBoundingBox.size.cy = m_minSize.cy;
-
-			}
-
-			if ( m_bDragging &&
-				 m_bMovable )
-			{
-				m_pos = pos + m_posDif;
-			}
-
-			// Adjust position
-			m_rBoundingBox.pos = m_pos;
-			return false;
-		}
-
-		case WM_MOUSEWHEEL:
-		{
-			int zDelta = int ( ( short ) HIWORD ( wParam ) ) / WHEEL_DELTA;
-			ScrollPage ( -zDelta );
-			return true;
-		}
-	};
-
-	return false;
-}
-
-//--------------------------------------------------------------------------------------
-bool CWindow::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
-{
-	if ( !CControl::CanHaveFocus () )
-		return false;
-
-	switch ( uMsg )
-	{
-		case WM_KEYDOWN:
-		{
-			switch ( wParam )
-			{
-				case VK_TAB:
-					SetFocussedControl ( m_vControls [ 0 ] );
-					return true;
-			}
-		}
-	}
-	return false;
-}
-
 //--------------------------------------------------------------------------------------
 void CWindow::UpdateScrollbars ( bool a, bool b )
 {
@@ -1174,8 +869,8 @@ void CWindow::UpdateScrollbars ( bool a, bool b )
 	CScrollBarHorizontal *pScrollbarHor = m_pScrollbar->GetHorScrollbar ();
 
 	int nValueX = m_rBoundingBox.size.cx + ( m_maxControlSize.cx - ( m_rBoundingBox.pos.GetX () + m_rBoundingBox.size.cx ) );
-	int nValueY = ( ( m_rBoundingBox.size.cy - m_iTitleBarSize ) +
-					( m_maxControlSize.cy - ( ( m_rBoundingBox.pos.GetY () + m_iTitleBarSize ) + ( m_rBoundingBox.size.cy - m_iTitleBarSize ) ) ) );
+	int nValueY = ( /*( m_rBoundingBox.size.cy - m_iTitleBarSize ) +*/
+					( m_maxControlSize.cy - ( ( m_rBoundingBox.pos.GetY ()  ) + ( m_rBoundingBox.size.cy  ) ) ) );
 
 	pScrollbarHor->SetStepSize ( m_rBoundingBox.size.cx / 10 );
 	pScrollbarVer->SetStepSize ( m_rBoundingBox.size.cy / 10 );
@@ -1261,7 +956,7 @@ bool CWindow::ContainsRect ( CPos pos )
 	return ( ( m_pScrollbar->ContainsRect ( pos ) && m_eWindowArea == OutArea ) ||
 			 ( m_rBoundingBox.InControlArea ( pos ) && !m_bMaximized ) ||
 			 m_rTitle.InControlArea ( pos ) ||
-			 m_rButton.InControlArea ( pos )|| GetSizingBorderAtArea ( pos ) != OutArea );
+			 m_rButton.InControlArea ( pos )|| GetSizingBorderAtArea ( pos ) != OutArea ||(m_pFocussedControl&&m_pFocussedControl ->ContainsRect(pos)));
 }
 
 void CWindow::SetCursorForPoint ( CPos pos )

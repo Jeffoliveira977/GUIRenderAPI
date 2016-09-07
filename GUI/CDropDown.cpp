@@ -172,51 +172,56 @@ bool CDropDown::OnKeyUp ( WPARAM wParam )
 	return false;
 }
 
-bool CDropDown::OnMouseButtonDown ( CPos pos )
+bool CDropDown::OnMouseButtonDown ( sMouseEvents e )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
 	// Let the scroll bar handle it first.
-	if ( m_pEntryList->GetScrollbar ()->OnMouseButtonDown ( pos ) )
+	if ( m_pEntryList->GetScrollbar ()->OnMouseButtonDown ( e ) )
 		return true;
 
-	if ( CControl::ContainsRect ( pos ) )
+	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		// Toggle dropdown
-		m_bPressed ? CloseBox () : OpenBox ();
+		if ( CControl::ContainsRect ( e.pos ) )
+		{
+			// Toggle dropdown
+			m_bPressed ? 
+				CloseBox () : 
+				OpenBox ();
 
-		return true;
-	}
+			return true;
+		}
 
-	// Mouse click not on main control or in dropdown
-	if ( m_bPressed &&
-		 !m_rBack.InControlArea ( pos ) )
-	{
-		CloseBox ();
-		return true;
+		// Mouse click not on main control or in dropdown
+		if ( m_bPressed &&
+			 !m_rBack.InControlArea ( e.pos ) )
+		{
+			CloseBox ();
+		}
 	}
 
 	return false;
 }
 
-bool CDropDown::OnMouseButtonUp ( CPos pos )
+bool CDropDown::OnMouseButtonUp ( sMouseEvents e )
 {
 	// Let the scroll bar handle it first.
-	if ( m_pEntryList->GetScrollbar ()->OnMouseButtonDown ( pos ) )
+	if ( m_pEntryList->GetScrollbar ()->OnMouseButtonUp ( e ) )
 		return true;
 
-	if ( m_bPressed )
+	if ( m_bPressed  )
 	{
 		// Perhaps this click is within the dropdown
-		if ( m_rBack.InControlArea ( pos ) )
+		if ( m_rBack.InControlArea ( e.pos ) && m_bOpened )
 		{
 			m_iSelected = m_iIndex;
 			m_pEntryList->SetSelectedEntryByIndex ( m_iSelected, true );
 
-			CloseBox ();
+			CloseBox ();		
 		}
 
+		m_bOpened = true;
 		return true;
 	}
 
@@ -229,7 +234,7 @@ bool CDropDown::OnMouseMove ( CPos pos )
 		return false;
 
 	// Let the scroll bar handle it first.
-	if ( m_pEntryList->GetScrollbar ()->OnMouseButtonDown ( pos ) )
+	if ( m_pEntryList->GetScrollbar ()->OnMouseMove ( pos ) )
 		return true;
 
 	CScrollBarVertical *pScrollbarVer = m_pEntryList->GetScrollbar ()->GetVerScrollbar ();
@@ -239,7 +244,7 @@ bool CDropDown::OnMouseMove ( CPos pos )
 	{
 		SControlRect rText = m_rBack;
 		rText.pos.SetX ( rText.pos.GetX () + 4 );
-		rText.size.cx -= ( pScrollbarVer->GetWidth () + 3 );
+		rText.size.cx -= ( m_pEntryList->GetScrollbar ()->IsHorScrollbarNeeded () ? pScrollbarVer->GetWidth () + 3 : 0 );
 		rText.size.cy = TEXTBOX_TEXTSPACE - 2;
 
 		for ( int i = pScrollbarVer->GetTrackPos (); i < pScrollbarVer->GetTrackPos () + pScrollbarVer->GetPageSize (); i++ )
@@ -258,10 +263,11 @@ bool CDropDown::OnMouseMove ( CPos pos )
 					 rText.InControlArea ( pos ) )
 				{
 					m_iIndex = i;
-					return true;
+					
 				}
 			}
 		}
+		return true;
 	}
 
 	return false;
@@ -325,7 +331,7 @@ void CDropDown::OpenBox ( void )
 	if ( m_pParent && 
 		 !m_bHasFocus )
 		m_pParent->SetFocussedControl ( this );
-
+	m_bOpened = false;
 	m_bPressed = true;
 }
 
@@ -333,7 +339,7 @@ void CDropDown::CloseBox ( void )
 {
 	if ( m_pParent )
 		m_pParent->ClearControlFocus ();
-
+	m_bOpened = false;
 	m_bPressed = false;
 	SendEvent ( EVENT_CONTROL_SELECT, m_iSelected );
 }

@@ -592,158 +592,135 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 //		}
 //	}
 //}
+	sControlEvents e;
+	e.keyEvent;
+	if ( uMsg == WM_KEYDOWN ||
+		 uMsg == WM_KEYUP ||
+		 uMsg == WM_CHAR )
+	{
+		e.keyEvent.uMsg = uMsg;
+		e.keyEvent.wKey = wParam;
+	}
 
-	// See if the mouse is over any windows
-	CWindow* pWindow = GetWindowAtPos ( pos );
+	e.mouseEvent.pos = pos;
+	switch ( uMsg )
+	{
+		case WM_MOUSEMOVE:
+		{
+			e.mouseEvent.eMouseMessages = sMouseEvents::MouseMove;
+			break;
+		}
+		case WM_LBUTTONDOWN:
+		case WM_RBUTTONDOWN:
+		case WM_MBUTTONDOWN:
+		{
+			e.mouseEvent.eMouseMessages = sMouseEvents::ButtonDown;
+
+			if ( uMsg == WM_LBUTTONDOWN )
+				e.mouseEvent.eButton = sMouseEvents::LeftButton;
+			else if ( uMsg == WM_RBUTTONDOWN )
+				e.mouseEvent.eButton = sMouseEvents::RightButton;
+			else
+				e.mouseEvent.eButton = sMouseEvents::MiddleButton;
+			break;
+		}
+		case WM_LBUTTONUP:
+		case WM_RBUTTONUP:
+		case WM_MBUTTONUP:
+		{
+			e.mouseEvent.eMouseMessages = sMouseEvents::ButtonUp;
+
+			if ( uMsg == WM_LBUTTONUP )
+				e.mouseEvent.eButton = sMouseEvents::LeftButton;
+			else if ( uMsg == WM_RBUTTONUP )
+				e.mouseEvent.eButton = sMouseEvents::RightButton;
+			else
+				e.mouseEvent.eButton = sMouseEvents::MiddleButton;
+			break;
+		}
+		case WM_MOUSEWHEEL:
+		{
+			e.mouseEvent.eMouseMessages = sMouseEvents::MouseWheel;
+			e.mouseEvent.nDelta = int ( ( short ) HIWORD ( wParam ) ) / WHEEL_DELTA;
+			break;
+		}
+	}
+
 	if ( m_pFocussedWindow )
 	{
 		CControl *pControl = m_pFocussedWindow->GetFocussedControl ();
 
-		bool bOnClick = false;
-		if ( pWindow && uMsg != WM_LBUTTONDOWN )
-			bOnClick = true;
+		bool bOnDrag = false;
+		if ( m_pFocussedWindow->GetFocussedControl () && uMsg != WM_LBUTTONDOWN ||
+			 ( GetAsyncKeyState ( VK_LBUTTON ) && uMsg == WM_MOUSEMOVE ) )
+		{
+			bOnDrag = true;
+		}
 
-		if ( pControl && GetAsyncKeyState ( VK_LBUTTON ) && uMsg == WM_MOUSEMOVE )
-			bOnClick = true;
-
-		if ( bOnClick && m_pFocussedWindow->ControlMessages ( uMsg, pos, wParam, lParam ) )
+		if ( bOnDrag && m_pFocussedWindow->ControlMessages ( e ) )
 			return;
 	}
 
-	if ( pWindow && pWindow->ControlMessages ( uMsg, pos, wParam, lParam ) )
+	// See if the mouse is over any windows
+	CWindow* pWindow = GetWindowAtPos ( pos );
+
+	if ( pWindow && pWindow->ControlMessages ( e ) )
 		return;
-	
-	// Handle windows messages
-	switch ( uMsg )
+
+	// If a window is in focus, and it's enabled, then give
+	// it the first chance at handling the message.
+	if ( m_pFocussedWindow &&
+		 m_pFocussedWindow->IsEnabled () )
 	{
-		// Keyboard messages
-		case WM_KEYDOWN:
-		case WM_SYSKEYDOWN:
-		case WM_KEYUP:
-		case WM_SYSKEYUP:
-		{
-			// If a window is in focus, and it's enabled, then give
-			// it the first chance at handling the message.
-			if ( m_pFocussedWindow &&
-				 m_pFocussedWindow->IsEnabled () )
-			{
-				if ( m_pFocussedWindow->HandleKeyboard ( uMsg, wParam, lParam ) )
-					return;
-			}
+		if ( m_pFocussedWindow&&m_pFocussedWindow->InjectKeyboard ( e.keyEvent ) )
+			return;
+	}
 
-			break;
+	if ( pWindow )
+	{
+		pWindow->InjectMouse ( e.mouseEvent );
+	}
+	else
+	{
+		if ( uMsg == WM_LBUTTONDOWN )
+		{
+			ClearFocussedWindow ();
+		}
+	}
+
+	if ( m_pFocussedWindow )
+	{
+		// If the control is in focus, and if the mouse is outside the window, then leave 
+		// the click event
+		if ( uMsg == WM_LBUTTONUP )
+		{
+			m_pFocussedWindow->OnClickLeave ();
+		}
+	}
+
+	if ( m_pFocussedWindow && m_pFocussedWindow->InjectMouse ( e.mouseEvent ) )
+		return;
+
+	if ( !( GetAsyncKeyState ( VK_LBUTTON ) && pWindow ) &&
+		 uMsg == WM_MOUSEMOVE )
+	{
+		// If the mouse is still over the same window, nothing needs to be done
+		if ( pWindow == m_pMouseOverWindow )
+			return;
+
+		// Handle mouse leaving the old window
+		if ( m_pMouseOverWindow )
+		{
+			m_pMouseOverWindow->OnMouseLeave ();
 		}
 
-		// Mouse messages
-		case WM_MOUSEMOVE:
-		case WM_LBUTTONDOWN:
-		case WM_LBUTTONUP:
-		case WM_MBUTTONDOWN:
-		case WM_MBUTTONUP:
-		case WM_RBUTTONDOWN:
-		case WM_RBUTTONUP:
-		case WM_XBUTTONDOWN:
-		case WM_XBUTTONUP:
-		case WM_LBUTTONDBLCLK:
-		case WM_MBUTTONDBLCLK:
-		case WM_RBUTTONDBLCLK:
-		case WM_XBUTTONDBLCLK:
-		case WM_MOUSEWHEEL:
-		{
-			int zDelta = int ( ( short ) HIWORD ( wParam ) ) / WHEEL_DELTA;
-
-			if ( SetWindowMouseStates ( uMsg, -zDelta, pos, pWindow ) )
-				return;
-			if ( pWindow )
-			{
-				
-				if ( m_pFocussedWindow )
-				{
-					/*if ( uMsg == WM_LBUTTONDOWN )
-					{
-						m_pFocussedWindow->ClearControlFocus();
-					}*/
-					/*if ( m_pFocussedWindow->HandleMouse ( uMsg, pos, wParam, lParam ) )
-						return;*/
-				}
-
-				
-				/*if ( pWindow->HandleMouse ( uMsg, pos, wParam, lParam ) )
-					return;*/
-			}
-			else
-			{
-				if ( uMsg == WM_LBUTTONDOWN )
-				{
-					ClearFocussedWindow ();
-				}
-			}
-
-			if ( m_pFocussedWindow )
-			{
-				// If the control is in focus, and if the mouse is outside the window, then leave 
-				// the click event
-				if ( uMsg == WM_LBUTTONUP  )
-				{
-					m_pFocussedWindow->OnClickLeave ();
-				}
-
-				
-
-			/*	if ( m_pFocussedWindow->HandleMouse ( uMsg, pos, wParam, lParam ) )
-					return;*/
-			}
-			if ( SetWindowMouseStates ( uMsg, zDelta, pos, m_pFocussedWindow ) )
-				return;
-
-			if ( !( GetAsyncKeyState ( VK_LBUTTON ) && pWindow ) &&
-				 uMsg == WM_MOUSEMOVE )
-			{
-				// If the mouse is still over the same window, nothing needs to be done
-				if ( pWindow == m_pMouseOverWindow )
-					return;
-
-				// Handle mouse leaving the old window
-				if ( m_pMouseOverWindow )
-				{
-					m_pMouseOverWindow->OnMouseLeave ();
-				}
-
-				// Handle mouse entering the new window
-				m_pMouseOverWindow = pWindow;
-				if ( pWindow != NULL )
-					m_pMouseOverWindow->OnMouseEnter ();
-			}
-		}
-		break;
+		// Handle mouse entering the new window
+		m_pMouseOverWindow = pWindow;
+		if ( m_pMouseOverWindow )
+			m_pMouseOverWindow->OnMouseEnter ();
 	}
 
 	LeaveCriticalSection ( &cs );
-}
-
-bool CDialog::SetWindowMouseStates ( UINT uMsg, int zDelta, CPos pos, CWindow *pWindow )
-{
-	if ( pWindow &&
-		 pWindow->IsEnabled () )
-	{
-		if ( uMsg == WM_MOUSEMOVE )
-		{
-			if ( pWindow->OnMouseMove ( pos ) )
-				return true;
-		}
-		else if ( uMsg == WM_LBUTTONDOWN )
-		{
-			if ( pWindow->OnMouseButtonDown ( pos ) )
-				return true;
-		}
-		else if ( uMsg == WM_LBUTTONUP )
-		{
-			if ( pWindow->OnMouseButtonUp ( pos ) )
-				return true;
-		}
-	}
-
-	return false;
 }
 
 //--------------------------------------------------------------------------------------

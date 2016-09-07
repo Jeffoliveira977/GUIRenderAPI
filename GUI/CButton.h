@@ -12,9 +12,8 @@ public:
 	bool OnKeyDown ( WPARAM wParam );
 	bool OnKeyUp ( WPARAM wParam );
 
-	bool OnMouseButtonDown ( CPos pos );
-	bool OnMouseButtonUp ( CPos pos );
+	bool OnMouseButtonDown ( sMouseEvents e );
+	bool OnMouseButtonUp ( sMouseEvents e );
 
-	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
-	bool HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam );
+
 };

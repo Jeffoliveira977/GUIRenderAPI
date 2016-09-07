@@ -27,7 +27,7 @@ public:
 	void				RemoveEntry					(  SEntryItem *pEntry );
 
 	int					GetIndexByEntry				(  SEntryItem *pEntry );
-	SEntryItem			*GetEntryByIndex			( int nIndex );
+	SEntryItem			*GetEntryByIndex			( UINT nIndex );
 
 	SIZE				GetTextSize					( void );
 
@@ -44,10 +44,10 @@ public:
 	SEntryItem			*GetPrevItem				( SEntryItem *pEntry );
 	SEntryItem			*GetNextItem				( SEntryItem *pEntry );
 
-	void				SetSelectedEntryByIndex		( int nIndex, bool bSelect );
+	void				SetSelectedEntryByIndex		( UINT nIndex, bool bSelect );
 	void				SetSelectedEntry			( SEntryItem *pEntry, bool bSelect );
 
-	bool				IsEntrySelectedByIndex		( int nIndex );
+	bool				IsEntrySelectedByIndex		( UINT nIndex );
 	bool				IsEntrySelected				(  SEntryItem *pEntry );
 	SEntryItem			*GetSelectedEntry			( void );
 	int					GetSelectedEntryIndex		( void );

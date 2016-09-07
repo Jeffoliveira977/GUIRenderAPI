@@ -102,15 +102,54 @@ struct SControlColor
 
 struct sMouseEvents
 {
-	INT nDelta;
-	UINT uMsg;
-	CPos pos;
+	enum eMouseButton
+	{
+		LeftButton,
+		RightButton,
+		MiddleButton
+	};
+
+	enum eMouseMessages
+	{
+		ButtonDown,
+		ButtonUp,
+		MouseMove,
+		MouseWheel
+	};
+
+	INT				nDelta;
+	CPos			pos;
+
+	eMouseMessages	eMouseMessages;
+	eMouseButton	eButton;
+
+	/*sMouseEvents(){}
+	sMouseEvents ( eMouseButton eButton, CPos pos, INT nDelta )
+	{
+		this->eButton = eButton;
+		this->pos = pos;
+		this->nDelta = nDelta;
+	}*/
 };
 
 struct sKeyEvents
 {
 	WPARAM wKey;
 	UINT uMsg;
+
+	/*sKeyEvents () {}
+	sKeyEvents ( UINT uMsg, WPARAM wKey )
+	{
+		this->uMsg = uMsg;
+		this->wKey = wKey;
+	}*/
+};
+
+struct sControlEvents
+{
+	sKeyEvents keyEvent;
+	sMouseEvents mouseEvent;
+
 };
 
 class CControl
@@ -220,8 +259,8 @@ public:
 	virtual void OnClickLeave ( void );
 	virtual	bool OnClickEvent ( void );
 
-	virtual bool OnMouseButtonDown ( CPos pos );
-	virtual bool OnMouseButtonUp ( CPos pos );
+	virtual bool OnMouseButtonDown ( sMouseEvents e );
+	virtual bool OnMouseButtonUp ( sMouseEvents e );
 	virtual bool OnMouseMove ( CPos pos );
 	virtual bool OnMouseWheel ( int zDelta );
 

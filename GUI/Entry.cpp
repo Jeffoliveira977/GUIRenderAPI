@@ -71,10 +71,9 @@ void CEntryList::RemoveEntry ( SEntryItem *pEntry )
 	m_pScrollbar->SetTrackRange ( m_TextSize.cx, m_vEntryList.size () );
 }
 
-SEntryItem *CEntryList::GetEntryByIndex ( int nIndex )
+SEntryItem *CEntryList::GetEntryByIndex ( UINT nIndex )
 {
-	if ( nIndex >= m_vEntryList.size () &&
-		 nIndex > -1 )
+	if ( nIndex >= m_vEntryList.size () )
 		return NULL;
 
 	return m_vEntryList [ nIndex ];
@@ -184,9 +183,8 @@ void CEntryList::SetSortedList ( bool bSort )
 
 int CEntryList::GetIndexByEntry (  SEntryItem *pEntry )
 {
-
 	if ( !IsEntryInList ( pEntry ) )
-		return 0;
+		return -1;
 
 	return std::distance ( m_vEntryList.begin (), std::find ( m_vEntryList.begin (), m_vEntryList.end (), pEntry ) );
 }
@@ -235,8 +233,11 @@ void CEntryList::ResetList ( void )
 	m_vEntryList.clear ();
 }
 
-void CEntryList::SetSelectedEntryByIndex ( int nIndex, bool bSelect )
+void CEntryList::SetSelectedEntryByIndex ( UINT nIndex, bool bSelect )
 {
+	if ( nIndex >= m_vEntryList.size () )
+		return;
+
 	SetSelectedEntry ( GetEntryByIndex ( nIndex ), bSelect );
 }
 
@@ -257,8 +258,11 @@ void CEntryList::SetSelectedEntry ( SEntryItem *pEntry, bool bSelect )
 	m_pScrollbar->GetVerScrollbar ()->ShowItem ( GetIndexByEntry ( pEntry ) );
 }
 
-bool CEntryList::IsEntrySelectedByIndex ( int nIndex )
+bool CEntryList::IsEntrySelectedByIndex ( UINT nIndex )
 {
+	if ( nIndex >= m_vEntryList.size () )
+		return false;
+
 	return IsEntrySelected ( GetEntryByIndex ( nIndex ) );
 }
 

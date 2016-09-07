@@ -307,9 +307,9 @@ void CControl::Draw ( void )
 		m_eState = SControlColor::STATE_NORMAL;
 	else if ( !m_bEnabled )
 		m_eState = SControlColor::STATE_DISABLED;
-	else if ( m_bPressed )
+	else if ( m_bPressed  )
 		m_eState = SControlColor::STATE_PRESSED;
-	else if ( m_bMouseOver )
+	else if ( m_bMouseOver  )
 		m_eState = SControlColor::STATE_MOUSE_OVER;
 	else
 		m_eState = SControlColor::STATE_NORMAL;
@@ -432,12 +432,12 @@ bool CControl::OnClickEvent ( void )
 	return m_bPressed;
 }
 
-bool CControl::OnMouseButtonDown ( CPos pos )
+bool CControl::OnMouseButtonDown ( sMouseEvents e )
 {
 	return false;
 }
 
-bool CControl::OnMouseButtonUp ( CPos pos )
+bool CControl::OnMouseButtonUp ( sMouseEvents e )
 {
 	return false;
 }
@@ -489,6 +489,27 @@ bool CControl::InjectKeyboard ( sKeyEvents e )
 
 bool CControl::InjectMouse ( sMouseEvents e )
 {
+	if ( e.eMouseMessages == sMouseEvents::ButtonDown )
+	{
+		if ( OnMouseButtonDown ( e ) )
+			return true;
+	}
+	else if ( e.eMouseMessages == sMouseEvents::ButtonUp )
+	{
+		if ( OnMouseButtonUp ( e ) )
+			return true;
+	}
+	else if ( e.eMouseMessages == sMouseEvents::MouseMove )
+	{
+		if ( OnMouseMove ( e.pos ) )
+			return true;
+	}
+	else if ( e.eMouseMessages == sMouseEvents::MouseWheel )
+	{
+		if ( OnMouseWheel ( e.nDelta ) )
+			return true;
+	}
+
 	return false;
 }
 

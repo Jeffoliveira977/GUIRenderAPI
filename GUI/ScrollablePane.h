@@ -10,8 +10,8 @@ public:
 	void OnMouseWheel ( int zDelta );
 	void OnDraw ( void );
 
-	bool OnMouseButtonDown ( CPos pos );
-	bool OnMouseButtonUp ( CPos pos );
+	bool OnMouseButtonDown ( sMouseEvents e );
+	bool OnMouseButtonUp ( sMouseEvents e );
 	bool OnMouseMove ( CPos pos );
 
 	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );

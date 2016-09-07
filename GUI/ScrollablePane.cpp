@@ -52,17 +52,17 @@ void CScrollablePane::OnDraw ( void )
 		m_pScrollbarVer->Draw ();
 }
 
-bool CScrollablePane::OnMouseButtonDown ( CPos pos )
+bool CScrollablePane::OnMouseButtonDown ( sMouseEvents e )
 {
 	if ( m_pScrollbarHor &&
-		 m_pScrollbarHor->OnMouseButtonDown ( pos ) )
+		 m_pScrollbarHor->OnMouseButtonDown ( e ) )
 	{
 		SetFocussedControl ();
 		return true;
 	}
 
 	if ( m_pScrollbarVer &&
-		 m_pScrollbarVer->OnMouseButtonDown ( pos ) )
+		 m_pScrollbarVer->OnMouseButtonDown ( e ) )
 	{
 		SetFocussedControl ();
 		return true;
@@ -71,17 +71,17 @@ bool CScrollablePane::OnMouseButtonDown ( CPos pos )
 	return false;
 }
 
-bool CScrollablePane::OnMouseButtonUp ( CPos pos )
+bool CScrollablePane::OnMouseButtonUp ( sMouseEvents e )
 {
 	if ( m_pScrollbarHor &&
-		 m_pScrollbarHor->OnMouseButtonUp ( pos ) )
+		 m_pScrollbarHor->OnMouseButtonUp ( e ) )
 	{
 		SetFocussedControl ();
 		return true;
 	}
 
 	if ( m_pScrollbarVer &&
-		 m_pScrollbarVer->OnMouseButtonUp ( pos ) )
+		 m_pScrollbarVer->OnMouseButtonUp ( e ) )
 	{
 		SetFocussedControl ();
 		return true;
@@ -302,12 +302,8 @@ void CScrollablePane::UpdateScrollbars ( SControlRect rRect )
 
 bool CScrollablePane::ContainsRect ( CPos pos )
 {
-	if ( !IsHorScrollbarNeeded () || 
-		 !IsVerScrollbarNeeded () )
-		return false;
-
-	return ( m_pScrollbarHor->ContainsRect ( pos ) ||
-			 m_pScrollbarVer->ContainsRect ( pos ) );
+	return ( IsHorScrollbarNeeded () && m_pScrollbarHor->ContainsRect ( pos ) ||
+			 IsVerScrollbarNeeded () && m_pScrollbarVer->ContainsRect ( pos ) );
 }
 
 CScrollBarHorizontal *CScrollablePane::GetHorScrollbar ( void )

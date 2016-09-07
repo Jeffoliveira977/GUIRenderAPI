@@ -35,8 +35,8 @@ public:
 	bool OnKeyDown ( WPARAM wParam );
 	bool OnKeyUp ( WPARAM wParam );
 
-	bool OnMouseButtonDown ( CPos pos );
-	bool OnMouseButtonUp ( CPos pos );
+	bool OnMouseButtonDown ( sMouseEvents e );
+	bool OnMouseButtonUp ( sMouseEvents e );
 	bool OnMouseMove ( CPos pos );
 	bool OnMouseWheel ( int zDelta );
 
@@ -67,8 +67,6 @@ private:
 	CEntryList *m_pEntryList;
 
 	bool m_bOpened;
-	bool m_bKeyUp;
-	bool m_bDropped;
 	
 	UINT m_uSize;
 	int m_iIndex;

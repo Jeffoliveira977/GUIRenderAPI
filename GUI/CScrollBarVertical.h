@@ -14,8 +14,8 @@ public:
 
 	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
 
-	bool OnMouseButtonDown ( CPos pos );
-	bool OnMouseButtonUp ( CPos pos );
+	bool OnMouseButtonDown ( sMouseEvents e );
+	bool OnMouseButtonUp ( sMouseEvents e );
 	bool OnMouseMove ( CPos pos );
 
 	void OnClickLeave ( void )

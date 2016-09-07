@@ -171,10 +171,24 @@ VOID Init ()
 		auto ptrack = pGui->AddTrackBarVertical ( fServBrowser1, 300, 200, 20, 400, -10, 1000, 990 );
 	auto pScroll = pGui->AddScrollBar ( fServBrowser1, 300, 200, 18, 200, 0, 100, 10, 1 );
 	pScroll->SetTrackRange ( 0, 300 );
-	/*auto pDrop = pGui->AddDropDown ( fServBrowser1, 500, 200, 200, 20, _UI ( "WWWWWWWWWWWWW") );
-
-	*/
-
+	auto pDrop = pGui->AddDropDown ( fServBrowser1, 500, 200, 200, 20, _UI ( "WWWWWWWWWWWWW") );
+	pDrop->AddItem ( _UI ( "ASD" ) );
+	pDrop->AddItem ( _UI ( "ASDaasdasdsasdas{FF750000} asd as asd asdasdas asd" ) );
+	pDrop->AddItem ( _UI ( "ASD" ) );
+	pDrop->AddItem ( _UI ( "ASD" ) );
+	pDrop->AddItem ( _UI ( "ASD" ) );
+	pDrop->AddItem ( _UI ( "ASD" ) );
+	pDrop->AddItem ( _UI ( "ASD" ) );
+	pDrop->AddItem ( _UI ( "ASD" ) );
+	pDrop->AddItem ( _UI ( "ASD" ) );
+	pDrop->AddItem ( _UI ( "ASD" ) );
+	pDrop->AddItem ( _UI ( "ASD" ) );
+	pDrop->AddItem ( _UI ( "ASD" ) );
+	pDrop->AddItem ( _UI ( "ASD" ) ); pDrop->AddItem ( _UI ( "ASD" ) );
+	pDrop->AddItem ( _UI ( "ASD" ) );
+	pDrop->AddItem ( _UI ( "ASD" ) ); pDrop->AddItem ( _UI ( "ASD" ) );
+	pDrop->AddItem ( _UI ( "ASD" ) );
+	pDrop->AddItem ( _UI ( "ASD" ) );
 	
 	auto pTextBox = pGui->AddTextBox ( fServBrowser1, 20, 350, 350, 108 );
 	pTextBox->AddText ( CLogBox::LOG_INFO,_UI ( "ASD" ) );
@@ -203,6 +217,8 @@ VOID Init ()
 */
 
 	auto psd = pGui->AddEditBox ( fServBrowser3, 0, 0, 200, 0,_UI ("sasd{FF750000}asaaddssddsadssaddsasd") );
+	auto psd1 = pGui->AddEditBox ( fServBrowser3, 0, 40, 200, 0, _UI ( "sasd{FF750000}asaaddssddsadssaddsasd" ) );
+	auto psd2 = pGui->AddEditBox ( fServBrowser3, 0, 80, 200, 0, _UI ( "sasd{FF750000}asaaddssddsadssaddsasd" ) );
 
 	auto sds = pGui->AddTabPanel ( fServBrowser3, 200, 200, 300, 200 );
 	sds->AddTab ( _UI ( "ASDA 12" ), 100 );

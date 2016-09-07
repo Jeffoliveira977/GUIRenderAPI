@@ -138,7 +138,6 @@ public:
 	void OnLostDevice ( void );
 	void OnResetDevice ( void );
 
-	bool SetWindowMouseStates ( UINT uMsg, int zDelta, CPos pos, CWindow *pControl );
 
 	void MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam );
 

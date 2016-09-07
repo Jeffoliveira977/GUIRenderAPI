@@ -50,26 +50,29 @@ bool CButton::OnKeyUp ( WPARAM wParam )
 	return false;
 }
 
-bool CButton::OnMouseButtonDown ( CPos pos )
+bool CButton::OnMouseButtonDown ( sMouseEvents e )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
-	if ( m_rBoundingBox.InControlArea ( pos ) )
+	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		// Pressed while inside the control
-		m_bPressed = true;
+		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		{
+			// Pressed while inside the control
+			m_bPressed = true;
 
-		if ( m_pParent && !m_bHasFocus )
-			m_pParent->SetFocussedControl ( this );
+			if ( m_pParent && !m_bHasFocus )
+				m_pParent->SetFocussedControl ( this );
 
-		return true;
+			return true;
+		}
 	}
-	
+
 	return false;
 }
 
-bool CButton::OnMouseButtonUp ( CPos pos )
+bool CButton::OnMouseButtonUp ( sMouseEvents e )
 {
 	if ( m_bPressed )
 	{
@@ -79,92 +82,10 @@ bool CButton::OnMouseButtonUp ( CPos pos )
 			m_pParent->ClearControlFocus ();
 
 		// Button click
-		if ( m_rBoundingBox.InControlArea ( pos ) )
+		if ( m_rBoundingBox.InControlArea ( e.pos ) )
 			SendEvent ( EVENT_CONTROL_CLICKED, true );
 
 		return true;
-	}
-
-	return false;
-}
-
-//--------------------------------------------------------------------------------------
-bool CButton::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
-{
-	if ( !CanHaveFocus () )
-		return false;
-
-	switch ( uMsg )
-	{
-		case WM_LBUTTONDOWN:
-		case WM_LBUTTONDBLCLK:
-		{
-			if ( m_rBoundingBox.InControlArea ( pos ) )
-			{
-				// Pressed while inside the control
-				m_bPressed = true;
-
-				if ( m_pParent && !m_bHasFocus )
-					m_pParent->SetFocussedControl ( this );
-
-				return true;
-			}
-			break;
-		}
-
-		case WM_LBUTTONUP:
-		{
-			if ( m_bPressed )
-			{
-				m_bPressed = false;
-
-				if ( m_pParent  )
-					m_pParent->ClearControlFocus ();
-
-				// Button click
-				if ( m_rBoundingBox.InControlArea ( pos ) )
-					SendEvent ( EVENT_CONTROL_CLICKED, true );
-
-				return true;
-			}
-			break;
-		}
-	};
-
-	return false;
-}
-
-//--------------------------------------------------------------------------------------
-bool CButton::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
-{
-	if ( !CanHaveFocus () )
-		return false;
-
-	switch ( uMsg )
-	{
-		case WM_KEYDOWN:
-		{
-			switch ( wParam )
-			{
-				case VK_SPACE:
-					m_bPressed = true;
-					return true;
-			}
-		}
-
-		case WM_KEYUP:
-		{
-			switch ( wParam )
-			{
-				case VK_SPACE:
-					if ( m_bPressed )
-					{
-						m_bPressed = false;
-						SendEvent ( EVENT_CONTROL_CLICKED, true );
-					}
-					return true;
-			}
-		}
 	}
 
 	return false;

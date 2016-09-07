@@ -14,21 +14,14 @@ public:
 
 	void Draw ( void );
 
-	bool SetControlMouseStates ( UINT uMsg, int zDelta, CPos pos, CControl *pControl );
+	bool ControlMessages ( sControlEvents e );
 
-	bool ControlMessages ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
-
-	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
-	bool HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam );
-
-	bool OnMouseButtonDown ( CPos pos );
-	bool OnMouseButtonUp ( CPos pos );
+	bool OnMouseButtonDown ( sMouseEvents e);
+	bool OnMouseButtonUp ( sMouseEvents e );
 	bool OnMouseMove ( CPos pos );
 	bool OnMouseWheel ( int zDelta );
 
 	bool OnKeyDown ( WPARAM wParam );
-	bool OnKeyUp ( WPARAM wParam );
-	bool OnKeyCharacter ( WPARAM wParam );
 
 	void UpdateRects ( void );
 	bool ContainsRect ( CPos pos );
@@ -63,7 +56,6 @@ public:
 	int GetTitleBarHeight ( void );
 
 	CControl *GetControlAtArea ( CPos pos );
-	
 	CControl *GetControlClicked ( void );
 
 	bool IsSizing ( void );
@@ -112,8 +104,6 @@ private:
 	};
 
 	void SetCursorForPoint ( CPos pos );
-	E_WINDOW_AREA GetSizingBorderAtPoint ( CPos pos );
-
 
 	E_WINDOW_AREA GetSizingBorderAtArea ( CPos pos );
 	SControlRect *GetWindowRect ( E_WINDOW_AREA eArea );
@@ -131,8 +121,8 @@ private:
 	SControlRect m_rWindowTopRight;
 	SControlRect m_rWindowBottomRight;
 
-	CControl *m_pControlMouseOver;
-	CControl *m_pFocussedControl;
+	 CControl *m_pControlMouseOver;
+	 CControl *m_pFocussedControl;
 	SControlRect rFrame;
 	int m_iTitleBarSize;
 	int m_nDragX;
