@@ -869,14 +869,13 @@ void CWindow::UpdateScrollbars ( bool a, bool b )
 	CScrollBarHorizontal *pScrollbarHor = m_pScrollbar->GetHorScrollbar ();
 
 	int nValueX = m_rBoundingBox.size.cx + ( m_maxControlSize.cx - ( m_rBoundingBox.pos.GetX () + m_rBoundingBox.size.cx ) );
-	int nValueY = ( /*( m_rBoundingBox.size.cy - m_iTitleBarSize ) +*/
-					( m_maxControlSize.cy - ( ( m_rBoundingBox.pos.GetY ()  ) + ( m_rBoundingBox.size.cy  ) ) ) );
+	int nValueY = m_rBoundingBox.size.cy + ( m_maxControlSize.cy - ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cy  ) );
 
 	pScrollbarHor->SetStepSize ( m_rBoundingBox.size.cx / 10 );
 	pScrollbarVer->SetStepSize ( m_rBoundingBox.size.cy / 10 );
 
 	// Set scrollbars max range
-	m_pScrollbar->SetTrackRange ( a?nValueX:0, b?nValueY:0 );
+	m_pScrollbar->SetTrackRange ( a ? nValueX : 0, b ? m_maxControlSize.cy - (m_rBoundingBox.size.cy /2): 0 );
 }
 
 #define WINDOW_SIZE_CORNERS 5
