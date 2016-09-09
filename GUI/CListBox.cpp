@@ -9,7 +9,7 @@ CListBox::CListBox ( CDialog *pDialog )
 	m_sControlColor.d3dColorFont = D3DCOLOR_RGBA ( 0, 0, 0, 255 );
 	m_sControlColor.d3dColorSelectedFont = D3DCOLOR_RGBA ( 255, 255, 255, 255 );
 
-	m_iSelected = m_iIndex = -1;
+	m_nSelected = m_iIndex = -1;
 
 	m_pEntryList = new CEntryList ( pDialog );
 
@@ -132,176 +132,156 @@ bool CListBox::CanHaveFocus ( void )
 			 pScrollbar->CanHaveFocus () );
 }
 
-bool CListBox::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
+bool CListBox::OnKeyDown ( WPARAM wParam )
 {
 	CScrollBarVertical *pScrollbarVer = m_pEntryList->GetScrollbar ()->GetVerScrollbar ();
-	CScrollBarHorizontal *pScrollbarHor = m_pEntryList->GetScrollbar ()->GetHorScrollbar ();
 
-	if ( !CanHaveFocus () ||
-		 !pScrollbarVer ||
-		 !pScrollbarHor )
-		return false;
-
-	// First acquire focus
-	if ( WM_LBUTTONDOWN == uMsg )
-			m_pParent->SetFocussedControl ( this );
-
-	if ( m_pEntryList->GetScrollbar ()->HandleMouse ( uMsg, pos, wParam, lParam ) )
+	switch ( wParam )
 	{
-		return true;
-	}
-
-	switch ( uMsg )
-	{
-		case WM_MOUSEMOVE:
+		case VK_LEFT:
+		case VK_UP:
 		{
-			 m_iIndex = -1;
-
-			 if ( GetAsyncKeyState ( VK_LBUTTON ) && !m_bHasFocus )
-				 break;
-
-			SControlRect rText = m_rBoundingBox;
-			rText.pos.SetX ( rText.pos.GetX () + 4 );
-			rText.size.cx -= ( pScrollbarVer->GetWidth () + 3 );
-			rText.size.cy = TEXTBOX_TEXTSPACE - 2;
-
-			for ( int i = pScrollbarVer->GetTrackPos (); i < pScrollbarVer->GetTrackPos () + pScrollbarVer->GetPageSize (); i++ )
+			if ( m_iIndex > 0 )
 			{
-				if ( i < ( int ) m_pEntryList->GetSize () )
-				{
-					if ( i != pScrollbarVer->GetTrackPos () )
-						rText.pos.SetY ( rText.pos.GetY () + m_pEntryList->GetTextSize ().cy );
+				m_iIndex--;
+				m_nSelected = m_iIndex;
+				pScrollbarVer->ShowItem ( m_nSelected );
 
-					SEntryItem *pEntry = m_pEntryList->GetEntryByIndex ( i );
-
-					// Check for a valid 'pEntry' pointer and if text is not NULL
-					// and determine which item has been selected
-					if ( pEntry &&
-						 pEntry->m_sText.c_str () != NULL &&
-						 rText.InControlArea ( pos ) )
-					{
-						m_iIndex = i;
-						return true;
-					}
-				}
+				SendEvent ( EVENT_CONTROL_SELECT, m_nSelected );
+			}
+			else
+			{
+				m_nSelected = m_iIndex = m_pEntryList->GetSize () - 1;
+				pScrollbarVer->Scroll ( m_pEntryList->GetSize () - 1 );
 			}
 			
-			break;
+			m_pEntryList->SetSelectedEntryByIndex ( m_nSelected, true );
+			return true;
 		}
-		
-		case WM_LBUTTONDOWN:
-		case WM_LBUTTONDBLCLK:
+
+		case VK_RIGHT:
+		case VK_DOWN:
 		{
-			if ( m_rBoundingBox.InControlArea ( pos ) )
+			if ( m_iIndex + 1 < ( int ) m_pEntryList->GetSize () )
 			{
-				// Pressed while inside the control
-				m_bPressed = true;
-				return true;
+				m_iIndex++;
+				m_nSelected = m_iIndex;
 			}
-			break;
-		}
-
-		case WM_LBUTTONUP:
-		{
-			if ( m_bPressed )
+			else
 			{
-				m_bPressed = false;
-
-				if ( m_rBoundingBox.InControlArea ( pos ) )
-				{
-					if ( m_iIndex != -1 )
-					{
-						m_iSelected = m_iIndex;
-						m_pEntryList->SetSelectedEntryByIndex ( m_iSelected, true );
-					}
-
-					SendEvent ( EVENT_CONTROL_SELECT, true );
-					return true;
-				}
+				m_nSelected = m_iIndex = 0;
 			}
-			break;
-		}
 
-		case WM_MOUSEWHEEL:
-		{
-			UINT uLines;
-			SystemParametersInfo ( SPI_GETWHEELSCROLLLINES, 0, &uLines, 0 );
-			int zDelta = ( short ) HIWORD ( wParam ) / WHEEL_DELTA;
-			pScrollbarVer->Scroll ( -zDelta * uLines );
+			pScrollbarVer->ShowItem ( m_nSelected );
+			SendEvent ( EVENT_CONTROL_SELECT, m_nSelected );
+			m_pEntryList->SetSelectedEntryByIndex ( m_nSelected, true );
 
 			return true;
 		}
-	};
-
+	}
 	return false;
 }
-	
-bool CListBox::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
+
+bool CListBox::OnMouseButtonDown ( sMouseEvents e )
 {
-	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
-
-	CScrollBarVertical *pScrollbarVer = pScrollbar->GetVerScrollbar ();
-	CScrollBarHorizontal *pScrollbarHor = pScrollbar->GetHorScrollbar ();
-
-	if ( !CanHaveFocus () ||
-		 !pScrollbarVer ||
-		 !pScrollbarHor )
-	{
+	if ( !CanHaveFocus () )
 		return false;
-	}
 
-	switch ( uMsg )
+	// Let the scroll bar handle it first.
+	if ( m_pEntryList->GetScrollbar ()->OnMouseButtonDown ( e ) )
+		return true;
+
+	// First acquire focus
+	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		case WM_KEYDOWN:
+		m_pParent->SetFocussedControl ( this ); 
+		
+		if ( m_rBoundingBox.InControlArea ( e.pos ) )
 		{
-			switch ( wParam )
-			{
-				case VK_LEFT:
-				case VK_UP:
-				{
-					if ( m_iIndex > 0 )
-					{
-						m_iIndex--;
-						m_iSelected = m_iIndex;
-						pScrollbarVer->ShowItem ( m_iSelected );
-
-						SendEvent ( EVENT_CONTROL_SELECT, m_iSelected );
-					}
-					else
-					{
-						m_iSelected = m_iIndex = m_pEntryList->GetSize () - 1;
-						pScrollbarVer->Scroll ( m_pEntryList->GetSize () - 1 );
-					}
-					return true;
-				}
-
-				case VK_RIGHT:
-				case VK_DOWN:
-				{
-					if ( m_iIndex + 1 < ( int ) m_pEntryList->GetSize () )
-					{
-						m_iIndex++;
-						m_iSelected = m_iIndex;
-						pScrollbarVer->ShowItem ( m_iSelected );
-					}
-					else
-					{
-						m_iSelected = m_iIndex = 0;
-						pScrollbarVer->ShowItem ( 0 );
-					}
-
-					SendEvent ( EVENT_CONTROL_SELECT, m_iSelected );
-
-					return true;
-				}
-			}
-			break;
+			// Pressed while inside the control
+			m_bPressed = true;
+			return true;
 		}
 	}
 
 	return false;
 }
 
+bool CListBox::OnMouseButtonUp ( sMouseEvents e )
+{
+	// Let the scroll bar handle it first.
+	if ( m_pEntryList->GetScrollbar ()->OnMouseButtonUp ( e ) )
+		return true;
+
+	if ( m_bPressed )
+	{
+		m_bPressed = false;
+
+		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		{
+			if ( m_iIndex != -1 )
+			{
+				m_nSelected = m_iIndex;
+				m_pEntryList->SetSelectedEntryByIndex ( m_nSelected, true );
+			}
+
+			SendEvent ( EVENT_CONTROL_SELECT, true );
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool CListBox::OnMouseMove ( CPos pos )
+{
+	// Let the scroll bar handle it first.
+	if ( m_pEntryList->GetScrollbar ()->OnMouseMove ( pos ) )
+		return true;
+
+	CScrollBarVertical *pScrollbarVer = m_pEntryList->GetScrollbar ()->GetVerScrollbar ();
+	m_iIndex = -1;
+
+	if ( GetAsyncKeyState ( VK_LBUTTON ) && !m_bHasFocus )
+		return false;
+
+	SControlRect rText = m_rBoundingBox;
+	rText.pos.SetX ( rText.pos.GetX () + 4 );
+	rText.size.cx -= ( pScrollbarVer->GetWidth () + 3 );
+	rText.size.cy = TEXTBOX_TEXTSPACE - 2;
+
+	for ( int i = pScrollbarVer->GetTrackPos (); i < pScrollbarVer->GetTrackPos () + pScrollbarVer->GetPageSize (); i++ )
+	{
+		if ( i < ( int ) m_pEntryList->GetSize () )
+		{
+			if ( i != pScrollbarVer->GetTrackPos () )
+				rText.pos.SetY ( rText.pos.GetY () + m_pEntryList->GetTextSize ().cy );
+
+			SEntryItem *pEntry = m_pEntryList->GetEntryByIndex ( i );
+
+			// Check for a valid 'pEntry' pointer and if text is not NULL
+			// and determine which item has been selected
+			if ( pEntry &&
+				 pEntry->m_sText.c_str () != NULL &&
+				 rText.InControlArea ( pos ) )
+			{
+				m_iIndex = i;
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool CListBox::OnMouseWheel ( int zDelta )
+{
+	UINT uLines;
+	SystemParametersInfo ( SPI_GETWHEELSCROLLLINES, 0, &uLines, 0 );
+	m_pEntryList->GetScrollbar ()->GetVerScrollbar ()->Scroll ( -zDelta * uLines );
+
+	return true;
+}
 
 void CListBox::UpdateRects ( void )
 {

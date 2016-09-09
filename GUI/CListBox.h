@@ -22,7 +22,7 @@ public:
 
 	int GetSelectedIndex ( void )
 	{
-		return m_iSelected;
+		return m_nSelected;
 	}
 
 	void OnClickLeave ( void );
@@ -36,8 +36,13 @@ public:
 
 	bool CanHaveFocus ( void );
 
-	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
-	bool HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam );
+	bool OnKeyDown ( WPARAM wParam );
+
+	bool OnMouseButtonDown ( sMouseEvents e );
+	bool OnMouseButtonUp ( sMouseEvents e );
+
+	bool OnMouseMove ( CPos pos );
+	bool OnMouseWheel ( int zDelta );
 
 	void UpdateRects ( void );
 	bool ContainsRect ( CPos pos );
@@ -46,5 +51,5 @@ private:
 	CEntryList *m_pEntryList;
 
 	int m_iIndex;
-	int m_iSelected;
+	int m_nSelected;
 };

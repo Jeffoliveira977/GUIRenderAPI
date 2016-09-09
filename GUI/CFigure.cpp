@@ -3,6 +3,7 @@
 CPictureBox::CPictureBox ( CDialog *pDialog )
 {
 	SetControl ( pDialog, EControlType::TYPE_IMAGE );
+	m_fRotImage = 0.f;
 }
 
 CPictureBox::~CPictureBox ( void )
@@ -18,6 +19,76 @@ void CPictureBox::Draw ( void )
 	CControl::Draw ();
 
 	m_pTexture->Draw ( m_rBoundingBox.pos.GetX (), m_rBoundingBox.pos.GetY (), m_rBoundingBox.size.cx, m_rBoundingBox.size.cy, m_fRotImage, m_sControlColor.d3dColorBox [ m_eState ] );
+}
+
+bool CPictureBox::OnKeyDown ( WPARAM wParam )
+{
+	if ( !CanHaveFocus () )
+		return false;
+
+	if ( wParam == VK_SPACE )
+	{
+		m_bPressed = true;
+		return  true;
+	}
+
+	return false;
+}
+
+bool CPictureBox::OnKeyUp ( WPARAM wParam )
+{
+	if ( wParam == VK_SPACE )
+	{
+		if ( m_bPressed )
+		{
+			m_bPressed = false;
+			SendEvent ( EVENT_CONTROL_CLICKED, true );
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool CPictureBox::OnMouseButtonDown ( sMouseEvents e )
+{
+	if ( !CanHaveFocus () )
+		return false;
+
+	if ( e.eButton == sMouseEvents::LeftButton )
+	{
+		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		{
+			// Pressed while inside the control
+			m_bPressed = true;
+
+			if ( m_pParent && !m_bHasFocus )
+				m_pParent->SetFocussedControl ( this );
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool CPictureBox::OnMouseButtonUp ( sMouseEvents e )
+{
+	if ( m_bPressed )
+	{
+		m_bPressed = false;
+
+		if ( m_pParent )
+			m_pParent->ClearControlFocus ();
+
+		// Button click
+		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+			SendEvent ( EVENT_CONTROL_CLICKED, true );
+
+		return true;
+	}
+
+	return false;
 }
 
 void CPictureBox::SetTexture ( const SIMPLEGUI_CHAR *szPath )

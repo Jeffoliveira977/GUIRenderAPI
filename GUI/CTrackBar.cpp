@@ -31,132 +31,121 @@ void CTrackBarHorizontal::Draw ( void )
 	m_pDialog->DrawBox ( m_rThumb, m_sControlColor.d3dColorBox [ m_eState ], m_sControlColor.d3dColorOutline, m_bAntAlias );
 }
 
-//--------------------------------------------------------------------------------------
-bool CTrackBarHorizontal::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
+bool CTrackBarHorizontal::OnKeyDown ( WPARAM wParam )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
-	switch ( uMsg )
+	switch ( wParam )
 	{
-		case WM_LBUTTONDOWN:
-		case WM_LBUTTONDBLCLK:
-		{
-			if ( m_rThumb.InControlArea ( pos ) )
-			{
-				// Pressed while inside the control
-				m_bPressed = true;
-
-				m_nDragOffset = pos.GetX () - m_rThumb.pos.GetX ();
-
-				if ( m_pParent )
-					m_pParent->SetFocussedControl ( this );
-
-				return true;
-			}
-
-			if ( m_rBoundingBox.InControlArea ( pos ) )
-			{
-				m_nDragOffset = 0;
-
-				// Pressed while inside the control
-				m_bPressed = true;
-
-				if ( m_pParent )
-					m_pParent->SetFocussedControl ( this );
-
-				if ( pos.GetX () > m_rThumb.pos.GetX () )
-				{
-					SetValue ( m_nValue + 1 );
-					return true;
-				}
-
-				if ( pos.GetX () < m_rThumb.pos.GetX () )
-				{
-					SetValue ( m_nValue - 1 );
-					return true;
-				}
-			}
-
-			break;
-		}
-
-		case WM_LBUTTONUP:
-		{
-			if ( m_bPressed )
-			{
-				m_bPressed = false;
-				SendEvent ( EVENT_CONTROL_SELECT, m_nValue );
-
-				if ( m_pParent )
-					m_pParent->ClearControlFocus ();
-				return true;
-			}
-			break;
-		}
-
-		case WM_MOUSEMOVE:
-		{
-			if ( m_bPressed )
-			{
-				SetValue ( ValueFromPos ( pos.GetX () - m_rBoundingBox.pos.GetX () - m_nDragOffset ) );
-				return true;
-			}
-			break;
-		}
-
-		case WM_MOUSEWHEEL:
-		{
-			int nScrollAmount = int ( ( short ) HIWORD ( wParam ) ) / WHEEL_DELTA;
-			SetValue ( m_nValue - nScrollAmount );
+		case VK_HOME:
+			SetValue ( m_nMin );
 			return true;
-		}
-	};
+
+		case VK_END:
+			SetValue ( m_nMax );
+			return true;
+
+		case VK_LEFT:
+		case VK_DOWN:
+			SetValue ( m_nValue - 1 );
+			return true;
+
+		case VK_RIGHT:
+		case VK_UP:
+			SetValue ( m_nValue + 1 );
+			return true;
+
+		case VK_NEXT:
+			SetValue ( m_nValue - ( 10 > ( m_nMax - m_nMin ) / 10 ? 10 : ( m_nMax - m_nMin ) / 10 ) );
+			return true;
+
+		case VK_PRIOR:
+			SetValue ( m_nValue + ( 10 > ( m_nMax - m_nMin ) / 10 ? 10 : ( m_nMax - m_nMin ) / 10 ) );
+			return true;
+	}
 
 	return false;
 }
 
-//--------------------------------------------------------------------------------------
-bool CTrackBarHorizontal::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
+bool CTrackBarHorizontal::OnMouseButtonDown ( sMouseEvents e )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
-	switch ( uMsg )
+	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		case WM_KEYDOWN:
+		if ( m_rThumb.InControlArea ( e.pos ) )
 		{
-			switch ( wParam )
+			// Pressed while inside the control
+			m_bPressed = true;
+
+			m_nDragOffset = e.pos.GetX () - m_rThumb.pos.GetX ();
+
+			if ( m_pParent && !m_bHasFocus )
+				m_pParent->SetFocussedControl ( this );
+
+			return true;
+		}
+
+		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		{
+			m_nDragOffset = 0;
+
+			// Pressed while inside the control
+			m_bPressed = true;
+
+			if ( m_pParent && !m_bHasFocus )
+				m_pParent->SetFocussedControl ( this );
+
+			if ( e.pos.GetX () > m_rThumb.pos.GetX () )
 			{
-				case VK_HOME:
-					SetValue ( m_nMin );
-					return true;
-
-				case VK_END:
-					SetValue ( m_nMax );
-					return true;
-
-				case VK_LEFT:
-				case VK_DOWN:
-					SetValue ( m_nValue - 1 );
-					return true;
-
-				case VK_RIGHT:
-				case VK_UP:
-					SetValue ( m_nValue + 1 );
-					return true;
-
-				case VK_NEXT:
-					SetValue ( m_nValue - ( 10 > ( m_nMax - m_nMin ) / 10 ? 10 : ( m_nMax - m_nMin ) / 10 ) );
-					return true;
-
-				case VK_PRIOR:
-					SetValue ( m_nValue + ( 10 > ( m_nMax - m_nMin ) / 10 ? 10 : ( m_nMax - m_nMin ) / 10 ) );
-					return true;
+				SetValue ( m_nValue + 1 );
+				return true;
 			}
-			break;
+
+			if ( e.pos.GetX () < m_rThumb.pos.GetX () )
+			{
+				SetValue ( m_nValue - 1 );
+				return true;
+			}
 		}
 	}
+
+	return false;
+}
+
+bool CTrackBarHorizontal::OnMouseButtonUp ( sMouseEvents e )
+{
+	if ( m_bPressed )
+	{
+		m_bPressed = false;
+		SendEvent ( EVENT_CONTROL_SELECT, m_nValue );
+
+		if ( m_pParent )
+			m_pParent->ClearControlFocus ();
+
+		return true;
+	}
+
+	return false;
+}
+
+bool CTrackBarHorizontal::OnMouseMove ( CPos pos )
+{
+	if ( m_bPressed )
+	{
+		SetValue ( ValueFromPos ( pos.GetX () - m_rBoundingBox.pos.GetX () - m_nDragOffset ) );
+		return true;
+	}
+
+	return false;
+}
+
+bool CTrackBarHorizontal::OnMouseWheel ( int zDelta )
+{
+	SetValue ( m_nValue - zDelta );
+	return true;
 }
 
 //--------------------------------------------------------------------------------------

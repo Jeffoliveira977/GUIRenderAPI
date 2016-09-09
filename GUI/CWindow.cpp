@@ -111,7 +111,7 @@ void CWindow::Draw ( void )
 	if ( !m_bMaximized )
 	{
 		bool bUpdate [ 2 ];
-		ZeroMemory ( &m_maxControlSize, sizeof ( SIZE ) );
+		ZeroMemory ( &m_maxControlSize, sizeof ( SIZE ));
 
 		m_pScrollbar->OnDraw ();
 
@@ -130,9 +130,9 @@ void CWindow::Draw ( void )
 								   CPos ( pScrollbarHor->GetTrackPos (), pScrollbarVer->GetTrackPos () ) :
 								   CPos () ) );
 
-				bUpdate [ 0 ] = control->IsSizingX () ;
+				/*bUpdate [ 0 ] = control->IsSizingX ()|| control->IsMovingX();
 				bUpdate [ 1 ] = control->IsSizingY () ;
-
+*/
 				SIZE size = control->GetSize ();
 				CPos *pos = control->GetUpdatedPos ();
 
@@ -155,13 +155,32 @@ void CWindow::Draw ( void )
 				{*/
 				m_maxControlSize.cx = max ( m_maxControlSize.cx, pos->GetX () + size.cx );
 				m_maxControlSize.cy = max ( m_maxControlSize.cy, pos->GetY () + size.cy );
+
+
 				//}
 			}
 		}
 
+		if ( m_maxControlSize.cx != sizeOld.cx )
+		{
+			sizeOld.cx = m_maxControlSize.cx;
+			bUpdate [ 0 ] = true;
+		}
+		if ( m_maxControlSize.cy != sizeOld.cy )
+		{
+			sizeOld.cy = m_maxControlSize.cy;
+			bUpdate [ 1 ] = true;
+		}
+		//if( bUpdate [ 0 ] || bUpdate [ 1 ] )
 		// Check that the control is changed position or size, or if
 		// window is changed size
-		UpdateScrollbars ( bUpdate [ 0 ], bUpdate [ 1 ] );
+		//UpdateScrollbars ( bUpdate [ 0 ], bUpdate [ 1 ] );
+		// Set scrollbars max range
+
+		int nValueX = m_rBoundingBox.size.cx + ( m_maxControlSize.cx - ( m_rBoundingBox.pos.GetX () + m_rBoundingBox.size.cx ) );
+		int nValueY = m_rBoundingBox.size.cy + ( m_maxControlSize.cy - ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cy ) );
+
+		m_pScrollbar->SetTrackRange ( nValueX, m_maxControlSize.cy );
 
 	}
 
@@ -875,7 +894,7 @@ void CWindow::UpdateScrollbars ( bool a, bool b )
 	pScrollbarVer->SetStepSize ( m_rBoundingBox.size.cy / 10 );
 
 	// Set scrollbars max range
-	m_pScrollbar->SetTrackRange ( a ? nValueX : 0, b ? m_maxControlSize.cy - (m_rBoundingBox.size.cy /2): 0 );
+	m_pScrollbar->SetTrackRange ( nValueX, nValueY  );
 }
 
 #define WINDOW_SIZE_CORNERS 5
@@ -890,6 +909,7 @@ void CWindow::UpdateRects ( void )
 	rRect.size.cy -= m_iTitleBarSize;
 	rRect.pos.SetY ( rRect.pos.GetY () + m_iTitleBarSize );
 
+	m_pScrollbar->SetPageSize ( m_rBoundingBox.size.cx, m_rBoundingBox.size.cy );
 	m_pScrollbar->UpdateScrollbars ( rRect );
 
 	m_rTitle = m_rBoundingBox;
@@ -955,7 +975,9 @@ bool CWindow::ContainsRect ( CPos pos )
 	return ( ( m_pScrollbar->ContainsRect ( pos ) && m_eWindowArea == OutArea ) ||
 			 ( m_rBoundingBox.InControlArea ( pos ) && !m_bMaximized ) ||
 			 m_rTitle.InControlArea ( pos ) ||
-			 m_rButton.InControlArea ( pos )|| GetSizingBorderAtArea ( pos ) != OutArea ||(m_pFocussedControl&&m_pFocussedControl ->ContainsRect(pos)));
+			 m_rButton.InControlArea ( pos ) || 
+			 GetSizingBorderAtArea ( pos ) != OutArea ||
+			 ( m_pFocussedControl&&m_pFocussedControl->ContainsRect ( pos ) ) );
 }
 
 void CWindow::SetCursorForPoint ( CPos pos )

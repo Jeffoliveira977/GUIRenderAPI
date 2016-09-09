@@ -1,23 +1,23 @@
 #include "CGUI.h"
 
-UINT CRadioButton::m_nCount = 0;
+std::map<CControl*, UINT> CRadioButton::m_nCount ;
 std::map<UINT, UINT> CRadioButton::m_mID;
-std::map<CRadioButton*, std::map<UINT, UINT>> CRadioButton::m_mButtonID;
+std::map<CRadioButton*, CRadioButton::RadioParent> CRadioButton::m_mButtonID;
 
 CRadioButton::CRadioButton ( CDialog *pDialog )
 {
 	SetControl ( pDialog, TYPE_RADIOBUTTON );
 
 	m_uGroup = 0;
-	m_nCount++;
+	m_nCount [ m_pParent ]++;
 }
 
 CRadioButton::~CRadioButton ( void )
 {
 	m_mButtonID.erase ( this );
-	m_mID.erase ( m_uGroup );
+	m_mID .erase ( m_uGroup );
 
-	m_nCount--;
+	m_nCount[m_pParent]--;
 }
 
 void CRadioButton::Draw ( void )
@@ -38,7 +38,8 @@ void CRadioButton::Draw ( void )
 	m_pDialog->DrawFont ( SControlRect ( m_rText.pos.GetX (), m_rText.pos.GetY () + ( m_rBoundingBox.size.cy / 2 ) ),
 						  m_sControlColor.d3dColorFont, str.c_str (), D3DFONT_CENTERED_Y, m_pFont );
 
-	if ( m_mButtonID [ this ] [ m_uGroup ] == m_mID [ m_uGroup ] &&
+	auto s= m_mButtonID [ this ] [ m_pParent ] [ m_uGroup ];
+	if ( m_mButtonID [ this ] [ m_pParent ] [ m_uGroup ] == m_mID [ m_uGroup ] &&
 		 m_bChecked )
 	{
 		size.cx = size.cy -= 4;
@@ -46,60 +47,44 @@ void CRadioButton::Draw ( void )
 	}
 }
 
-bool CRadioButton::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
+bool CRadioButton::OnMouseButtonDown ( sMouseEvents e )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
-	switch ( uMsg )
+	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		case WM_LBUTTONDOWN:
-		case WM_LBUTTONDBLCLK:
+		if ( ContainsRect ( e.pos ) )
 		{
-			if ( ContainsRect ( pos ) )
-			{
-				// Pressed while inside the control
-				m_bPressed = true;
+			// Pressed while inside the control
+			m_bPressed = true;
 
-				if ( m_pParent )
-					m_pParent->SetFocussedControl ( this );
+			if ( m_pParent )
+				m_pParent->SetFocussedControl ( this );
 
-				return true;
-			}
-
-			break;
+			return true;
 		}
-
-		case WM_LBUTTONUP:
-		{
-			if ( m_bPressed )
-			{
-				m_bPressed = false;
-
-				// Button click
-				if ( ContainsRect ( pos ) )
-					SetChecked ( true );
-
-				if ( m_pParent )
-					m_pParent->ClearControlFocus ();
-
-				return true;
-			}
-
-			break;
-		}
-	};
+	}
 
 	return false;
 }
 
-//--------------------------------------------------------------------------------------
-bool CRadioButton::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
+bool CRadioButton::OnMouseButtonUp ( sMouseEvents e )
 {
-	if ( !CanHaveFocus () )
-		return false;
+	if ( m_bPressed )
+	{
+		m_bPressed = false;
 
-	/// ...
+		// Button click
+		if ( ContainsRect ( e.pos ) )
+			SetChecked ( true );
+
+		if ( m_pParent )
+			m_pParent->ClearControlFocus ();
+
+		return true;
+	}
+
 	return false;
 }
 

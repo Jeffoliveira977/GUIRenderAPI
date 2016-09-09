@@ -6,13 +6,17 @@ CLogFile::CLogFile ( TCHAR *szFile )
 	m_hFile = SIMPLEGUI_FOPEN ( szFile, _UI ( "w" ) );
 
 	if ( !m_hFile )
+	{
 		exit ( 1 );
+	}
 }
 
 CLogFile::~CLogFile ( void )
 {
-	if ( m_hFile ) 
+	if ( m_hFile )
+	{
 		fclose ( m_hFile );
+	}
 
 	DeleteCriticalSection ( &m_cs );
 }
@@ -33,9 +37,13 @@ void CLogFile::Log ( const TCHAR *szType, const TCHAR *szString, va_list arglist
 	SIMPLEGUI_FPUTS ( szStr, m_hFile );
 
 	if ( SIMPLEGUI_STRLEN ( szType ) > 0 )
+	{
 		SIMPLEGUI_FPRINTF ( m_hFile, _UI ( " %s: " ), szType );
+	}
 	else
+	{
 		SIMPLEGUI_FPRINTF ( m_hFile, _UI ( ": " ) );
+	}
 
 	SIMPLEGUI_VFPRINTF ( m_hFile, szString, arglist );
 	SIMPLEGUI_FPRINTF ( m_hFile, _UI ( "\n" ) );

@@ -14,6 +14,4 @@ public:
 
 	bool OnMouseButtonDown ( sMouseEvents e );
 	bool OnMouseButtonUp ( sMouseEvents e );
-
-
 };

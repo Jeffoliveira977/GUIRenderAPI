@@ -32,85 +32,70 @@ void CCheckBox::Draw ( void )
 	}
 }
 
-//--------------------------------------------------------------------------------------
-bool CCheckBox::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
+bool CCheckBox::OnKeyDown ( WPARAM wParam )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
-	switch ( uMsg )
+	if ( wParam == VK_SPACE )
 	{
-		case WM_LBUTTONDOWN:
-		case WM_LBUTTONDBLCLK:
-		{
-			if ( ContainsRect ( pos ) )
-			{
-				// Pressed while inside the control
-				m_bPressed = true;
-
-				if ( m_pParent )
-					m_pParent->SetFocussedControl ( this );
-
-				return true;
-			}
-
-			break;
-		}
-
-		case WM_LBUTTONUP:
-		{
-			if ( m_bPressed )
-			{
-				m_bPressed = false;
-
-				// Button click
-				if ( ContainsRect ( pos ) )
-					SetChecked ( !m_bChecked );
-
-				if ( m_pParent )
-					m_pParent->ClearControlFocus ();
-
-				return true;
-			}
-
-			break;
-		}
-	};
+		m_bPressed = true;
+		return true;
+	}
 
 	return false;
 }
 
-bool CCheckBox::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
+bool CCheckBox::OnKeyUp ( WPARAM wParam )
+{
+	if ( m_bPressed )
+	{
+		m_bPressed = false;
+		SetChecked ( !m_bChecked );
+		return true;
+	}
+
+	return false;
+}
+
+bool CCheckBox::OnMouseButtonDown ( sMouseEvents e )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
-	switch ( uMsg )
+	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		case WM_KEYDOWN:
+		if ( ContainsRect ( e.pos ) )
 		{
-			switch ( wParam )
-			{
-				case VK_SPACE:
-					m_bPressed = true;
-					return true;
-			}
-		}
+			// Pressed while inside the control
+			m_bPressed = true;
 
-		case WM_KEYUP:
-		{
-			switch ( wParam )
-			{
-				case VK_SPACE:
-					if ( m_bPressed )
-					{
-						m_bPressed = false;
-						SetChecked ( !m_bChecked );
-						return true;
-					}
-			}
+			if ( m_pParent )
+				m_pParent->SetFocussedControl ( this );
+
+			return true;
 		}
 	}
+
+	return false;
+}
+
+bool CCheckBox::OnMouseButtonUp ( sMouseEvents e )
+{
+	if ( m_bPressed )
+	{
+		m_bPressed = false;
+
+		// Button click
+		if ( ContainsRect ( e.pos ) )
+			SetChecked ( !m_bChecked );
+
+		if ( m_pParent )
+			m_pParent->ClearControlFocus ();
+
+		return true;
+	}
+
 	return false;
 }
 

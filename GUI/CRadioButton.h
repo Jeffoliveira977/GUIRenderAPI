@@ -11,7 +11,7 @@ public:
 	void SetGroup ( UINT uGroup )
 	{
 		m_uGroup = uGroup;
-		m_mButtonID [ this ] [ m_uGroup ] = m_nCount;
+		m_mButtonID [ this ] [ m_pParent ] [ m_uGroup ] = m_nCount[ m_pParent ];
 	}
 
 	UINT GetGroup ( void )
@@ -28,12 +28,12 @@ public:
 
 	void SetChecked ( bool bChecked )
 	{
-		m_mID [ m_uGroup ] = m_mButtonID [ this ] [ m_uGroup ];
+		m_mID  [ m_uGroup ] = m_mButtonID [ this ] [ m_pParent ] [ m_uGroup ];
 		SendEvent ( EVENT_CONTROL_SELECT, m_bChecked = bChecked );
 	}
 
-	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
-	bool HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam );
+	bool OnMouseButtonDown ( sMouseEvents e );
+	bool OnMouseButtonUp ( sMouseEvents e );
 
 	void UpdateRects ( void );
 	bool ContainsRect ( CPos pos );
@@ -43,8 +43,9 @@ private:
 	SControlRect m_rText;
 	bool m_bChecked;
 
-	static UINT m_nCount;
-	static std::map< CRadioButton*, std::map< UINT, UINT >> m_mButtonID;
-	static std::map< UINT, UINT > m_mID;
+	typedef std::map<CControl*, std::map<UINT, UINT>> RadioParent;
+	static  std::map<CControl*,UINT>m_nCount;
+	static std::map<UINT, UINT> m_mID;
+	static std::map<CRadioButton*, RadioParent> m_mButtonID;
 };
 

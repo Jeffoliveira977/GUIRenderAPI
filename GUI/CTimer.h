@@ -7,14 +7,14 @@ class CTimer
 {
 public:
 
-	CTimer();
-	~CTimer();
+	CTimer ( void );
+	~CTimer ( void );
 
-	void Start( float fSec );
-	void Stop();
+	void Start ( float fSec );
+	void Stop ( void );
 
-	float TimeLeft();
-	bool Running();
+	float TimeLeft ( void );
+	bool Running ( void );
 
 protected:
 	DWORD dwStop;

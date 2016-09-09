@@ -245,9 +245,9 @@ bool CControl::IsSizing ( void )
 
 bool CControl::IsMovingX ( void )
 {
-	if ( m_rBoundingBox.pos.GetX () != m_rContentBox.pos.GetX () )
+	if ( m_pos.GetX () != m_rContentBox.pos.GetX () )
 	{
-		m_rContentBox.pos.SetX ( m_rBoundingBox.pos.GetX() );
+		m_rContentBox.pos.SetX ( m_pos.GetX() );
 		return true;
 	}
 

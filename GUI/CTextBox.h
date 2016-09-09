@@ -39,8 +39,13 @@ public:
 
 	bool CanHaveFocus ( void );
 
-	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
-	bool HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam );
+	bool OnKeyDown ( WPARAM wParam );
+
+	bool OnMouseButtonDown ( sMouseEvents e );
+	bool OnMouseButtonUp ( sMouseEvents e );
+
+	bool OnMouseWheel ( int zDelta );
+	bool OnMouseMove ( CPos pos );
 
 	void UpdateRects ( void );
 	bool ContainsRect ( CPos pos );

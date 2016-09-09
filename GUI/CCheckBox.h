@@ -20,8 +20,11 @@ public:
 
 	void Draw ( void );
 
-	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
-	bool HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam );
+	bool OnKeyDown ( WPARAM wParam );
+	bool OnKeyUp ( WPARAM wParam );
+
+	bool OnMouseButtonDown ( sMouseEvents e );
+	bool OnMouseButtonUp ( sMouseEvents e );
 
 	void UpdateRects ( void );
 	bool ContainsRect ( CPos pos );

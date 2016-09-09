@@ -164,11 +164,60 @@ bool CDropDown::OnKeyDown ( WPARAM wParam )
 	if ( !CanHaveFocus () )
 		return false;
 
-	return false;
-}
+	CScrollbar *pVerScrollbar = m_pEntryList->GetScrollbar ()->GetVerScrollbar ();
 
-bool CDropDown::OnKeyUp ( WPARAM wParam )
-{
+	switch ( wParam )
+	{
+		case VK_RETURN:
+		{
+			if ( m_bPressed )
+			{
+				CloseBox ();
+				return true;
+			}
+			break;
+		}
+
+		case VK_LEFT:
+		case VK_UP:
+		{
+			if ( m_iSelected > 0 )
+			{
+				m_iSelected--;
+				pVerScrollbar->ShowItem ( m_iSelected );
+			}
+			else
+			{
+				m_iSelected = m_pEntryList->GetSize () - 1;
+				pVerScrollbar->Scroll ( m_iSelected );
+			}
+
+			SendEvent ( EVENT_CONTROL_SELECT, m_iSelected );
+			m_pEntryList->SetSelectedEntryByIndex ( m_iSelected, true );
+
+			return true;
+		}
+
+		case VK_RIGHT:
+		case VK_DOWN:
+		{
+			if ( m_iSelected + 1 < ( int ) m_pEntryList->GetSize () )
+			{
+				m_iSelected++;
+			}
+			else
+			{
+				m_iSelected = 0;
+			}
+
+			SendEvent ( EVENT_CONTROL_SELECT, m_iSelected );
+
+			pVerScrollbar->ShowItem ( m_iSelected );
+			m_pEntryList->SetSelectedEntryByIndex ( m_iSelected, true );
+
+			return true;
+		}
+	}
 	return false;
 }
 
@@ -262,8 +311,7 @@ bool CDropDown::OnMouseMove ( CPos pos )
 					 pEntry->m_sText.c_str () != NULL &&
 					 rText.InControlArea ( pos ) )
 				{
-					m_iIndex = i;
-					
+					m_iIndex = i;				
 				}
 			}
 		}
@@ -342,217 +390,6 @@ void CDropDown::CloseBox ( void )
 	m_bOpened = false;
 	m_bPressed = false;
 	SendEvent ( EVENT_CONTROL_SELECT, m_iSelected );
-}
-
-//--------------------------------------------------------------------------------------
-bool CDropDown::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
-{
-	CScrollBarVertical *pScrollbarVer = m_pEntryList->GetScrollbar ()->GetVerScrollbar ();
-	CScrollBarHorizontal *pScrollbarHor = m_pEntryList->GetScrollbar ()->GetHorScrollbar ();
-
-	if ( !CanHaveFocus () ||
-		 !pScrollbarVer ||
-		 !pScrollbarHor )
-		return false;
-
-	// Let the scroll bar handle it first.
-	if ( m_pEntryList->GetScrollbar ()->HandleMouse ( uMsg, pos, wParam, lParam ) )
-		return true;
-
-	switch ( uMsg )
-	{
-		case WM_MOUSEMOVE:
-		{
-			m_iIndex = -1;
-			if ( m_bPressed )
-			{			
-				SControlRect rText = m_rBack;
-				rText.pos.SetX ( rText.pos.GetX () + 4 );
-				rText.size.cx -= ( pScrollbarVer->GetWidth () + 3 );
-				rText.size.cy = TEXTBOX_TEXTSPACE - 2;
-
-				for ( int i = pScrollbarVer->GetTrackPos (); i < pScrollbarVer->GetTrackPos () + pScrollbarVer->GetPageSize (); i++ )
-				{
-					if ( i < ( int ) m_pEntryList->GetSize () )
-					{
-						if ( i != pScrollbarVer->GetTrackPos () )
-							rText.pos.SetY ( rText.pos.GetY () + m_pEntryList->GetTextSize ().cy );
-
-						SEntryItem *pEntry = m_pEntryList->GetEntryByIndex ( i );
-
-						// Check for a valid 'pEntry' pointer and if text is not NULL
-						// and determine which item has been selected
-						if ( pEntry &&
-							 pEntry->m_sText.c_str () != NULL &&
-							 rText.InControlArea ( pos ) )
-						{
-							m_iIndex = i;
-							return true;
-						}
-					}
-				}
-			}
-			break;
-		}
-
-		case WM_LBUTTONDOWN:
-		case WM_LBUTTONDBLCLK:
-		{
-			if ( CControl::ContainsRect ( pos ) )
-			{
-				// Toggle dropdown
-				m_bPressed ? 
-					CloseBox () : 
-					OpenBox ();
-
-				return true;
-			}
-
-			// Mouse click not on main control or in dropdown
-			if ( m_bPressed &&
-				 !m_rBack.InControlArea ( pos ) )
-			{
-				CloseBox ();
-			}
-
-			break;
-		}
-
-		case WM_LBUTTONUP:
-		{
-			if ( m_bPressed )
-			{
-				// Perhaps this click is within the dropdown
-				if ( m_rBack.InControlArea ( pos ) )
-				{
-					m_iSelected = m_iIndex;
-					m_pEntryList->SetSelectedEntryByIndex ( m_iSelected, true );
-
-					CloseBox ();
-				}
-
-				return true;
-			}
-
-			break;
-		}
-
-		case WM_MOUSEWHEEL:
-		{	
-			int zDelta = ( short ) HIWORD ( wParam ) / WHEEL_DELTA;
-			if ( m_bPressed )
-			{
-				UINT uLines;
-				SystemParametersInfo ( SPI_GETWHEELSCROLLLINES, 0, &uLines, 0 );
-
-				m_pEntryList->GetScrollbar ()->OnMouseWheel ( -zDelta * uLines );
-			}
-			else
-			{
-				if ( zDelta > 0 )
-				{
-					if ( m_iSelected > 0 )
-					{
-						m_iSelected--;
-
-						if ( !m_bPressed )
-							SendEvent ( EVENT_CONTROL_SELECT, m_iSelected );
-					}
-				}
-				else
-				{
-					if ( m_iSelected + 1 < ( int ) m_pEntryList->GetSize () )
-					{
-						m_iSelected--;
-
-						if ( !m_bPressed )
-							SendEvent ( EVENT_CONTROL_SELECT, m_iSelected );
-					}
-				}
-			}
-			return true;
-		}
-	};
-
-	return false;
-}
-
-//--------------------------------------------------------------------------------------
-bool CDropDown::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
-{
-	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
-
-	CScrollBarVertical *pScrollbarVer = pScrollbar->GetVerScrollbar ();
-	CScrollBarHorizontal *pScrollbarHor = pScrollbar->GetHorScrollbar ();
-
-	if ( !CanHaveFocus () ||
-		 !pScrollbarVer ||
-		 !pScrollbarHor )
-	{
-		return false;
-	}
-
-	switch ( uMsg )
-	{
-		case WM_KEYDOWN:
-		{
-			switch ( wParam )
-			{
-				case VK_RETURN:
-				{
-					if ( m_bPressed )
-					{
-						CloseBox ();
-						return true;
-					}
-					break;
-				}
-
-				case VK_LEFT:
-				case VK_UP:
-				{
-					if ( m_iSelected > 0 )
-					{
-						m_iSelected--;
-						pScrollbarVer->ShowItem ( m_iSelected );
-					}
-					else
-					{
-						m_iSelected = m_pEntryList->GetSize () - 1;
-						pScrollbarVer->Scroll ( m_iSelected );
-					}
-
-					SendEvent ( EVENT_CONTROL_SELECT, m_iSelected );
-					m_pEntryList->SetSelectedEntryByIndex ( m_iSelected, true );
-
-					return true;
-				}
-
-				case VK_RIGHT:
-				case VK_DOWN:
-				{
-					if ( m_iSelected + 1 < ( int ) m_pEntryList->GetSize () )
-					{
-						m_iSelected++;
-						pScrollbarVer->ShowItem ( m_iSelected );
-					}
-					else
-					{
-						m_iSelected = 0;
-						pScrollbarVer->ShowItem ( m_iSelected );
-					}
-
-					SendEvent ( EVENT_CONTROL_SELECT, m_iSelected );
-					m_pEntryList->SetSelectedEntryByIndex ( m_iSelected, true );
-
-					return true;
-				}
-			}
-			break;
-		}
-	}
-
-	return false;
 }
 
 //--------------------------------------------------------------------------------------

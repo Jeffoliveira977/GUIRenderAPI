@@ -23,8 +23,13 @@ public:
 		nMin = m_nMin; nMax = m_nMax;
 	}
 
-	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
-	bool HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam );
+	bool OnKeyDown ( WPARAM wParam );
+
+	bool OnMouseButtonDown ( sMouseEvents e );
+	bool OnMouseButtonUp ( sMouseEvents e );
+
+	bool OnMouseMove ( CPos pos );
+	bool OnMouseWheel ( int zDelta );
 
 	void UpdateRects ( void );
 	bool ContainsRect ( CPos pos );

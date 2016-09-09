@@ -10,6 +10,12 @@ public:
 
 	void Draw ( void );
 
+	bool OnKeyDown ( WPARAM wParam );
+	bool OnKeyUp ( WPARAM wParam );
+
+	bool OnMouseButtonDown ( sMouseEvents e );
+	bool OnMouseButtonUp ( sMouseEvents e );
+
 	void SetTexture ( const SIMPLEGUI_CHAR *szPath );
 	void SetTexture ( LPCVOID pSrc, UINT uSrcSize );
 

@@ -12,7 +12,9 @@ public:
 	void UpdateRects ( void );
 	bool ContainsRect ( CPos pos );
 
-	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
+	bool OnMouseButtonDown ( sMouseEvents e );
+	bool OnMouseButtonUp ( sMouseEvents e );
+	bool OnMouseMove ( CPos pos );
 
 	void SetValue ( float fValue );
 	float GetValue ( void );

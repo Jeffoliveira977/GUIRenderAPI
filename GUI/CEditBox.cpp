@@ -531,6 +531,7 @@ void CEditBox::PlaceCaret ( int nCP )
 			{
 				++nCPNew1st;
 			}
+
 			m_nFirstVisible = nCPNew1st;
 		}
 	}
@@ -601,9 +602,9 @@ void CEditBox::PasteFromClipboard ()
 //--------------------------------------------------------------------------------------
 void CEditBox::ClearText ()
 {
+	PlaceCaret ( 0 );
 	m_Buffer.Clear ();
 	m_nFirstVisible = 0;
-	PlaceCaret ( 0 );
 	m_nSelStart = 0;
 }
 
@@ -761,8 +762,6 @@ bool CEditBox::OnMouseButtonDown ( sMouseEvents e )
 
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		
-
 		// Determine the character corresponding to the coordinates.
 		int nCP, nTrail, nX1st;
 		m_Buffer.CPtoX ( m_nFirstVisible, FALSE, &nX1st );  // X offset of the 1st visible char
@@ -779,8 +778,8 @@ bool CEditBox::OnMouseButtonDown ( sMouseEvents e )
 			}
 
 			m_nSelStart = m_nCaret;
-			//return true;
 		}
+
 		if ( m_rBoundingBox.InControlArea ( e.pos ) )
 		{
 			// Pressed while inside the control
@@ -789,7 +788,8 @@ bool CEditBox::OnMouseButtonDown ( sMouseEvents e )
 			if ( m_pParent  )
 			{
 				m_pParent->SetFocussedControl ( this );
-			}return true;
+			}
+			return true;
 		}
 	}
 
@@ -842,6 +842,7 @@ bool CEditBox::OnKeyDown ( WPARAM wParam )
 			break;
 
 		case VK_HOME:
+		{
 			PlaceCaret ( 0 );
 
 			// Shift is not down. Update selection
@@ -853,8 +854,10 @@ bool CEditBox::OnKeyDown ( WPARAM wParam )
 
 			bHandled = true;
 			break;
+		}
 
 		case VK_END:
+		{
 			PlaceCaret ( m_Buffer.GetTextSize () );
 
 			// Shift is not down. Update selection
@@ -866,8 +869,10 @@ bool CEditBox::OnKeyDown ( WPARAM wParam )
 
 			bHandled = true;
 			break;
+		}
 
 		case VK_INSERT:
+		{
 			if ( GetKeyState ( VK_CONTROL ) < 0 )
 			{
 				// Control Insert. Copy to clipboard
@@ -884,9 +889,10 @@ bool CEditBox::OnKeyDown ( WPARAM wParam )
 				m_bInsertMode = !m_bInsertMode;
 			}
 			break;
+		}
 
 		case VK_DELETE:
-			// Check if there is a text selection.
+		{// Check if there is a text selection.
 			if ( m_nCaret != m_nSelStart )
 			{
 				DeleteSelectionText ();
@@ -903,8 +909,10 @@ bool CEditBox::OnKeyDown ( WPARAM wParam )
 
 			bHandled = true;
 			break;
+		}
 
 		case VK_LEFT:
+		{
 			if ( GetKeyState ( VK_CONTROL ) < 0 )
 			{
 				// Control is down. Move the caret to a new item
@@ -926,8 +934,10 @@ bool CEditBox::OnKeyDown ( WPARAM wParam )
 
 			bHandled = true;
 			break;
+		}
 
 		case VK_RIGHT:
+		{
 			if ( GetKeyState ( VK_CONTROL ) < 0 )
 			{
 				// Control is down. Move the caret to a new item
@@ -949,24 +959,22 @@ bool CEditBox::OnKeyDown ( WPARAM wParam )
 
 			bHandled = true;
 			break;
+		}
 
 		case VK_UP:
 		case VK_DOWN:
+		{
 			// Trap up and down arrows so that the dialog
 			// does not switch focus to another control.
 			bHandled = true;
 			break;
+		}
 
 		default:
 			bHandled = wParam != VK_ESCAPE;  // Let the application handle Esc.
 	}
 
 	return bHandled;
-}
-
-bool CEditBox::OnKeyUp ( WPARAM wParam )
-{
-	return false;
 }
 
 bool CEditBox::OnKeyCharacter ( WPARAM wParam )
@@ -1011,8 +1019,7 @@ bool CEditBox::OnKeyCharacter ( WPARAM wParam )
 				DeleteSelectionText ();
 				SendEvent ( EVENT_CONTROL_CHANGE, true );
 			}
-			bHandled 
-				= true;
+			bHandled = true;
 			break;
 		}
 
@@ -1028,6 +1035,7 @@ bool CEditBox::OnKeyCharacter ( WPARAM wParam )
 
 		// Ctrl-A Select All
 		case 1:
+		{
 			if ( m_nSelStart == m_nCaret )
 			{
 				m_nSelStart = 0;
@@ -1036,13 +1044,15 @@ bool CEditBox::OnKeyCharacter ( WPARAM wParam )
 
 			bHandled = true;
 			break;
+		}
 
 		case VK_RETURN:
+		{
 			// Invoke the callback when the user presses Enter.
 			SendEvent ( EVENT_CONTROL_CHANGE, true );
 			bHandled = true;
 			break;
-
+		}
 			// Junk characters we don't want in the string
 		case 26:  // Ctrl Z
 		case 2:   // Ctrl B
@@ -1075,7 +1085,9 @@ bool CEditBox::OnKeyCharacter ( WPARAM wParam )
 			// starts to type, the selection should
 			// be deleted.
 			if ( m_nCaret != m_nSelStart )
+			{
 				DeleteSelectionText ();
+			}
 
 			// If we are in overwrite mode and there is already
 			// a char at the caret's position, simply replace it.
@@ -1095,356 +1107,9 @@ bool CEditBox::OnKeyCharacter ( WPARAM wParam )
 					m_nSelStart = m_nCaret;
 				}
 			}
+
 			SendEvent ( EVENT_CONTROL_CHANGE, true );
-
 			bHandled = true;
-		}
-		
-	}
-
-	return bHandled;
-}
-
-bool CEditBox::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
-{
-	if ( !CanHaveFocus () )
-		return false;
-
-	switch ( uMsg )
-	{            
-		// Make sure that while editing, the keyup and keydown messages associated with 
-		// WM_CHAR messages don't go to any non-focused controls or cameras
-		case WM_KEYUP:
-		case WM_KEYDOWN:
-			return true;
-
-		case WM_CHAR:
-		{
-			switch ( ( WCHAR ) wParam )
-			{
-				// Backspace
-				case VK_BACK:
-				{
-					// If there's a selection, treat this
-					// like a delete key.
-					if ( m_nCaret != m_nSelStart )
-					{
-						DeleteSelectionText ();
-						SendEvent ( EVENT_CONTROL_CHANGE, true );
-					}
-					else if ( m_nCaret > 0 )
-					{
-						// Move the caret, then delete the char.
-						PlaceCaret ( m_nCaret - 1 );
-						m_nSelStart = m_nCaret;
-						m_Buffer.RemoveChar ( m_nCaret );
-						SendEvent ( EVENT_CONTROL_CHANGE, true );
-					}
-					break;
-				}
-
-				case 24:        // Ctrl-X Cut
-				case VK_CANCEL: // Ctrl-C Copy
-				{
-					CopyToClipboard ();
-
-					// If the key is Ctrl-X, delete the selection too.
-					if ( ( WCHAR ) wParam == 24 )
-					{
-						DeleteSelectionText ();
-						SendEvent ( EVENT_CONTROL_CHANGE, true );
-					}
-
-					break;
-				}
-
-				// Ctrl-V Paste
-				case 22:
-				{
-					PasteFromClipboard ();
-					SendEvent ( EVENT_CONTROL_CHANGE, true );
-					break;
-				}
-
-				// Ctrl-A Select All
-				case 1:
-					if ( m_nSelStart == m_nCaret )
-					{
-						m_nSelStart = 0;
-						PlaceCaret ( m_Buffer.GetTextSize () );
-					}
-					break;
-
-				case VK_RETURN:
-					// Invoke the callback when the user presses Enter.
-					SendEvent ( EVENT_CONTROL_CHANGE, true );
-					break;
-
-					// Junk characters we don't want in the string
-				case 26:  // Ctrl Z
-				case 2:   // Ctrl B
-				case 14:  // Ctrl N
-				case 19:  // Ctrl S
-				case 4:   // Ctrl D
-				case 6:   // Ctrl F
-				case 7:   // Ctrl G
-				case 10:  // Ctrl J
-				case 11:  // Ctrl K
-				case 12:  // Ctrl L
-				case 17:  // Ctrl Q
-				case 23:  // Ctrl W
-				case 5:   // Ctrl E
-				case 18:  // Ctrl R
-				case 20:  // Ctrl T
-				case 25:  // Ctrl Y
-				case 21:  // Ctrl U
-				case 9:   // Ctrl I
-				case 15:  // Ctrl O
-				case 16:  // Ctrl P
-				case 27:  // Ctrl [
-				case 29:  // Ctrl ]
-				case 28:  // Ctrl \ 
-					break;
-
-				default:
-				{
-					// If there's a selection and the user
-					// starts to type, the selection should
-					// be deleted.
-					if ( m_nCaret != m_nSelStart )
-						DeleteSelectionText ();
-
-					// If we are in overwrite mode and there is already
-					// a char at the caret's position, simply replace it.
-					// Otherwise, we insert the char as normal.
-					if ( !m_bInsertMode && m_nCaret < m_Buffer.GetTextSize () )
-					{
-						m_Buffer [ m_nCaret ] = ( WCHAR ) wParam;
-						PlaceCaret ( m_nCaret + 1 );
-						m_nSelStart = m_nCaret;
-					}
-					else
-					{
-						// Insert the char
-						if ( m_Buffer.InsertChar ( m_nCaret, ( WCHAR ) wParam ) )
-						{
-							PlaceCaret ( m_nCaret + 1 );
-							m_nSelStart = m_nCaret;
-						}
-					}
-					SendEvent ( EVENT_CONTROL_CHANGE, true );
-				}
-			}
-			return true;
-		}
-	}
-	return false;
-}
-
-//--------------------------------------------------------------------------------------
-bool CEditBox::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
-{
-	if ( !CanHaveFocus () )
-		return false;
-
-	switch ( uMsg )
-	{
-		case WM_LBUTTONDOWN:
-		case WM_LBUTTONDBLCLK:
-		{
-			if ( m_rBoundingBox.InControlArea ( pos ) )
-			{
-				// Pressed while inside the control
-				m_bPressed = m_bMouseDrag = true;
-
-				if ( m_pParent && !m_bHasFocus )
-				{
-					m_pParent->SetFocussedControl ( this );
-				}
-			}
-			
-			// Determine the character corresponding to the coordinates.
-			int nCP, nTrail, nX1st;
-			m_Buffer.CPtoX ( m_nFirstVisible, FALSE, &nX1st );  // X offset of the 1st visible char
-			if ( SUCCEEDED ( m_Buffer.XtoCP ( pos.GetX () - m_rText.pos.GetX () + nX1st, &nCP, &nTrail ) ) )
-			{
-				// Cap at the NULL character.
-				if ( nTrail && nCP < m_Buffer.GetTextSize () )
-				{
-					PlaceCaret ( nCP + 1 );
-				}
-				else
-				{
-					PlaceCaret ( nCP );
-				}
-
-				m_nSelStart = m_nCaret;
-			}
-			return true;
-		}
-
-		case WM_LBUTTONUP:			
-			m_bMouseDrag = false;
-			break;
-
-		case WM_MOUSEMOVE:
-			if ( m_bMouseDrag )
-			{
-				// Determine the character corresponding to the coordinates.
-				int nCP, nTrail, nX1st;
-				m_Buffer.CPtoX ( m_nFirstVisible, FALSE, &nX1st );  // X offset of the 1st visible char
-				if ( SUCCEEDED ( m_Buffer.XtoCP ( pos.GetX () - m_rText.pos.GetX () + nX1st, &nCP, &nTrail ) ) )
-				{
-					// Cap at the NULL character.
-					if ( nTrail && nCP < m_Buffer.GetTextSize () )
-					{
-						PlaceCaret ( nCP + 1 );
-					}
-					else
-					{
-						PlaceCaret ( nCP );
-					}
-				}
-			}
-			break;
-	}
-
-	return false;
-}
-
-bool CEditBox::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
-{
-	bool bHandled = false;
-	switch ( uMsg )
-	{
-		case WM_KEYDOWN:
-		{
-			switch ( wParam )
-			{
-				case VK_TAB:
-					// We don't process Tab in case keyboard input is enabled and the user
-					// wishes to Tab to other controls.
-					break;
-
-				case VK_HOME:
-					PlaceCaret ( 0 );
-
-					// Shift is not down. Update selection
-					// start along with the caret.
-					if ( GetKeyState ( VK_SHIFT ) >= 0 )
-					{
-						m_nSelStart = m_nCaret;
-					}
-
-					bHandled = true;
-					break;
-
-				case VK_END:
-					PlaceCaret ( m_Buffer.GetTextSize () );
-
-					// Shift is not down. Update selection
-					// start along with the caret.
-					if ( GetKeyState ( VK_SHIFT ) >= 0 )
-					{
-						m_nSelStart = m_nCaret;
-					}
-
-					bHandled = true;
-					break;
-
-				case VK_INSERT:
-					if ( GetKeyState ( VK_CONTROL ) < 0 )
-					{
-						// Control Insert. Copy to clipboard
-						CopyToClipboard ();
-					}
-					else if ( GetKeyState ( VK_SHIFT ) < 0 )
-					{
-						// Shift Insert. Paste from clipboard
-						PasteFromClipboard ();
-					}
-					else
-					{
-						// Toggle caret insert mode
-						m_bInsertMode = !m_bInsertMode;
-					}
-					break;
-
-				case VK_DELETE:
-					// Check if there is a text selection.
-					if ( m_nCaret != m_nSelStart )
-					{
-						DeleteSelectionText ();
-						SendEvent ( EVENT_CONTROL_CHANGE, true );
-					}
-					else
-					{
-						// Deleting one character
-						if ( m_Buffer.RemoveChar ( m_nCaret ) )
-						{
-							SendEvent ( EVENT_CONTROL_CHANGE, true );
-						}
-					}
-
-					bHandled = true;
-					break;
-
-				case VK_LEFT:
-					if ( GetKeyState ( VK_CONTROL ) < 0 )
-					{
-						// Control is down. Move the caret to a new item
-						// instead of a character.
-						m_Buffer.GetPriorItemPos ( m_nCaret, &m_nCaret );
-						PlaceCaret ( m_nCaret );
-					}
-					else if ( m_nCaret > 0 )
-					{
-						PlaceCaret ( m_nCaret - 1 );
-					}
-
-					// Shift is not down. Update selection
-					// start along with the caret.
-					if ( GetKeyState ( VK_SHIFT ) >= 0 )
-					{
-						m_nSelStart = m_nCaret;
-					}
-
-					bHandled = true;
-					break;
-
-				case VK_RIGHT:
-					if ( GetKeyState ( VK_CONTROL ) < 0 )
-					{
-						// Control is down. Move the caret to a new item
-						// instead of a character.
-						m_Buffer.GetNextItemPos ( m_nCaret, &m_nCaret );
-						PlaceCaret ( m_nCaret );
-					}
-					else if ( m_nCaret < m_Buffer.GetTextSize () )
-					{
-						PlaceCaret ( m_nCaret + 1 );
-					}
-
-					// Shift is not down. Update selection
-					// start along with the caret.
-					if ( GetKeyState ( VK_SHIFT ) >= 0 )
-					{
-						m_nSelStart = m_nCaret;
-					}
-
-					bHandled = true;
-					break;
-
-				case VK_UP:
-				case VK_DOWN:
-					// Trap up and down arrows so that the dialog
-					// does not switch focus to another control.
-					bHandled = true;
-					break;
-
-				default:
-					bHandled = wParam != VK_ESCAPE;  // Let the application handle Esc.
-			}
 		}
 	}
 

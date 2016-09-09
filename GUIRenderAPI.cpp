@@ -154,8 +154,8 @@ VOID Init ()
 
 	//sbAddToFav2->SetRelativePosX ( true );
 	//sbAddToFav2->SetRelativePosY ( true );
-	sbAddToFav2->SetRelativeSizeX ( true );
-	sbAddToFav2->SetRelativeSizeY ( true );
+	//sbAddToFav2->SetRelativeSizeX ( true );
+	//sbAddToFav2->SetRelativeSizeY ( true );
 	auto sbFltNotFull2 = pGui->AddCheckBox ( fServBrowser1, 150, 410, 150, true, _UI ( "Add to favourites" ) );
 
 	auto sbFltNotEmpty2 = pGui->AddCheckBox ( fServBrowser1, 480, 385, 40, 0, _UI ( "Add to favourites" ) );
@@ -226,9 +226,9 @@ VOID Init ()
 	sds->AddTab ( _UI ( "ASDSA 14" ), 100 );
 	sds->AddTab ( _UI ( "ASDSA 15" ), 120 );
 	sds->AddTab ( _UI ( "ASDSA 16" ), 100 );
-	sds->SetRelativePosY ( true );
+	//sds->SetRelativePosY ( true );
 	
-	sds->SetRelativeSizeX ( true );
+	//sds->SetRelativeSizeX ( true );
 
 	CButton* pButton = new CButton ( pGui );
 
@@ -262,6 +262,11 @@ VOID Init ()
 
 VOID Draw ()
 {
+	int posx = 0;
+	if ( GetAsyncKeyState ( VK_LEFT ) )
+		posx += 10;
+	if ( sbTab [ 0 ] )
+		sbTab [ 0 ]->SetPos ( CPos( sbTab [ 0 ]->GetPos ()->GetX () , sbTab [ 0 ]->GetPos ()->GetY () + posx ) );
 	//EnterCriticalSection ( &cs_gui );
 	if ( pGui )
 		pGui->Draw ();

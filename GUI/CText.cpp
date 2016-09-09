@@ -29,82 +29,67 @@ void CLabel::Draw ( void )
 						  m_sControlColor.d3dColorBox [ m_eState ], GetText (), m_dwAlign, m_pFont );
 }
 
-bool CLabel::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
+bool CLabel::OnKeyDown ( WPARAM wParam )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
-	switch ( uMsg )
+	if ( wParam == VK_SPACE )
 	{
-		case WM_LBUTTONDOWN:
-		case WM_LBUTTONDBLCLK:
-		{
-			if ( m_rBoundingBox.InControlArea ( pos ) )
-			{
-				// Pressed while inside the control
-				m_bPressed = true;
-
-				if ( m_pParent && !m_bHasFocus )
-					m_pParent->SetFocussedControl ( this );
-
-				return true;
-			}
-			break;
-		}
-
-		case WM_LBUTTONUP:
-		{
-			if ( m_bPressed )
-			{
-				m_bPressed = false;
-
-				if ( m_pParent )
-					m_pParent->ClearControlFocus ();
-
-				// Button click
-				if ( m_rBoundingBox.InControlArea ( pos ) )
-					SendEvent ( EVENT_CONTROL_CLICKED, true );
-
-				return true;
-			}
-			break;
-		}
-	};
+		m_bPressed = true;
+		return true;
+	}
 
 	return false;
 }
 
-bool CLabel::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
+bool CLabel::OnKeyUp ( WPARAM wParam )
+{
+	if ( m_bPressed )
+	{
+		m_bPressed = false;
+		SendEvent ( EVENT_CONTROL_CLICKED, true );
+	}
+
+	return false;
+}
+
+bool CLabel::OnMouseButtonDown ( sMouseEvents e )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
-	switch ( uMsg )
+	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		case WM_KEYDOWN:
+		if ( m_rBoundingBox.InControlArea ( e.pos ) )
 		{
-			switch ( wParam )
-			{
-				case VK_SPACE:
-					m_bPressed = true;
-					return true;
-			}
-		}
+			// Pressed while inside the control
+			m_bPressed = true;
 
-		case WM_KEYUP:
-		{
-			switch ( wParam )
-			{
-				case VK_SPACE:
-					if ( m_bPressed )
-					{
-						m_bPressed = false;
-						SendEvent ( EVENT_CONTROL_CLICKED, true );
-					}
+			if ( m_pParent && !m_bHasFocus )
+				m_pParent->SetFocussedControl ( this );
 
-					return true;
-			}
+			return true;
 		}
+	}
+
+	return false;
+}
+
+bool CLabel::OnMouseButtonUp ( sMouseEvents e )
+{
+	if ( m_bPressed )
+	{
+		m_bPressed = false;
+
+		if ( m_pParent )
+			m_pParent->ClearControlFocus ();
+
+		// Button click
+		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+			SendEvent ( EVENT_CONTROL_CLICKED, true );
+
+		return true;
 	}
 
 	return false;
@@ -112,7 +97,6 @@ bool CLabel::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 void CLabel::UpdateRects ( void )
 {
-
 	CControl::UpdateRects ();
 }
 

@@ -33,10 +33,10 @@ public:
 	void OnMouseLeave ( void );
 
 	bool OnKeyDown ( WPARAM wParam );
-	bool OnKeyUp ( WPARAM wParam );
 
 	bool OnMouseButtonDown ( sMouseEvents e );
 	bool OnMouseButtonUp ( sMouseEvents e );
+
 	bool OnMouseMove ( CPos pos );
 	bool OnMouseWheel ( int zDelta );
 
@@ -56,9 +56,6 @@ public:
 
 	void OpenBox ( void );
 	void CloseBox ( void );
-
-	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
-	bool HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam );
 
 	void UpdateRects ( void );
 	bool ContainsRect ( CPos pos );

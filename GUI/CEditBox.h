@@ -122,16 +122,11 @@ public:
 
 	void OnClickLeave ( void );
 
-	bool MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam );
-	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
-	bool HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam );
-
 	bool OnMouseButtonDown ( sMouseEvents e );
 	bool OnMouseButtonUp ( sMouseEvents e );
 	bool OnMouseMove ( CPos pos );
 
-	bool OnKeyDown ( WPARAM wParam );
-	bool OnKeyUp ( WPARAM wParam );
+	bool OnKeyDown ( WPARAM wParam );           
 	bool OnKeyCharacter ( WPARAM wParam );
 
 	void            SetText ( SIMPLEGUI_STRING sString, bool bSelected = false );

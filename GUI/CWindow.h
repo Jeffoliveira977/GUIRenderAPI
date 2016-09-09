@@ -110,7 +110,7 @@ private:
 
 	SControlRect m_rButton;
 	SControlRect m_rTitle;
-
+	SIZE sizeOld;
 	SControlRect m_rWindowTop;
 	SControlRect m_rWindowLeft;
 	SControlRect m_rWindowRight;

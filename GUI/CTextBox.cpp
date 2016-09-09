@@ -92,104 +92,87 @@ void CLogBox::ResetList ( void )
 	m_pEntryList->ResetList ();
 }
 
-bool CLogBox::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
+bool CLogBox::OnKeyDown ( WPARAM wParam )
 {
 	CScrollBarVertical *pScrollbarVer = m_pEntryList->GetScrollbar ()->GetVerScrollbar ();
 	CScrollBarHorizontal *pScrollbarHor = m_pEntryList->GetScrollbar ()->GetHorScrollbar ();
 
-	if ( !CanHaveFocus () ||
-		 !pScrollbarVer ||
-		 !pScrollbarHor )
-		return false;
-
-	// First acquire focus
-	if ( WM_LBUTTONDOWN == uMsg )
-			m_pParent->SetFocussedControl ( this );
-
-	if ( m_pEntryList->GetScrollbar ()->HandleMouse ( uMsg, pos, wParam, lParam ) )
-		return true;
-
-	switch ( uMsg )
+	switch ( wParam )
 	{
-		case WM_LBUTTONDOWN:
-		case WM_LBUTTONDBLCLK:
+		case VK_LEFT:
 		{
-			if ( m_rBoundingBox.InControlArea ( pos ) )
-			{
-				// Pressed while inside the control
-				m_bPressed = true;
-				return true;
-			}
-
-			break;
-		}
-
-		case WM_LBUTTONUP:
-		{
-			if ( m_bPressed )
-			{
-				m_bPressed = false;
-				return true;
-			}
-			break;
-		}
-
-		case WM_MOUSEWHEEL:
-		{
-			int zDelta = ( short ) HIWORD ( wParam ) / WHEEL_DELTA;
-			pScrollbarVer->Scroll ( -zDelta * pScrollbarVer->GetStepSize () );
-
+			pScrollbarHor->Scroll ( -pScrollbarHor->GetStepSize () );
 			return true;
 		}
-	};
+		case VK_UP:
+		{
+			pScrollbarVer->Scroll ( -m_pEntryList->GetTextSize ().cy );
+			return true;
+		}
+		case VK_RIGHT:
+		{
+			pScrollbarHor->Scroll ( pScrollbarHor->GetStepSize () );
+			return true;
+		}
+		case VK_DOWN:
+		{
+			pScrollbarVer->Scroll ( m_pEntryList->GetTextSize ().cy );
+			return true;
+		}
+	}
 
 	return false;
 }
 
-bool CLogBox::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
+bool CLogBox::OnMouseButtonDown ( sMouseEvents e )
 {
-	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
-	
-	CScrollBarVertical *pScrollbarVer = pScrollbar->GetVerScrollbar ();
-	CScrollBarHorizontal *pScrollbarHor = pScrollbar->GetHorScrollbar ();
-
-	if ( !CanHaveFocus () ||
-		 !pScrollbarVer ||
-		 !pScrollbarHor )
-	{
+	if ( !CanHaveFocus () )
 		return false;
-	}
 
-	switch ( uMsg )
+	if ( m_pEntryList->GetScrollbar ()->OnMouseButtonDown ( e ) )
+		return true;
+
+	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		case WM_KEYDOWN:
+		// First acquire focus
+		m_pParent->SetFocussedControl ( this ); 
+		
+		if ( m_rBoundingBox.InControlArea ( e.pos ) )
 		{
-			switch ( wParam )
-			{
-				case VK_LEFT:
-				{
-					pScrollbarHor->Scroll ( -pScrollbarHor->GetStepSize () );
-					return true;
-				}
-				case VK_UP:
-				{
-					pScrollbarVer->Scroll ( -m_pEntryList->GetTextSize ().cy );
-					return true;
-				}
-				case VK_RIGHT:
-				{
-					pScrollbarHor->Scroll ( pScrollbarHor->GetStepSize () );
-					return true;
-				}
-				case VK_DOWN:
-				{
-					pScrollbarVer->Scroll ( m_pEntryList->GetTextSize ().cy );
-					return true;
-				}
-			}
-			break;
+			// Pressed while inside the control
+			m_bPressed = true;
+			return true;
 		}
 	}
+
+	return false;
+}
+
+bool CLogBox::OnMouseButtonUp ( sMouseEvents e )
+{
+	if ( m_pEntryList->GetScrollbar ()->OnMouseButtonUp ( e ) )
+		return true;
+
+	if ( m_bPressed )
+	{
+		m_bPressed = false;
+		return true;
+	}
+
+	return false;
+}
+
+bool CLogBox::OnMouseWheel ( int zDelta )
+{
+	CScrollBarVertical *pScrollbarVer = m_pEntryList->GetScrollbar ()->GetVerScrollbar ();
+	pScrollbarVer->Scroll ( -zDelta * pScrollbarVer->GetStepSize () );
+	return true;
+}
+
+bool CLogBox::OnMouseMove ( CPos pos )
+{
+	if ( m_pEntryList->GetScrollbar ()->OnMouseMove ( pos ) )
+		return true;
 
 	return false;
 }

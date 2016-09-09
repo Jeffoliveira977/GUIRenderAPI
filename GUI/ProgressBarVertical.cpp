@@ -20,7 +20,6 @@ void CProgressBarVertical::Draw ( void )
 		return;
 
 	CMouse *pMouse = m_pDialog->GetMouse ();
-	assert ( pMouse && "Invalid mouse pointer" );
 
 	if ( pMouse && 
 		 m_bPressed && 
@@ -44,65 +43,63 @@ void CProgressBarVertical::Draw ( void )
 }
 
 //--------------------------------------------------------------------------------------
-bool CProgressBarVertical::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
+bool CProgressBarVertical::OnMouseMove ( CPos pos )
+{
+	if ( m_bPressed )
+	{
+		SetValue ( ValueFromPos ( pos.GetY () - m_rProgress.pos.GetY () ) );
+		return true;
+	}
+	return false;
+}
+
+//--------------------------------------------------------------------------------------
+bool CProgressBarVertical::OnMouseButtonDown ( sMouseEvents e )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
-	switch ( uMsg )
+	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		case WM_MOUSEMOVE:
+		if ( m_rBoundingBox.InControlArea ( e.pos ) )
 		{
-			if ( m_bPressed )
+			// Pressed while inside the control
+			m_bPressed = true;
+
+			if ( m_pParent )
+				m_pParent->SetFocussedControl ( this );
+
+			m_timer.Start ( PROGRESSBAR_ARROWCLICK_START );
+
+			if ( e.pos.GetY () > m_rProgress.pos.GetY () + m_rProgress.size.cy )
 			{
-				SetValue ( ValueFromPos ( pos.GetY () - m_rProgress.pos.GetY () ) );
+				SetValue ( m_fValue + m_fStep );
 				return true;
 			}
-			break;
-		}
-
-		case WM_LBUTTONDOWN:
-		case WM_LBUTTONDBLCLK:
-		{
-			if ( m_rBoundingBox.InControlArea ( pos ) )
+			else if ( e.pos.GetY () < m_rProgress.pos.GetY () + m_rProgress.size.cy )
 			{
-				// Pressed while inside the control
-				m_bPressed = true;
-
-				if ( m_pParent )
-					m_pParent->SetFocussedControl ( this );
-
-				m_timer.Start ( PROGRESSBAR_ARROWCLICK_START );
-
-				if ( pos.GetY () > m_rProgress.pos.GetY () + m_rProgress.size.cy )
-				{
-					SetValue ( m_fValue + m_fStep );
-					return true;
-				}
-				else if ( pos.GetY () < m_rProgress.pos.GetY () + m_rProgress.size.cy )
-				{
-					SetValue ( m_fValue - m_fStep );
-					return true;
-				}
-
+				SetValue ( m_fValue - m_fStep );
 				return true;
 			}
-			break;
+
+			return true;
 		}
+	}
 
-		case WM_LBUTTONUP:
-		{
-			if ( m_bPressed )
-			{
-				m_bPressed = false;
+	return false;
+}
 
-				if ( m_pParent )
-					m_pParent->ClearControlFocus ();
+//--------------------------------------------------------------------------------------
+bool CProgressBarVertical::OnMouseButtonUp ( sMouseEvents e )
+{
+	if ( m_bPressed )
+	{
+		m_bPressed = false;
 
-				return true;
-			}
-			break;
-		}
+		if ( m_pParent )
+			m_pParent->ClearControlFocus ();
+
+		return true;
 	}
 	return false;
 }
