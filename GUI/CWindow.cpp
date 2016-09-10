@@ -577,8 +577,8 @@ bool CWindow::ControlMessages ( sControlEvents e )
 	{
 		return false;
 	}
-
-	if ( m_pFocussedControl && m_pFocussedControl->GetType () == CControl::TYPE_TABPANEL )
+	CControl* pControl = GetControlAtArea ( e.mouseEvent.pos );
+	if ( pControl&& m_pFocussedControl && m_pFocussedControl->GetType () == CControl::TYPE_TABPANEL )
 	{
 		if ( static_cast< CTabPanel* >( m_pFocussedControl )->ControlMessages ( e ) )
 			return true;
@@ -587,7 +587,7 @@ bool CWindow::ControlMessages ( sControlEvents e )
 	if ( m_pFocussedControl && m_pFocussedControl->InjectKeyboard ( e.keyEvent ) )
 		return true;
 
-	CControl* pControl = GetControlAtArea ( e.mouseEvent.pos );
+	//CControl* pControl = GetControlAtArea ( e.mouseEvent.pos );
 	if ( !pControl
 		 && e.mouseEvent.eMouseMessages == sMouseEvents::ButtonDown &&
 		 e.mouseEvent.eButton == sMouseEvents::LeftButton &&

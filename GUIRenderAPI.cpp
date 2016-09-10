@@ -220,7 +220,7 @@ VOID Init ()
 	auto psd1 = pGui->AddEditBox ( fServBrowser3, 0, 40, 200, 0, _UI ( "sasd{FF750000}asaaddssddsadssaddsasd" ) );
 	auto psd2 = pGui->AddEditBox ( fServBrowser3, 0, 80, 200, 0, _UI ( "sasd{FF750000}asaaddssddsadssaddsasd" ) );
 
-	auto sds = pGui->AddTabPanel ( fServBrowser3, 200, 200, 300, 200 );
+	auto sds = pGui->AddTabPanel ( fServBrowser3, 20, 20, 600, 500 );
 	sds->AddTab ( _UI ( "ASDA 12" ), 100 );
 	sds->AddTab ( _UI ( "ASDAAS 13" ), 60 );
 	sds->AddTab ( _UI ( "ASDSA 14" ), 100 );
@@ -235,13 +235,34 @@ VOID Init ()
 	CEditBox *pEdit = new CEditBox ( pGui );
 
 
-	CRadioButton *pRadio22 = new CRadioButton ( pGui );
+	CRadioButton *pRadio221 = new CRadioButton ( pGui );
+	pRadio221->SetPos ( CPos ( 0, 160 ) );
+	pRadio221->SetSize ( 220, 0 );
+	pRadio221->SetGroup ( 0 );
+	pRadio221->SetText ( _UI ( "Refresh" ) );
 
-	auto  pRadio22 = pGui->AddRadioButton ( fServBrowser1, 0, 160, 220, 120, _UI ( "Refresh" ) );
-	auto  pRadios22 = pGui->AddRadioButton ( fServBrowser1, 0, 160, 280, 120, _UI ( "Refresh" ) );
+	CRadioButton *pRadio3 = new CRadioButton ( pGui );
+	pRadio3->SetPos ( CPos ( 160, 280 ) );
+	pRadio3->SetSize ( 220, 0 );
+	pRadio3->SetGroup ( 0 );
+	pRadio3->SetText ( _UI ( "Refresh" ) );
 
-	auto  pRadio122 = pGui->AddRadioButton ( fServBrowser1, 1, 220, 220, 115, _UI ( "Refresh" ) );
-	auto  pRadios122 = pGui->AddRadioButton ( fServBrowser1, 1, 220, 280, 115, _UI ( "Refresh" ) );
+	CRadioButton *pRadio222 = new CRadioButton ( pGui );
+	pRadio222->SetPos ( CPos ( 220, 220 ) );
+	pRadio222->SetSize ( 220, 0 );
+	pRadio222->SetGroup ( 1 );
+	pRadio222->SetText ( _UI ( "Refresh" ) );
+
+	CRadioButton *pRadio23 = new CRadioButton ( pGui );
+	pRadio23->SetPos ( CPos ( 220, 280 ) );
+	pRadio23->SetSize ( 220, 0 );
+	pRadio23->SetGroup ( 1 );
+	pRadio23->SetText ( _UI ( "Refresh" ) );
+
+	sds->AddControl ( 0, pRadio23 );
+	sds->AddControl ( 0, pRadio222 );
+	sds->AddControl ( 0, pRadio3 );
+	sds->AddControl ( 0, pRadio221 );
 
 	if ( pEdit )
 	{

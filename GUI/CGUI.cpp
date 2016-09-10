@@ -646,23 +646,25 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 		}
 	}
 
-	if ( m_pFocussedWindow )
-	{
-		CControl *pControl = m_pFocussedWindow->GetFocussedControl ();
-
-		bool bOnDrag = false;
-		if ( m_pFocussedWindow->GetFocussedControl () && uMsg != WM_LBUTTONDOWN ||
-			 ( GetAsyncKeyState ( VK_LBUTTON ) && uMsg == WM_MOUSEMOVE ) )
-		{
-			bOnDrag = true;
-		}
-
-		if ( bOnDrag && m_pFocussedWindow->ControlMessages ( e ) )
-			return;
-	}
-
 	// See if the mouse is over any windows
 	CWindow* pWindow = GetWindowAtPos ( pos );
+
+	//if ( m_pFocussedWindow )
+	//{
+	//	CControl *pControl = m_pFocussedWindow->GetFocussedControl ();
+
+	//	bool bOnDrag = false;
+
+	//	if ( pControl &&(pControl->GetType () == CControl::EControlType::TYPE_DROPDOWN ||
+	//		 pControl->GetType() ==CControl::EControlType::TYPE_EDITBOX )&&  GetAsyncKeyState ( VK_LBUTTON ) /*||
+	//		 ( GetAsyncKeyState ( VK_LBUTTON ) && uMsg == WM_MOUSEMOVE )*/ )
+	//	{
+	//		bOnDrag = true;
+	//	}
+
+	//	if ( pWindow&& pWindow->ControlMessages ( e ) )
+	//		return;
+	//}
 
 	if ( pWindow && pWindow->ControlMessages ( e ) )
 		return;
