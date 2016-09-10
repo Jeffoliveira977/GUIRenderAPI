@@ -34,6 +34,7 @@
 #include <list>
 #include <map>
 #include <deque>
+#include <queue>
 #include <algorithm>
 #include <Windowsx.h>
 #include <limits>

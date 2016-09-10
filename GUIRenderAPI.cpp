@@ -234,6 +234,15 @@ VOID Init ()
 
 	CEditBox *pEdit = new CEditBox ( pGui );
 
+
+	CRadioButton *pRadio22 = new CRadioButton ( pGui );
+
+	auto  pRadio22 = pGui->AddRadioButton ( fServBrowser1, 0, 160, 220, 120, _UI ( "Refresh" ) );
+	auto  pRadios22 = pGui->AddRadioButton ( fServBrowser1, 0, 160, 280, 120, _UI ( "Refresh" ) );
+
+	auto  pRadio122 = pGui->AddRadioButton ( fServBrowser1, 1, 220, 220, 115, _UI ( "Refresh" ) );
+	auto  pRadios122 = pGui->AddRadioButton ( fServBrowser1, 1, 220, 280, 115, _UI ( "Refresh" ) );
+
 	if ( pEdit )
 	{
 		pEdit->SetPos ( CPos ( 150, 0 ) );

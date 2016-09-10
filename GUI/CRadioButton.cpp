@@ -1,23 +1,18 @@
 #include "CGUI.h"
 
-std::map<CControl*, UINT> CRadioButton::m_nCount ;
-std::map<UINT, UINT> CRadioButton::m_mID;
-std::map<CRadioButton*, CRadioButton::RadioParent> CRadioButton::m_mButtonID;
+std::map<CControl*, std::map<UINT, CControl*>> CRadioButton::mADD;
 
 CRadioButton::CRadioButton ( CDialog *pDialog )
 {
 	SetControl ( pDialog, TYPE_RADIOBUTTON );
 
 	m_uGroup = 0;
-	m_nCount [ m_pParent ]++;
+
 }
 
 CRadioButton::~CRadioButton ( void )
 {
-	m_mButtonID.erase ( this );
-	m_mID .erase ( m_uGroup );
 
-	m_nCount[m_pParent]--;
 }
 
 void CRadioButton::Draw ( void )
@@ -38,9 +33,7 @@ void CRadioButton::Draw ( void )
 	m_pDialog->DrawFont ( SControlRect ( m_rText.pos.GetX (), m_rText.pos.GetY () + ( m_rBoundingBox.size.cy / 2 ) ),
 						  m_sControlColor.d3dColorFont, str.c_str (), D3DFONT_CENTERED_Y, m_pFont );
 
-	auto s= m_mButtonID [ this ] [ m_pParent ] [ m_uGroup ];
-	if ( m_mButtonID [ this ] [ m_pParent ] [ m_uGroup ] == m_mID [ m_uGroup ] &&
-		 m_bChecked )
+	if ( mADD [ m_pParent ] [ m_uGroup ] == this )
 	{
 		size.cx = size.cy -= 4;
 		m_pDialog->DrawCircle ( SControlRect ( pos + 2, size ), m_sControlColor.d3dColorShape, 0, m_bAntAlias );

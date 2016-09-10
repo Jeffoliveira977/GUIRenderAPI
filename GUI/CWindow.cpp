@@ -369,7 +369,7 @@ void CWindow::OnClickLeave ( void )
 	m_bDragging = false;
 	m_eWindowArea = OutArea;
 
-	if( m_pFocussedControl )
+	if ( m_pFocussedControl )
 		m_pFocussedControl->OnClickLeave ();
 
 	if ( m_pScrollbar )
@@ -413,10 +413,10 @@ void CWindow::OnMouseEnter ( void )
 	if ( m_pScrollbar && !m_bControlClicked )
 		m_pScrollbar->OnMouseEnter ();
 
-	if ( m_pControlMouseOver )
+	/*if ( m_pControlMouseOver )
 	{
 		m_pControlMouseOver->OnMouseEnter ();
-	}
+	}*/
 }
 
 //--------------------------------------------------------------------------------------
@@ -424,8 +424,8 @@ void CWindow::OnMouseLeave ( void )
 {
 	CControl::OnMouseLeave ();
 
-	if(m_eWindowArea == OutArea )
-	m_pDialog->GetMouse ()->SetCursorType ( CMouse::DEFAULT );
+	if ( m_eWindowArea == OutArea )
+		m_pDialog->GetMouse ()->SetCursorType ( CMouse::DEFAULT );
 
 	if ( m_pScrollbar )
 		m_pScrollbar->OnMouseLeave ();
@@ -578,7 +578,13 @@ bool CWindow::ControlMessages ( sControlEvents e )
 		return false;
 	}
 
-	if ( m_pFocussedControl&&m_pFocussedControl->InjectKeyboard ( e.keyEvent ) )
+	if ( m_pFocussedControl && m_pFocussedControl->GetType () == CControl::TYPE_TABPANEL )
+	{
+		if ( static_cast< CTabPanel* >( m_pFocussedControl )->ControlMessages ( e ) )
+			return true;
+	}
+
+	if ( m_pFocussedControl && m_pFocussedControl->InjectKeyboard ( e.keyEvent ) )
 		return true;
 
 	CControl* pControl = GetControlAtArea ( e.mouseEvent.pos );
@@ -588,6 +594,12 @@ bool CWindow::ControlMessages ( sControlEvents e )
 		 m_pFocussedControl )
 	{
 		ClearControlFocus ();
+	}
+
+	if ( pControl && pControl->GetType () == CControl::TYPE_TABPANEL )
+	{
+		if ( static_cast< CTabPanel* >( pControl )->ControlMessages ( e ) )
+			return true;
 	}
 
 	// it the first chance at handling the message.

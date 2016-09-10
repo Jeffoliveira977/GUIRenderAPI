@@ -11,7 +11,6 @@ public:
 	void SetGroup ( UINT uGroup )
 	{
 		m_uGroup = uGroup;
-		m_mButtonID [ this ] [ m_pParent ] [ m_uGroup ] = m_nCount[ m_pParent ];
 	}
 
 	UINT GetGroup ( void )
@@ -23,13 +22,13 @@ public:
 
 	bool GetChecked ( void )
 	{
-		return m_bChecked;
+		return ( mADD [ m_pParent ] [ m_uGroup ] == this );
 	}
 
 	void SetChecked ( bool bChecked )
 	{
-		m_mID  [ m_uGroup ] = m_mButtonID [ this ] [ m_pParent ] [ m_uGroup ];
-		SendEvent ( EVENT_CONTROL_SELECT, m_bChecked = bChecked );
+		mADD [ m_pParent ] [ m_uGroup ] = bChecked ? this : NULL;
+		SendEvent ( EVENT_CONTROL_SELECT, bChecked );
 	}
 
 	bool OnMouseButtonDown ( sMouseEvents e );
@@ -41,11 +40,8 @@ private:
 	
 	UINT m_uGroup;
 	SControlRect m_rText;
-	bool m_bChecked;
 
-	typedef std::map<CControl*, std::map<UINT, UINT>> RadioParent;
-	static  std::map<CControl*,UINT>m_nCount;
-	static std::map<UINT, UINT> m_mID;
-	static std::map<CRadioButton*, RadioParent> m_mButtonID;
+	static std::map<CControl*, std::map<UINT, CControl*>> mADD;
+
 };
 
