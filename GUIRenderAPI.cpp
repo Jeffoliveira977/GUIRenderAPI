@@ -230,6 +230,30 @@ VOID Init ()
 	
 	//sds->SetRelativeSizeX ( true );
 
+	CDropDown *pDropd = new CDropDown ( pGui );
+	pDropd->SetPos ( CPos ( 500, 200 ) );
+	pDropd->SetSize ( 200, 20 );
+	pDropd->SetText ( _UI ( "Refresh" ) );
+
+	pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASDaasdasdsasdas{FF750000} asd as asd asdasdas asd" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) ); pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) ); pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) );
+
+
 	CButton* pButton = new CButton ( pGui );
 
 	CEditBox *pEdit = new CEditBox ( pGui );
@@ -263,7 +287,7 @@ VOID Init ()
 	sds->AddControl ( 0, pRadio222 );
 	sds->AddControl ( 0, pRadio3 );
 	sds->AddControl ( 0, pRadio221 );
-
+	sds->AddControl ( 1, pDropd );
 	if ( pEdit )
 	{
 		pEdit->SetPos ( CPos ( 150, 0 ) );

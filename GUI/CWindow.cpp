@@ -577,8 +577,8 @@ bool CWindow::ControlMessages ( sControlEvents e )
 	{
 		return false;
 	}
-	CControl* pControl = GetControlAtArea ( e.mouseEvent.pos );
-	if ( pControl&& m_pFocussedControl && m_pFocussedControl->GetType () == CControl::TYPE_TABPANEL )
+
+	if ( m_pFocussedControl && m_pFocussedControl->GetType () == CControl::TYPE_TABPANEL )
 	{
 		if ( static_cast< CTabPanel* >( m_pFocussedControl )->ControlMessages ( e ) )
 			return true;
@@ -587,7 +587,7 @@ bool CWindow::ControlMessages ( sControlEvents e )
 	if ( m_pFocussedControl && m_pFocussedControl->InjectKeyboard ( e.keyEvent ) )
 		return true;
 
-	//CControl* pControl = GetControlAtArea ( e.mouseEvent.pos );
+	CControl* pControl = GetControlAtArea ( e.mouseEvent.pos );
 	if ( !pControl
 		 && e.mouseEvent.eMouseMessages == sMouseEvents::ButtonDown &&
 		 e.mouseEvent.eButton == sMouseEvents::LeftButton &&
@@ -804,7 +804,12 @@ bool CWindow::OnMouseMove ( CPos pos )
 		m_pControlMouseOver = NULL;
 	}
 
-	if ( m_bMouseOver &&
+	CControl *pControl = m_pFocussedControl;
+	if ( m_pFocussedControl&& m_pFocussedControl->GetType () == CControl::EControlType::TYPE_TABPANEL )
+		pControl = static_cast< CTabPanel* >( m_pFocussedControl )->GetFocussedControl ();
+
+	if (!( pControl && pControl->GetType () == CControl::EControlType::TYPE_DROPDOWN &&
+		 pControl->ContainsRect ( pos )) && m_bMouseOver &&
 		  m_eWindowArea == OutArea &&
 		  !m_rButton.InControlArea ( pos ) )
 	{
@@ -984,12 +989,17 @@ bool CWindow::ContainsRect ( CPos pos )
 		 !m_pScrollbar )
 		return false;
 
+	CControl *pControl = m_pFocussedControl;
+	if ( m_pFocussedControl&& m_pFocussedControl->GetType () == CControl::EControlType::TYPE_TABPANEL )
+		pControl = static_cast< CTabPanel* >( m_pFocussedControl )->GetFocussedControl ();
+
 	return ( ( m_pScrollbar->ContainsRect ( pos ) && m_eWindowArea == OutArea ) ||
 			 ( m_rBoundingBox.InControlArea ( pos ) && !m_bMaximized ) ||
 			 m_rTitle.InControlArea ( pos ) ||
 			 m_rButton.InControlArea ( pos ) || 
 			 GetSizingBorderAtArea ( pos ) != OutArea ||
-			 ( m_pFocussedControl&&m_pFocussedControl->ContainsRect ( pos ) ) );
+			 ( pControl && pControl->GetType () == CControl::EControlType::TYPE_DROPDOWN &&
+			 pControl->ContainsRect ( pos ) ) );
 }
 
 void CWindow::SetCursorForPoint ( CPos pos )
