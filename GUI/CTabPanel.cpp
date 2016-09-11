@@ -231,6 +231,7 @@ int CTabPanel::GetTabIdAtArea ( CPos pos )
 	return -1;
 }
 
+
 CControl *CTabPanel::GetControlAtArea ( UINT nTabID, CPos pos )
 {
 	if ( nTabID >= m_TabList.size () )
