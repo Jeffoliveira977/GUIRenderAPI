@@ -260,9 +260,7 @@ void CTabPanel::Draw ( void )
 		if ( nWidth >= m_rPanelArea.size.cx&&m_nNextTab > 0 )
 		{
 			m_nNextTab--;
-			
 		}
-
 	}
 
 	/*if ( nWidth < m_rPanelArea.size.cx && m_nNextTab >= 0 )
