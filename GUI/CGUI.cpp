@@ -647,7 +647,7 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 	}
 	// See if the mouse is over any windows
 	CWindow* pWindow = GetWindowAtPos ( pos );
-	if ( m_pFocussedWindow  )
+	if ( m_pFocussedWindow )
 	{
 		CControl *pControl = m_pFocussedWindow->GetFocussedControl ();
 

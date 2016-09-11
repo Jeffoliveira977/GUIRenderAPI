@@ -54,15 +54,13 @@ void CScrollablePane::OnDraw ( void )
 
 bool CScrollablePane::OnMouseButtonDown ( sMouseEvents e )
 {
-	if ( m_pScrollbarHor &&
-		 m_pScrollbarHor->OnMouseButtonDown ( e ) )
+	if ( m_pScrollbarHor && m_pScrollbarHor->OnMouseButtonDown ( e ) )
 	{
 		SetFocussedControl ();
 		return true;
 	}
 
-	if ( m_pScrollbarVer &&
-		 m_pScrollbarVer->OnMouseButtonDown ( e ) )
+	if ( m_pScrollbarVer && m_pScrollbarVer->OnMouseButtonDown ( e ) )
 	{
 		SetFocussedControl ();
 		return true;
@@ -73,15 +71,13 @@ bool CScrollablePane::OnMouseButtonDown ( sMouseEvents e )
 
 bool CScrollablePane::OnMouseButtonUp ( sMouseEvents e )
 {
-	if ( m_pScrollbarHor &&
-		 m_pScrollbarHor->OnMouseButtonUp ( e ) )
+	if ( m_pScrollbarHor && m_pScrollbarHor->OnMouseButtonUp ( e ) )
 	{
 		SetFocussedControl ();
 		return true;
 	}
 
-	if ( m_pScrollbarVer &&
-		 m_pScrollbarVer->OnMouseButtonUp ( e ) )
+	if ( m_pScrollbarVer && m_pScrollbarVer->OnMouseButtonUp ( e ) )
 	{
 		SetFocussedControl ();
 		return true;
@@ -92,15 +88,13 @@ bool CScrollablePane::OnMouseButtonUp ( sMouseEvents e )
 
 bool CScrollablePane::OnMouseMove ( CPos pos )
 {
-	if ( m_pScrollbarHor &&
-		 m_pScrollbarHor->OnMouseMove ( pos ) )
+	if ( m_pScrollbarHor && m_pScrollbarHor->OnMouseMove ( pos ) )
 	{
 		SetFocussedControl ();
 		return true;
 	}
 
-	if ( m_pScrollbarVer &&
-		 m_pScrollbarVer->OnMouseMove ( pos ) )
+	if ( m_pScrollbarVer && m_pScrollbarVer->OnMouseMove ( pos ) )
 	{
 		SetFocussedControl ();
 		return true;
@@ -111,15 +105,13 @@ bool CScrollablePane::OnMouseMove ( CPos pos )
 
 bool CScrollablePane::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
 {
-	if ( m_pScrollbarHor && 
-		 m_pScrollbarHor->HandleMouse ( uMsg, pos, wParam, lParam ) )
+	if ( m_pScrollbarHor && m_pScrollbarHor->HandleMouse ( uMsg, pos, wParam, lParam ) )
 	{
 		SetFocussedControl ();
 		return true;
 	}
 
-	if ( m_pScrollbarVer &&
-		 m_pScrollbarVer->HandleMouse ( uMsg, pos, wParam, lParam ) )
+	if ( m_pScrollbarVer && m_pScrollbarVer->HandleMouse ( uMsg, pos, wParam, lParam ) )
 	{
 		SetFocussedControl ();
 		return true;
@@ -208,10 +200,8 @@ void CScrollablePane::OnClickLeave ( void )
 
 bool CScrollablePane::OnClickEvent ( void )
 {
-	return ( m_pScrollbarHor &&
-			 m_pScrollbarHor->OnClickEvent () ||
-			 m_pScrollbarVer &&
-			 m_pScrollbarVer->OnClickEvent () );
+	return ( m_pScrollbarHor && m_pScrollbarHor->OnClickEvent () ||
+			 m_pScrollbarVer &&  m_pScrollbarVer->OnClickEvent () );
 }
 
 void CScrollablePane::OnFocusIn ( void )
@@ -256,10 +246,8 @@ bool CScrollablePane::CanHaveFocus ( void )
 		 !IsVerScrollbarNeeded () )
 		return false;
 
-	return ( m_pScrollbarHor &&
-			 m_pScrollbarHor->CanHaveFocus () ||
-			 m_pScrollbarVer &&
-			 m_pScrollbarVer->CanHaveFocus () );
+	return ( m_pScrollbarHor && m_pScrollbarHor->CanHaveFocus () ||
+			 m_pScrollbarVer && m_pScrollbarVer->CanHaveFocus () );
 }
 
 void CScrollablePane::SetPageSize ( int nSizeX, int nSizeY )

@@ -105,13 +105,14 @@ VOID Init ()
 	DWORD s_iHeight = vp.Height;
 
 	pGui->LoadFont ( _UI ( "Tahoma" ), 10, false );
-
+	auto fServBrowser1 = pGui->AddWindow ( s_iWidth / 2 + 800, s_iHeight / 2, 750, 500, _UI ( "SERVER BROWSER" ), 1 );
+	fServBrowser1->AddControl ( fServBrowser );
 	// Create Servers Brouser
 	fServBrowser = pGui->AddWindow ( s_iWidth / 2, s_iHeight / 2, 750, 500, _UI ( "SERVER BROWSER" ),1 );
 
 	
 
-	sbTab [ 0 ] = pGui->AddButton ( fServBrowser, 20, 0, 200, 20, _UI ( "Internet" ) );
+	sbTab [ 0 ] = pGui->AddButton ( fServBrowser, 0, 0, 200, 20, _UI ( "Internet" ) );
 	sbTab [ 0 ]->SetRelativePosX ( true );
 	sbTab [ 1 ] = pGui->AddButton ( fServBrowser, 169, 0, 200, 20, _UI ( "LAN" ) );
 	sbTab [ 2 ] = pGui->AddButton ( fServBrowser, 318, 0, 200, 20, _UI ( "VIP" ) );
@@ -136,8 +137,7 @@ VOID Init ()
 	auto  pRadios12 = pGui->AddRadioButton ( fServBrowser, 1, 220, 280, 1120, _UI ( "Refresh" ) );
 	
 
-	auto fServBrowser1 = pGui->AddWindow ( s_iWidth / 2 + 800, s_iHeight / 2, 750, 500, _UI ( "SERVER BROWSER" ), 1 );
-	fServBrowser1->AddControl ( fServBrowser );
+
 	auto fServBrowser2 = pGui->AddWindow ( s_iWidth / 2, s_iHeight / 2 + 600, 750, 500, _UI ( "SERVER BROWSER" ) );
 	auto fServBrowser3 = pGui->AddWindow ( s_iWidth / 2 + 800, s_iHeight / 2 + 600, 750, 500, _UI ( "SERVER BROWSER" ) );
 
@@ -228,7 +228,7 @@ VOID Init ()
 	sds->AddTab ( _UI ( "ASDSA 16" ), 100 );
 	//sds->SetRelativePosY ( true );
 	
-	//sds->SetRelativeSizeX ( true );
+	sds->SetRelativeSizeX ( true );
 
 	CDropDown *pDropd = new CDropDown ( pGui );
 	pDropd->SetPos ( CPos ( 500, 200 ) );

@@ -266,7 +266,7 @@ bool CListBox::OnMouseMove ( CPos pos )
 				 rText.InControlArea ( pos ) )
 			{
 				m_iIndex = i;
-				return true;
+				//return true;
 			}
 		}
 	}

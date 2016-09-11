@@ -115,7 +115,8 @@ bool CDropDown::OnClickEvent ( void )
 {
 	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
 
-	return ( pScrollbar->OnClickEvent () );
+	return ( /*CControl::OnClickEvent () ||*/
+			 pScrollbar->OnClickEvent () );
 }
 
 void CDropDown::OnFocusIn ( void )
@@ -151,7 +152,7 @@ void CDropDown::OnMouseEnter ( void )
 void CDropDown::OnMouseLeave ( void )
 {
 	CControl::OnMouseLeave ();
-
+	m_iIndex = -1;
 	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
 
 	if ( pScrollbar )
@@ -311,7 +312,7 @@ bool CDropDown::OnMouseMove ( CPos pos )
 					 rText.InControlArea ( pos ) )
 				{
 					m_iIndex = i;	
-					return true;
+					//return true;
 				}
 			}
 		}

@@ -609,9 +609,7 @@ bool CWindow::ControlMessages ( sControlEvents e )
 	if ( pControl && pControl->InjectMouse ( e.mouseEvent ) )
 		return true;
 
-	if ( !( GetAsyncKeyState ( VK_LBUTTON ) /*&&
-											pControl */ ) /*&&
-											uMsg == WM_MOUSEMOVE */ )
+	if ( !GetAsyncKeyState ( VK_LBUTTON ) )
 	{
 		// If the mouse is still over the same control, nothing needs to be done
 		if ( pControl == m_pControlMouseOver )
@@ -649,7 +647,7 @@ bool CWindow::OnMouseButtonDown ( sMouseEvents e )
 
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		//ClearControlFocus ();
+
 		if ( m_rButton.InControlArea ( e.pos ) &&
 			 m_bCloseButtonEnabled )
 		{
@@ -667,8 +665,6 @@ bool CWindow::OnMouseButtonDown ( sMouseEvents e )
 			E_WINDOW_AREA eArea = GetSizingBorderAtArea ( e.pos );
 			if ( eArea != OutArea )
 			{
-				//SetCursorForPoint ( pos );
-
 				m_eWindowArea = eArea;
 
 				if ( m_eWindowArea == Top ||
@@ -719,8 +715,6 @@ bool CWindow::OnMouseButtonDown ( sMouseEvents e )
 
 		if ( m_rTitle.InControlArea ( e.pos ) )
 		{
-			//ClearControlFocus ();
-
 			if ( m_pDialog->GetMouse ()->GetLeftButton () == 2 )
 				m_bMaximized = !m_bMaximized;
 
@@ -808,10 +802,10 @@ bool CWindow::OnMouseMove ( CPos pos )
 	if ( m_pFocussedControl&& m_pFocussedControl->GetType () == CControl::EControlType::TYPE_TABPANEL )
 		pControl = static_cast< CTabPanel* >( m_pFocussedControl )->GetFocussedControl ();
 
-	if (!( pControl && pControl->GetType () == CControl::EControlType::TYPE_DROPDOWN &&
-		 pControl->ContainsRect ( pos )) && m_bMouseOver &&
-		  m_eWindowArea == OutArea &&
-		  !m_rButton.InControlArea ( pos ) )
+	if ( !( pControl && pControl->GetType () == CControl::EControlType::TYPE_DROPDOWN &&
+		 pControl->ContainsRect ( pos ) ) && m_bMouseOver &&
+		 m_eWindowArea == OutArea /*&&
+		 !m_rButton.InControlArea ( pos )*/ )
 	{
 		SetCursorForPoint ( pos );
 	}
@@ -989,34 +983,35 @@ bool CWindow::ContainsRect ( CPos pos )
 		 !m_pScrollbar )
 		return false;
 
-	CControl *pControl = m_pFocussedControl;
-	if ( m_pFocussedControl&& m_pFocussedControl->GetType () == CControl::EControlType::TYPE_TABPANEL )
-		pControl = static_cast< CTabPanel* >( m_pFocussedControl )->GetFocussedControl ();
-
 	return ( ( m_pScrollbar->ContainsRect ( pos ) && m_eWindowArea == OutArea ) ||
 			 ( m_rBoundingBox.InControlArea ( pos ) && !m_bMaximized ) ||
 			 m_rTitle.InControlArea ( pos ) ||
 			 m_rButton.InControlArea ( pos ) || 
 			 GetSizingBorderAtArea ( pos ) != OutArea ||
-			 ( pControl && pControl->GetType () == CControl::EControlType::TYPE_DROPDOWN &&
-			 pControl->ContainsRect ( pos ) ) );
+			 ( m_pFocussedControl && m_pFocussedControl->ContainsRect ( pos ) ) );
 }
 
 void CWindow::SetCursorForPoint ( CPos pos )
 {
+	if ( m_rButton.InControlArea ( pos ) )
+	{
+		m_pDialog->GetMouse ()->SetCursorType ( CMouse::DEFAULT );
+		return;
+	}
+
 	switch ( GetSizingBorderAtArea ( pos ) )
 	{
 		case TopLeft:
-		case BottomRight:	
+		case BottomRight:
 			m_pDialog->GetMouse ()->SetCursorType ( CMouse::NE_RESIZE );
 			break;
 
 		case BottomLeft:
-		case TopRight:	
+		case TopRight:
 			m_pDialog->GetMouse ()->SetCursorType ( CMouse::SE_RESIZE );
 			break;
 
-		case Top:	
+		case Top:
 			m_pDialog->GetMouse ()->SetCursorType ( CMouse::S_RESIZE );
 			break;
 
@@ -1025,7 +1020,7 @@ void CWindow::SetCursorForPoint ( CPos pos )
 			m_pDialog->GetMouse ()->SetCursorType ( CMouse::E_RESIZE );
 			break;
 
-		case Bottom:	
+		case Bottom:
 			m_pDialog->GetMouse ()->SetCursorType ( CMouse::N_RESIZE );
 			break;
 
@@ -1038,9 +1033,7 @@ void CWindow::SetCursorForPoint ( CPos pos )
 CWindow::E_WINDOW_AREA CWindow::GetSizingBorderAtArea ( CPos pos )
 {
 	if ( ( m_pFocussedControl && m_pFocussedControl->OnClickEvent () ) ||
-		 m_bDragging ||
-		 m_bPressed ||
-		 m_bMaximized ||
+		( m_bDragging || m_bPressed || m_bMaximized ) ||
 		 m_pScrollbar->OnClickEvent () )
 	{
 		return OutArea;
@@ -1088,31 +1081,17 @@ SControlRect *CWindow::GetWindowRect ( E_WINDOW_AREA eArea )
 {
 	if ( m_pFocussedControl &&
 		 m_pFocussedControl->OnClickEvent () ||
-		 ( m_bDragging ||
-		 m_bPressed ||
-		 m_bMaximized ) ||
+		 ( m_bDragging || m_bPressed || m_bMaximized ) ||
 		 m_pScrollbar->OnClickEvent () )
 		return NULL;
 
 	switch ( eArea )
 	{
-		case TopLeft:
-			return &m_rWindowTopLeft;
-		case BottomLeft:
-			return &m_rWindowBottomLeft;
-		case TopRight:
-			return &m_rWindowTopRight;
-		case BottomRight:
-			return &m_rWindowBottomRight;
-		case Top:
-			return &m_rWindowTop;
-		case Left:
-			return &m_rWindowLeft;
-		case Right:
-			return &m_rWindowRight;
-		case Bottom:
-			return &m_rWindowBottom;
-		default:
-			return NULL;
+		case TopLeft:	return &m_rWindowTopLeft;	case BottomLeft:	return &m_rWindowBottomLeft;
+		case TopRight:	return &m_rWindowTopRight;	case BottomRight:	return &m_rWindowBottomRight;
+		case Top:		return &m_rWindowTop;		case Left:			return &m_rWindowLeft;
+		case Right:		return &m_rWindowRight;		case Bottom:		return &m_rWindowBottom;
+		
+		default:		return NULL;
 	}
 }
