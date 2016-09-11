@@ -129,10 +129,10 @@
     <ClInclude Include="GUI\CScrollBarVertical.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\Scrollbar.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GUI\CTabPanel.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Scrollbar.h">
       <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>

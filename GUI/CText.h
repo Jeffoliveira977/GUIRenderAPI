@@ -11,6 +11,7 @@ public:
 	void SetAlign ( DWORD dwAlign );
 	void Draw ( void );
 
+
 	bool OnKeyDown ( WPARAM wParam );
 	bool OnKeyUp ( WPARAM wParam );
 
