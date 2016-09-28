@@ -1,7 +1,7 @@
 #include "CListView.h"
 
 #define TEXTBOX_TEXTSPACE 18
-#define LISTVIEW_TITLESIZE 8
+#define LISTVIEW_TITLESIZE 15
 #define LISTVIEW_MINCOLUMNSIZE 50
 
 UINT CListView::m_nColumnSort = 0;
@@ -386,7 +386,7 @@ void CListView::Draw ( void )
 	SControlRect rScissor = m_rScissor;
 	rScissor.pos.SetX ( rScissor.pos.GetX () + 1 );
 	rScissor.pos.SetY ( rScissor.pos.GetY () + 1 );
-	rScissor.size.cx -= m_pScrollbar->IsVerScrollbarNeeded () ? pScrollbarVer->GetWidth () : 2;
+	rScissor.size.cx -= 2;
 	SetScissor ( m_pDialog->GetDevice (), rScissor.GetRect () );
 
 	// Draw all contexts
@@ -443,7 +443,9 @@ void CListView::Draw ( void )
 
 				SIZE size;
 				m_pFont->GetTextExtent ( str.c_str (), &size );
-				rListBoxText.pos.SetY ( rListBoxText.pos.GetY () + size.cy );
+
+				if ( j != pScrollbarVer->GetTrackPos () )
+					rListBoxText.pos.SetY ( rListBoxText.pos.GetY () + size.cy );
 
 				D3DCOLOR d3dColorFont = m_sControlColor.d3dColorFont;
 
@@ -452,8 +454,8 @@ void CListView::Draw ( void )
 				{
 					SControlRect rBoxSel = rListBoxText;
 					rBoxSel.pos.SetX ( rListBoxText.pos.GetX () - 2 );
-					rBoxSel.pos.SetY ( rBoxSel.pos.GetY () );
-					rBoxSel.size.cx = rListBoxText.size.cx + nHorScrollTrackPos;
+					rBoxSel.pos.SetY ( rBoxSel.pos.GetY () +1);
+					rBoxSel.size.cx += nHorScrollTrackPos;
 					rBoxSel.size.cy = size.cy - 1;
 
 					d3dColorFont = m_sControlColor.d3dColorSelectedFont;
@@ -592,8 +594,6 @@ bool CListView::CanHaveFocus ( void )
 
 bool CListView::OnMouseButtonDown ( sMouseEvents e )
 {
-	m_pParent->SetFocussedControl ( this );
-
 	if ( !m_bSizing &&
 		 !m_bMoving )
 	{
@@ -634,6 +634,7 @@ bool CListView::OnMouseButtonDown ( sMouseEvents e )
 		{
 			// Pressed while inside the control
 			m_bPressed = true;
+			m_pParent->SetFocussedControl ( this );
 			return true;
 		}
 	}
@@ -719,26 +720,30 @@ bool CListView::OnMouseMove ( CPos pos )
 
 	m_nIndex = -1;
 
-	/*if ( ( GetAsyncKeyState ( VK_LBUTTON ) && !m_bHasFocus ) ||
+	if ( ( GetAsyncKeyState ( VK_LBUTTON ) && !m_bHasFocus ) ||
 		 m_pScrollbar->ContainsRect ( pos ) ||
 		 m_pScrollbar->OnClickEvent () )
 	{
-		return false;
-	}*/
+		return true;
+	}
 
-	int nId = GetColumnIdAtAreaBorder ( pos );
-	if ( m_bMouseOver &&m_bMoving )
+	
+	if ( m_bMouseOver && m_bMoving )
 	{
 		m_bSorting = false;
 		return true;
 	}
-	else if ( m_bMouseOver && m_bSizing || nId > -1 )
+	else
 	{
-		if ( nId > -1 )
+		int nId = GetColumnIdAtAreaBorder ( pos );
+		if ( m_bMouseOver && (m_bSizing || nId > -1) )
 		{
-			m_pDialog->GetMouse ()->SetCursorType ( CMouse::E_RESIZE );
+			if ( nId > -1 )
+			{
+				m_pDialog->GetMouse ()->SetCursorType ( CMouse::E_RESIZE );
+			}
+			return true;
 		}
-		return true;
 	}
 
 	if ( !m_bMouseOver ) 
@@ -762,7 +767,8 @@ bool CListView::OnMouseMove ( CPos pos )
 			SIZE size;
 			m_pFont->GetTextExtent ( str.c_str (), &size );
 
-			rText.pos.SetY ( rText.pos.GetY () + size.cy );
+			if ( i != pScrollbarVer->GetTrackPos () )
+				rText.pos.SetY ( rText.pos.GetY () + size.cy );
 
 			// Check if selected text is not NULL and determine 
 			// which item has been selected
@@ -1052,7 +1058,7 @@ void CListView::UpdateRects ( void )
 	m_rColumnArea.size.cy = size.cy + LISTVIEW_TITLESIZE;
 
 	m_rListBoxArea = m_rBoundingBox;
-	m_rListBoxArea.pos.SetY ( m_rListBoxArea.pos.GetY () + m_rColumnArea.size.cy / 2 );
+	m_rListBoxArea.pos.SetY ( m_rListBoxArea.pos.GetY () + m_rColumnArea.size.cy );
 	m_rListBoxArea.size.cy = m_rListBoxArea.size.cy - m_rColumnArea.size.cy;
 
 	m_pFont->GetTextExtent ( _UI ( "Y" ), &size );
@@ -1064,7 +1070,7 @@ void CListView::UpdateRects ( void )
 
 	pScrollbarHor->SetStepSize ( GetAllColumnsWidth () / 10 );
 
-	m_pScrollbar->UpdateScrollbars ( m_rBoundingBox );
+	m_pScrollbar->UpdateScrollbars ( m_rListBoxArea );
 }
 
 bool CListView::ContainsRect ( CPos pos )

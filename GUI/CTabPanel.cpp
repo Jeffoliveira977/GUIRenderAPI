@@ -648,9 +648,14 @@ bool CTabPanel::ControlMessages ( sControlEvents e )
 	CControl *pMouseOverControl = m_TabList [ m_nSelectedTab ].pMouseOverControl;
 	CControl *pFocussedControl = m_TabList [ m_nSelectedTab ].pFocussedControl;
 
-	if ( !CanHaveFocus () || 
-		 ( m_pScrollbar->ContainsRect ( e.mouseEvent.pos ) && !HAS_CONTROL_TYPE ( pFocussedControl, CControl::TYPE_DROPDOWN ) ) )
+	bool bHasDropDown = HAS_CONTROL_TYPE ( pFocussedControl, CControl::TYPE_DROPDOWN );
+
+	if ( !CanHaveFocus () ||
+		 ( m_pScrollbar->ContainsRect ( e.mouseEvent.pos ) && !bHasDropDown ) ||
+		 !m_rBoundingBox.InControlArea ( e.mouseEvent.pos ) && !( bHasDropDown || HAS_CONTROL_TYPE ( pFocussedControl, CControl::TYPE_EDITBOX )) )
+	{
 		return false;
+	}
 
 	if ( pFocussedControl && pFocussedControl->InjectKeyboard ( e.keyEvent ) )
 		return true;

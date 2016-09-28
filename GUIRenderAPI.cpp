@@ -267,6 +267,8 @@ VOID Init ()
 	pListView->AddColumnItem ( 0, _UI ( "ASD" ) );
 	pListView->AddColumnItem ( 0, _UI ( "ASD" ) );
 	pListView->AddColumnItem ( 0, _UI ( "ASD" ) );
+	pListView->AddColumnItem ( 0, _UI ( "ASD" ) );
+	pListView->AddColumnItem ( 0, _UI ( "ASD" ) );
 	pListView->AddColumnItem ( 2, _UI ( "ASD" ) );
 	pListView->AddColumnItem ( 3, _UI ( "ASD" ) );
 	pListView->AddColumnItem ( 3, _UI ( "ASD" ) );
