@@ -35,7 +35,6 @@ void CDropDown::Draw ()
 		return;
 
 	CControl::Draw ();
-
 	m_pDialog->DrawBox ( m_rBoundingBox, m_sControlColor.d3dColorBox [ m_eState ], m_sControlColor.d3dColorOutline, m_bAntAlias );
 
 	SControlRect rText = m_rBoundingBox;
@@ -47,9 +46,7 @@ void CDropDown::Draw ()
 	rShape.pos.SetY ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cy / 2 - 1 );
 	rShape.size.cx = 7;
 
-	SIMPLEGUI_STRING str ( GetSelectedItem () ?
-					  GetSelectedItem ()->m_sText.c_str () :
-					  GetText () );
+	SIMPLEGUI_STRING str ( GetSelectedItem () ? GetSelectedItem ()->m_sText.c_str () : GetText () );
 
 	m_pFont->CutString ( rText.size.cx - ( rShape.size.cx + 10 ), str );
 	m_pDialog->DrawFont ( rText, m_sControlColor.d3dColorSelectedFont, str.c_str (), 0, m_pFont );
@@ -115,7 +112,7 @@ bool CDropDown::OnClickEvent ( void )
 {
 	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
 
-	return ( /*CControl::OnClickEvent () ||*/
+	return ( CControl::OnClickEvent () ||
 			 pScrollbar->OnClickEvent () );
 }
 
@@ -159,6 +156,11 @@ void CDropDown::OnMouseLeave ( void )
 		pScrollbar->OnMouseLeave ();
 }
 
+bool CDropDown::OnMouseOver ( void )
+{
+	return ( m_iIndex || CControl::OnMouseOver () );
+}
+
 bool CDropDown::OnKeyDown ( WPARAM wParam )
 {
 	if ( !CanHaveFocus () )
@@ -178,7 +180,6 @@ bool CDropDown::OnKeyDown ( WPARAM wParam )
 			break;
 		}
 
-		case VK_LEFT:
 		case VK_UP:
 		{
 			if ( m_iSelected > 0 )
@@ -198,7 +199,6 @@ bool CDropDown::OnKeyDown ( WPARAM wParam )
 			return true;
 		}
 
-		case VK_RIGHT:
 		case VK_DOWN:
 		{
 			if ( m_iSelected + 1 < ( int ) m_pEntryList->GetSize () )

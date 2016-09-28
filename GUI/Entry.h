@@ -39,7 +39,13 @@ public:
 	void				SetSortedList				( bool bSort );
 	void				ResetList					( void );
 
+	void				SetMultiSelection			( bool bMultipleSelected );
+
+	void				ClearSelection				( void );
+	void				SetAllSelected				( void );
+
 	size_t				GetSize						( void );
+	int					GetItemAtPos				( SControlRect rRect, CPos pos );
 
 	SEntryItem			*GetPrevItem				( SEntryItem *pEntry );
 	SEntryItem			*GetNextItem				( SEntryItem *pEntry );
@@ -58,6 +64,8 @@ public:
 	CScrollablePane		*GetScrollbar				( void );
 private:
 	bool						m_bSort;
+	bool						m_bMultipleSelected;
+
 	SEntryItem					*m_pSelectedEntry;
 
 	std::vector<SEntryItem*>	m_vEntryList;

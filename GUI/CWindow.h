@@ -13,7 +13,7 @@ public:
 	void RemoveAllControls ( void );
 
 	void Draw ( void );
-
+	CScrollablePane *GetScrollbar ( void ) { return m_pScrollbar; }
 	bool ControlMessages ( sControlEvents e );
 
 	bool OnMouseButtonDown ( sMouseEvents e);
@@ -37,7 +37,6 @@ public:
 
 	bool CanHaveFocus ( void );
 
-	void OnMouseMove ( CControl *pControl, UINT uMsg );
 	void ShowScrollbars ( bool bShow );
 
 	void SetCloseButton ( bool bEnabled );
@@ -77,8 +76,9 @@ public:
 
 	SIZE GetRealSize ( void );
 
-	void UpdateScrollbars ( bool bUpdateHor, bool bUpdateVer );
 	void ScrollPage ( int nDelta );
+
+	CControl *GetTabPanelFocussedControl ( void );
 
 private:
 	bool m_bDragging;
@@ -92,7 +92,7 @@ private:
 
 	SIZE m_realSize;
 	SIZE m_maxControlSize;
-
+	SIZE m_minControlSize;
 	CScrollablePane *m_pScrollbar;
 	
 	enum E_WINDOW_AREA
@@ -110,7 +110,9 @@ private:
 
 	SControlRect m_rButton;
 	SControlRect m_rTitle;
+
 	SIZE sizeOld;
+
 	SControlRect m_rWindowTop;
 	SControlRect m_rWindowLeft;
 	SControlRect m_rWindowRight;
@@ -123,8 +125,10 @@ private:
 
 	 CControl *m_pControlMouseOver;
 	 CControl *m_pFocussedControl;
+
 	SControlRect rFrame;
 	int m_iTitleBarSize;
+
 	int m_nDragX;
 	int m_nDragY;
 

@@ -1,5 +1,7 @@
 #include "CGUI.h"
 
+#define HAS_CONTROL_TYPE( p, type ) (p && p->GetType () == type)
+
 //--------------------------------------------------------------------------------------
 CWindow::CWindow ( CDialog *pDialog ) :
 	/*m_pFocussedControl ( NULL ),*/
@@ -16,8 +18,8 @@ CWindow::CWindow ( CDialog *pDialog ) :
 	SetControl ( pDialog, TYPE_WINDOW );
 
 	m_sControlColor.d3dColorWindowTitle = D3DCOLOR_RGBA ( 21, 75, 138, 255 );
-	m_sControlColor.d3dCOlorWindowBack = D3DCOLOR_RGBA ( 60, 60, 60, 255 );
-	m_sControlColor.d3dColorBoxSel = D3DCOLOR_RGBA ( 50, 50, 50, 255 );
+	m_sControlColor.d3dCOlorWindowBack = D3DCOLOR_RGBA ( 30, 30, 30, 255 );
+	m_sControlColor.d3dColorBoxSel = D3DCOLOR_RGBA ( 40, 40, 40, 255 );
 
 	m_sControlColor.d3dColorBox [ SControlColor::STATE_NORMAL ] = D3DCOLOR_RGBA ( 180, 0, 0, 255 );
 	m_sControlColor.d3dColorBox [ SControlColor::STATE_MOUSE_OVER ] = D3DCOLOR_XRGB ( 255, 0, 0, 255 );
@@ -56,7 +58,7 @@ void CWindow::Draw ( void )
 		m_eState = SControlColor::STATE_DISABLED;
 	else if ( m_bPressed )
 		m_eState = SControlColor::STATE_PRESSED;
-	else if ( m_bMouseOver &&  m_eWindowArea == OutArea )
+	else if ( m_bMouseOver && m_eWindowArea == OutArea )
 		m_eState = SControlColor::STATE_MOUSE_OVER;
 	else
 		m_eState = SControlColor::STATE_NORMAL;
@@ -94,10 +96,10 @@ void CWindow::Draw ( void )
 	if ( m_bCloseButtonEnabled )
 	{
 		D3DCOLOR d3dColorButton = m_sControlColor.d3dColorBox [ m_bPressed ? SControlColor::STATE_PRESSED : SControlColor::STATE_NORMAL ];
-		if ( m_rButton.InControlArea ( m_pDialog->GetMouse ()->GetPos () ) && !m_bControlClicked )
+		if ( m_rButton.InControlArea ( m_pDialog->GetMouse ()->GetPos () ) && m_pFocussedControl && !m_pFocussedControl->OnClickEvent () )
 			d3dColorButton = m_sControlColor.d3dColorBox [ m_eState ];
 
-		m_pDialog->DrawBox ( m_rButton, d3dColorButton, m_sControlColor.d3dColorOutline, m_bAntAlias );
+		m_pDialog->DrawBox ( m_rButton, d3dColorButton, m_sControlColor.d3dColorWindowTitle, m_bAntAlias );
 
 		CD3DRender *pRender = m_pDialog->GetRenderer ();
 		if ( pRender )
@@ -110,31 +112,47 @@ void CWindow::Draw ( void )
 
 	if ( !m_bMaximized )
 	{
-		bool bUpdate [ 2 ];
-		ZeroMemory ( &m_maxControlSize, sizeof ( SIZE ));
-
+		ZeroMemory ( &m_maxControlSize, sizeof ( SIZE ) );
 		m_pScrollbar->OnDraw ();
-
-		if ( !GetAsyncKeyState ( VK_LBUTTON ) )
-			m_bControlClicked = false;
 
 		// Draw all controls
 		for ( auto control : m_vControls )
 		{
 			if ( control )
 			{
-				if ( control->OnClickEvent () )
-					m_bControlClicked = true;
+				CPos *pos = control->GetPos ();
+				SIZE size = control->GetSize ();
+							
+				if ( pos->GetY () <= m_iTitleBarSize )
+					control->SetPosY ( 0 );
 
-				control->LinkPos ( m_pos - ( m_bShowScrollbar ?
+				control->LinkPos ( m_pos+CPos(0, m_iTitleBarSize ) - ( m_bShowScrollbar ?
 								   CPos ( pScrollbarHor->GetTrackPos (), pScrollbarVer->GetTrackPos () ) :
 								   CPos () ) );
 
-				/*bUpdate [ 0 ] = control->IsSizingX ()|| control->IsMovingX();
-				bUpdate [ 1 ] = control->IsSizingY () ;
-*/
-				SIZE size = control->GetSize ();
-				CPos *pos = control->GetUpdatedPos ();
+				
+
+
+				if ( !( control->GetRelativeX () == CControl::RELATIVE_SIZE || 
+					 control->GetRelativeX () == CControl::RELATIVE_POS ) ||
+					 ( control->GetRelativeX () == CControl::RELATIVE_POS && 
+					 pos->GetX () <= 0 ) || 
+					 ( control->GetMinSize ().cx == size.cx &&
+					 pos->GetX () > 0 ) )
+				{
+					m_maxControlSize.cx = max ( m_maxControlSize.cx, pos->GetX () + size.cx );
+				}
+
+
+				if ( !( control->GetRelativeY () == CControl::RELATIVE_SIZE || control->GetRelativeY () == CControl::RELATIVE_POS ) ||
+					 ( control->GetRelativeY () == CControl::RELATIVE_POS&&pos->GetY ()  <= m_iTitleBarSize ) ||
+					 ( control->GetRelativeY () == CControl::RELATIVE_SIZE && control->GetMinSize ().cy == size.cy /*&& pos->GetY () >= m_iTitleBarSize*/ ) )
+				{
+
+					m_maxControlSize.cy = max ( m_maxControlSize.cy, pos->GetY () + size.cy );
+				}
+
+				pos = control->GetUpdatedPos ();
 
 				if ( pos->GetX () + size.cx > m_rBoundingBox.pos.GetX () &&
 					 pos->GetY () + size.cy > m_rBoundingBox.pos.GetY () + m_iTitleBarSize &&
@@ -151,37 +169,8 @@ void CWindow::Draw ( void )
 					control->LeaveScissorRect ();
 				}
 
-				/*if ( !control->IsRelativePos () )
-				{*/
-				m_maxControlSize.cx = max ( m_maxControlSize.cx, pos->GetX () + size.cx );
-				m_maxControlSize.cy = max ( m_maxControlSize.cy, pos->GetY () + size.cy );
-
-
-				//}
 			}
 		}
-
-		if ( m_maxControlSize.cx != sizeOld.cx )
-		{
-			sizeOld.cx = m_maxControlSize.cx;
-			bUpdate [ 0 ] = true;
-		}
-		if ( m_maxControlSize.cy != sizeOld.cy )
-		{
-			sizeOld.cy = m_maxControlSize.cy;
-			bUpdate [ 1 ] = true;
-		}
-		//if( bUpdate [ 0 ] || bUpdate [ 1 ] )
-		// Check that the control is changed position or size, or if
-		// window is changed size
-		//UpdateScrollbars ( bUpdate [ 0 ], bUpdate [ 1 ] );
-		// Set scrollbars max range
-
-		int nValueX = m_rBoundingBox.size.cx + ( m_maxControlSize.cx - ( m_rBoundingBox.pos.GetX () + m_rBoundingBox.size.cx ) );
-		int nValueY = m_rBoundingBox.size.cy + ( m_maxControlSize.cy - ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cy ) );
-
-		m_pScrollbar->SetTrackRange ( nValueX, m_maxControlSize.cy );
-
 	}
 
 	SetScissor ( pDevice, rOldScissor );
@@ -190,11 +179,10 @@ void CWindow::Draw ( void )
 //--------------------------------------------------------------------------------------
 void CWindow::AddControl ( CControl *pControl )
 {
-	if ( !pControl || 
-		 pControl->GetType() == CControl::EControlType::TYPE_WINDOW )
+	if ( !pControl || HAS_CONTROL_TYPE ( pControl, CControl::TYPE_WINDOW ) )
 		return;
 
-	pControl->SetPos ( *pControl->GetPos () /*+ m_pos*/ + CPos ( 0, m_iTitleBarSize ) );
+	pControl->SetPos ( *pControl->GetPos () /*+ CPos ( 0, m_iTitleBarSize )*/ );
 	pControl->SetParent ( this );
 
 	m_vControls.push_back ( pControl );
@@ -228,8 +216,7 @@ void CWindow::SetFocussedControl ( CControl *pControl )
 {
 	if ( m_pFocussedControl != pControl )
 	{
-		if ( pControl &&
-			 !pControl->CanHaveFocus () )
+		if ( pControl && !pControl->CanHaveFocus () )
 			return;
 
 		if ( m_pFocussedControl )
@@ -320,8 +307,7 @@ CControl *CWindow::GetControlByText ( const SIMPLEGUI_CHAR *pszText )
 {
 	for ( auto &control : m_vControls )
 	{
-		if ( control &&
-			 control->GetText () &&
+		if ( control && control->GetText () &&
 			 pszText )
 		{
 			if ( !SIMPLEGUI_STRCMP ( control->GetText (), pszText ) )
@@ -335,9 +321,8 @@ CControl *CWindow::GetControlByText ( const SIMPLEGUI_CHAR *pszText )
 //--------------------------------------------------------------------------------------
 CControl *CWindow::GetControlAtArea ( CPos pos )
 {
-	for ( std::vector<CControl*>::iterator iter = m_vControls.end (); iter != m_vControls.begin (); )
+	for ( std::vector<CControl*>::reverse_iterator iter = m_vControls.rbegin (); iter != m_vControls.rend (); iter++ )
 	{
-		iter--;
 		if ( ( *iter )->ContainsRect ( pos ) )
 			return ( *iter );
 	}
@@ -359,8 +344,7 @@ CControl *CWindow::GetControlClicked ( void )
 //--------------------------------------------------------------------------------------
 bool CWindow::IsSizing ( void )
 {
-	return ( ( m_bSizable&& m_eWindowArea != OutArea ) &&
-			 CControl::IsSizing () );
+	return ( m_bSizable && m_eWindowArea != OutArea );
 }
 
 //--------------------------------------------------------------------------------------
@@ -379,10 +363,8 @@ void CWindow::OnClickLeave ( void )
 //--------------------------------------------------------------------------------------
 bool CWindow::OnClickEvent ( void )
 {
-	return ( m_bPressed ||
-			 m_bDragging ||
-			 m_eWindowArea != OutArea ||
-			 ( m_pScrollbar && m_pScrollbar->OnClickEvent () ) );
+	return ( ( m_bPressed || m_bDragging || m_eWindowArea != OutArea ) ||
+			 m_pScrollbar->OnClickEvent () );
 }
 
 //--------------------------------------------------------------------------------------
@@ -410,13 +392,11 @@ void CWindow::OnMouseEnter ( void )
 {
 	CControl::OnMouseEnter ();
 
-	if ( m_pScrollbar && !m_bControlClicked )
-		m_pScrollbar->OnMouseEnter ();
+	CControl *pControl = GetTabPanelFocussedControl ();
+	bool bHasDropDown = HAS_CONTROL_TYPE ( pControl, CControl::TYPE_DROPDOWN );
 
-	/*if ( m_pControlMouseOver )
-	{
-		m_pControlMouseOver->OnMouseEnter ();
-	}*/
+	if ( !bHasDropDown )
+		m_pScrollbar->OnMouseEnter ();
 }
 
 //--------------------------------------------------------------------------------------
@@ -440,9 +420,7 @@ void CWindow::OnMouseLeave ( void )
 //--------------------------------------------------------------------------------------
 bool CWindow::CanHaveFocus ( void )
 {
-	return ( CControl::CanHaveFocus () ||
-			 ( m_pScrollbar && 
-			 m_pScrollbar->CanHaveFocus () ) );
+	return ( CControl::CanHaveFocus () || m_pScrollbar->CanHaveFocus () );
 }
 
 //--------------------------------------------------------------------------------------
@@ -507,7 +485,6 @@ void CWindow::SetSize ( int iWidth, int iHeight )
 
 	SetWidth ( iWidth );
 	SetHeight ( iHeight );
-	UpdateScrollbars (true,true);
 }
 
 //--------------------------------------------------------------------------------------
@@ -523,6 +500,15 @@ void CWindow::ScrollPage ( int nDelta )
 		return;
 
 	m_pScrollbar->OnMouseWheel ( nDelta );
+}
+
+CControl *CWindow::GetTabPanelFocussedControl ( void )
+{
+	CControl *pControl = m_pFocussedControl;
+	if ( HAS_CONTROL_TYPE ( pControl, CControl::TYPE_TABPANEL ) )
+		pControl = static_cast< CTabPanel* >( pControl )->GetFocussedControl ();
+
+	return pControl;
 }
 
 //--------------------------------------------------------------------------------------
@@ -545,40 +531,20 @@ void CWindow::ShowScrollbars ( bool bShow )
 }
 
 //--------------------------------------------------------------------------------------
-void CWindow::OnMouseMove ( CControl *pControl, UINT uMsg )
-{
-	if ( !( GetAsyncKeyState ( VK_LBUTTON ) /*&& 
-		 pControl */) /*&&
-		 uMsg == WM_MOUSEMOVE */)
-	{
-		// If the mouse is still over the same control, nothing needs to be done
-		if ( pControl == m_pControlMouseOver )
-			return;
-
-		// Handle mouse leaving the old control
-		if ( m_pControlMouseOver )
-			m_pControlMouseOver->OnMouseLeave ();
-
-		// Handle mouse entering the new control
-		m_pControlMouseOver = pControl;
-		if ( pControl != NULL )
-			pControl->OnMouseEnter ();
-	}
-}
-
-//--------------------------------------------------------------------------------------
 bool CWindow::ControlMessages ( sControlEvents e )
 {
+	CControl *pControl = GetTabPanelFocussedControl ();
+
 	if ( !CControl::CanHaveFocus () ||
 		 m_eWindowArea != OutArea ||
-		/* m_pScrollbar->ContainsRect ( e.mouseEvent.pos ) ||*/
+		 ( m_pScrollbar->ContainsRect ( e.mouseEvent.pos ) && !HAS_CONTROL_TYPE ( pControl, CControl::TYPE_DROPDOWN ) ) ||
 		 GetSizingBorderAtArea ( e.mouseEvent.pos ) != OutArea ||
 		 m_rTitle.InControlArea ( e.mouseEvent.pos ) )
 	{
 		return false;
 	}
 
-	if ( m_pFocussedControl && m_pFocussedControl->GetType () == CControl::TYPE_TABPANEL )
+	if ( HAS_CONTROL_TYPE ( m_pFocussedControl, CControl::TYPE_TABPANEL ) )
 	{
 		if ( static_cast< CTabPanel* >( m_pFocussedControl )->ControlMessages ( e ) )
 			return true;
@@ -587,7 +553,7 @@ bool CWindow::ControlMessages ( sControlEvents e )
 	if ( m_pFocussedControl && m_pFocussedControl->InjectKeyboard ( e.keyEvent ) )
 		return true;
 
-	CControl* pControl = GetControlAtArea ( e.mouseEvent.pos );
+	pControl = GetControlAtArea ( e.mouseEvent.pos );
 	if ( !pControl
 		 && e.mouseEvent.eMouseMessages == sMouseEvents::ButtonDown &&
 		 e.mouseEvent.eButton == sMouseEvents::LeftButton &&
@@ -596,7 +562,7 @@ bool CWindow::ControlMessages ( sControlEvents e )
 		ClearControlFocus ();
 	}
 
-	if ( pControl && pControl->GetType () == CControl::TYPE_TABPANEL )
+	if ( HAS_CONTROL_TYPE ( pControl, CControl::TYPE_TABPANEL ) )
 	{
 		if ( static_cast< CTabPanel* >( pControl )->ControlMessages ( e ) )
 			return true;
@@ -623,31 +589,29 @@ bool CWindow::ControlMessages ( sControlEvents e )
 		m_pControlMouseOver = pControl;
 		if ( m_pControlMouseOver )
 			m_pControlMouseOver->OnMouseEnter ();
-	}
 
-	if ( !m_pControlMouseOver &&
-		 e.mouseEvent.eMouseMessages == sMouseEvents::MouseWheel )
-	{
-		ScrollPage ( -e.mouseEvent.nDelta );
-		return true;
 	}
 
 	return false;
 }
 
 bool CWindow::OnMouseButtonDown ( sMouseEvents e )
-{	
-		// Check if mouse is over window boundaries
-		if ( GetSizingBorderAtArea ( e.pos ) == OutArea && !( m_pFocussedControl && m_pFocussedControl->HasFocus() && m_pFocussedControl->GetType() == CControl::TYPE_DROPDOWN))
+{
+	CControl *pControl = GetTabPanelFocussedControl ();
+
+	// Check if mouse is over window boundaries
+	if ( GetSizingBorderAtArea ( e.pos ) == OutArea && !HAS_CONTROL_TYPE ( pControl, CControl::TYPE_DROPDOWN ) )
+	{
+		// Let the scroll bar handle it first.
+		if ( m_pScrollbar->OnMouseButtonDown ( e ) )
 		{
-			// Let the scroll bar handle it first.
-			if ( m_pScrollbar->OnMouseButtonDown ( e ) )
-				return true;
+			ClearControlFocus ();
+			return true;
 		}
+	}
 
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-
 		if ( m_rButton.InControlArea ( e.pos ) &&
 			 m_bCloseButtonEnabled )
 		{
@@ -744,8 +708,10 @@ bool CWindow::OnMouseButtonDown ( sMouseEvents e )
 
 bool CWindow::OnMouseButtonUp ( sMouseEvents e )
 {
+	CControl *pControl = GetTabPanelFocussedControl ();
+
 	// Check if mouse is over window boundaries
-	if ( GetSizingBorderAtArea ( e.pos ) == OutArea && !( m_pFocussedControl && m_pFocussedControl->HasFocus () && m_pFocussedControl->GetType () == CControl::TYPE_DROPDOWN ) )
+	if ( GetSizingBorderAtArea ( e.pos ) == OutArea && !HAS_CONTROL_TYPE ( pControl, CControl::TYPE_DROPDOWN ) )
 	{
 		// Let the scroll bar handle it first.
 		if ( m_pScrollbar->OnMouseButtonUp ( e ) )
@@ -754,6 +720,10 @@ bool CWindow::OnMouseButtonUp ( sMouseEvents e )
 
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
+		if ( m_pControlMouseOver )
+			m_pControlMouseOver->OnMouseLeave ();
+
+		m_pControlMouseOver = NULL;
 		m_bDragging = false;
 		m_eWindowArea = OutArea;
 		m_size = m_rBoundingBox.size;
@@ -782,6 +752,14 @@ bool CWindow::OnMouseButtonUp ( sMouseEvents e )
 
 bool CWindow::OnMouseMove ( CPos pos )
 {
+	CControl *pControl = GetTabPanelFocussedControl ();
+	bool bHasDropDown = HAS_CONTROL_TYPE ( pControl, CControl::TYPE_DROPDOWN );
+
+	/*if ( m_pScrollbar->ContainsRect ( pos ) && !bHasDropDown && m_bMouseOver )
+		m_pScrollbar->OnMouseEnter ();
+	else
+		m_pScrollbar->OnMouseLeave ();*/
+
 	// Check if mouse is over window boundaries
 	if ( GetSizingBorderAtArea ( pos ) == OutArea )
 	{
@@ -798,14 +776,9 @@ bool CWindow::OnMouseMove ( CPos pos )
 		m_pControlMouseOver = NULL;
 	}
 
-	CControl *pControl = m_pFocussedControl;
-	if ( m_pFocussedControl&& m_pFocussedControl->GetType () == CControl::EControlType::TYPE_TABPANEL )
-		pControl = static_cast< CTabPanel* >( m_pFocussedControl )->GetFocussedControl ();
-
-	if ( !( pControl && pControl->GetType () == CControl::EControlType::TYPE_DROPDOWN &&
-		 pControl->ContainsRect ( pos ) ) && m_bMouseOver &&
-		 m_eWindowArea == OutArea /*&&
-		 !m_rButton.InControlArea ( pos )*/ )
+	if ( !(bHasDropDown && pControl->ContainsRect ( pos )) &&
+		 m_bMouseOver &&
+		 m_eWindowArea == OutArea )
 	{
 		SetCursorForPoint ( pos );
 	}
@@ -871,8 +844,13 @@ bool CWindow::OnMouseMove ( CPos pos )
 
 bool CWindow::OnMouseWheel ( int zDelta )
 {
-	ScrollPage ( -zDelta );
-	return true;
+	if (  !m_pFocussedControl ||!m_pControlMouseOver&& m_bMouseOver )
+	{
+		ScrollPage ( -zDelta );
+		return true;
+	}
+
+	return false;
 }
 
 bool CWindow::OnKeyDown ( WPARAM wParam )
@@ -880,32 +858,36 @@ bool CWindow::OnKeyDown ( WPARAM wParam )
 	if ( !CControl::CanHaveFocus () )
 		return false;
 
-	if ( wParam == VK_TAB )
+	switch ( wParam )
 	{
-		SetFocussedControl ( m_vControls [ 0 ] );
-		return true;
+		case VK_TAB:
+		{
+			SetFocussedControl ( m_vControls [ 0 ] );
+			break;
+		}
+		case VK_PRIOR:
+		{
+			ScrollPage ( -int ( m_rBoundingBox.size.cy / 10 ) );
+			break;
+		}
+		case VK_NEXT:
+		{
+			ScrollPage ( ( m_rBoundingBox.size.cy / 10 ) );
+			break;
+		}
+		case VK_UP:
+		{
+			ScrollPage ( -int ( m_maxControlSize.cy / m_rBoundingBox.size.cy ) );
+			break;
+		}
+		case VK_DOWN:
+		{
+			ScrollPage ( ( m_maxControlSize.cy / m_rBoundingBox.size.cy ) );
+			break;
+		}
 	}
 
 	return false;
-}
-
-//--------------------------------------------------------------------------------------
-void CWindow::UpdateScrollbars ( bool a, bool b )
-{
-	if ( !m_pScrollbar )
-		return;
-
-	CScrollBarVertical *pScrollbarVer = m_pScrollbar->GetVerScrollbar ();
-	CScrollBarHorizontal *pScrollbarHor = m_pScrollbar->GetHorScrollbar ();
-
-	int nValueX = m_rBoundingBox.size.cx + ( m_maxControlSize.cx - ( m_rBoundingBox.pos.GetX () + m_rBoundingBox.size.cx ) );
-	int nValueY = m_rBoundingBox.size.cy + ( m_maxControlSize.cy - ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cy  ) );
-
-	pScrollbarHor->SetStepSize ( m_rBoundingBox.size.cx / 10 );
-	pScrollbarVer->SetStepSize ( m_rBoundingBox.size.cy / 10 );
-
-	// Set scrollbars max range
-	m_pScrollbar->SetTrackRange ( nValueX, nValueY  );
 }
 
 #define WINDOW_SIZE_CORNERS 5
@@ -918,9 +900,12 @@ void CWindow::UpdateRects ( void )
 
 	SControlRect rRect = m_rBoundingBox;
 	rRect.size.cy -= m_iTitleBarSize;
+	rRect.pos.SetX ( rRect.pos.GetX () );
 	rRect.pos.SetY ( rRect.pos.GetY () + m_iTitleBarSize );
 
-	m_pScrollbar->SetPageSize ( m_rBoundingBox.size.cx, m_rBoundingBox.size.cy );
+	m_pScrollbar->SetTrackRange ( m_maxControlSize.cx, m_maxControlSize.cy );
+	m_pScrollbar->GetHorScrollbar ()->SetStepSize ( m_rBoundingBox.size.cx / 10 );
+	m_pScrollbar->GetVerScrollbar ()->SetStepSize ( m_rBoundingBox.size.cy / 10 );
 	m_pScrollbar->UpdateScrollbars ( rRect );
 
 	m_rTitle = m_rBoundingBox;
@@ -983,12 +968,14 @@ bool CWindow::ContainsRect ( CPos pos )
 		 !m_pScrollbar )
 		return false;
 
+	CControl *pControl = GetTabPanelFocussedControl ();
+
 	return ( ( m_pScrollbar->ContainsRect ( pos ) && m_eWindowArea == OutArea ) ||
 			 ( m_rBoundingBox.InControlArea ( pos ) && !m_bMaximized ) ||
 			 m_rTitle.InControlArea ( pos ) ||
-			 m_rButton.InControlArea ( pos ) || 
+			 m_rButton.InControlArea ( pos ) ||
 			 GetSizingBorderAtArea ( pos ) != OutArea ||
-			 ( m_pFocussedControl && m_pFocussedControl->ContainsRect ( pos ) ) );
+			 ( HAS_CONTROL_TYPE ( pControl, CControl::EControlType::TYPE_DROPDOWN ) && pControl->ContainsRect ( pos ) ) );
 }
 
 void CWindow::SetCursorForPoint ( CPos pos )

@@ -31,7 +31,7 @@ public:
 
 	void OnMouseEnter ( void );
 	void OnMouseLeave ( void );
-
+	bool OnMouseOver ( void );
 	bool OnKeyDown ( WPARAM wParam );
 
 	bool OnMouseButtonDown ( sMouseEvents e );

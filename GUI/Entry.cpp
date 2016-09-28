@@ -1,7 +1,7 @@
 #include "CGUI.h"
 
 CEntryList::CEntryList ( CDialog *pDialog ) :
-	m_bSort ( false )
+	m_bSort ( false ), m_bMultipleSelected ( false )
 {
 	// Assert if 'pDialog' is invalid
 	assert ( pDialog );
@@ -189,9 +189,66 @@ int CEntryList::GetIndexByEntry (  SEntryItem *pEntry )
 	return std::distance ( m_vEntryList.begin (), std::find ( m_vEntryList.begin (), m_vEntryList.end (), pEntry ) );
 }
 
+void CEntryList::ClearSelection ( void )
+{
+	for ( auto entry : m_vEntryList )
+	{
+		// Check for a valid entry
+		if ( entry )
+		{
+			// Deselect entry
+			m_mSelectedItem [ entry ] = false;
+		}
+	}
+}
+
+void CEntryList::SetAllSelected ( void )
+{
+	for ( auto entry : m_vEntryList )
+	{
+		// Check for a valid entry
+		if ( entry )
+		{
+			// Select entry
+			m_mSelectedItem [ entry ] = true;
+		}
+	}
+}
+
 size_t CEntryList::GetSize ( void )
 {
 	return m_vEntryList.size ();
+}
+
+int CEntryList::GetItemAtPos ( SControlRect rRect, CPos pos )
+{
+	CScrollBarVertical *pScrollbarVer = m_pScrollbar->GetVerScrollbar ();
+	int iIndex = -1;
+
+	rRect.size.cx -= ( m_pScrollbar->IsHorScrollbarNeeded () ? pScrollbarVer->GetWidth () + 3 : 0 );
+
+	for ( int i = pScrollbarVer->GetTrackPos (); i < pScrollbarVer->GetTrackPos () + pScrollbarVer->GetPageSize (); i++ )
+	{
+		if ( i < ( int ) m_vEntryList.size() )
+		{
+			if ( i != pScrollbarVer->GetTrackPos () )
+				rRect.pos.SetY ( rRect.pos.GetY () + m_TextSize.cy );
+
+			SEntryItem *pEntry = GetEntryByIndex ( i );
+
+			// Check for a valid 'pEntry' pointer and if text is not NULL
+			// and determine which item has been selected
+			if ( pEntry &&
+				 pEntry->m_sText.c_str () != NULL &&
+				 rRect.InControlArea ( pos ) )
+			{
+				iIndex = i;
+				break;
+			}
+		}
+	}
+
+	return iIndex;
 }
 
 SEntryItem *CEntryList::GetPrevItem ( SEntryItem *pEntry )
@@ -233,6 +290,11 @@ void CEntryList::ResetList ( void )
 	m_vEntryList.clear ();
 }
 
+void CEntryList::SetMultiSelection ( bool bMultipleSelected )
+{
+	m_bMultipleSelected = bMultipleSelected;
+}
+
 void CEntryList::SetSelectedEntryByIndex ( UINT nIndex, bool bSelect )
 {
 	if ( nIndex >= m_vEntryList.size () )
@@ -249,9 +311,12 @@ void CEntryList::SetSelectedEntry ( SEntryItem *pEntry, bool bSelect )
 	// Enter new selected entry
 	m_mSelectedItem [ pEntry ] = bSelect;
 
-	// Leave old selected entry
-	if ( m_pSelectedEntry )
-		m_mSelectedItem [ m_pSelectedEntry ] = false;
+	// If multiple selected is unable, leave old selected entry 
+	if ( !m_bMultipleSelected )
+	{	
+		if ( m_pSelectedEntry )
+			m_mSelectedItem [ m_pSelectedEntry ] = false;
+	}
 
 	m_pSelectedEntry = pEntry;
 

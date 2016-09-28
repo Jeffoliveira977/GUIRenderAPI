@@ -155,6 +155,12 @@ struct sControlEvents
 class CControl
 {
 public:
+	enum eRelative
+	{
+		RELATIVE_POS,
+		RELATIVE_SIZE,
+		NO_RELATIVE
+	};
 
 	enum EControlType
 	{
@@ -179,8 +185,11 @@ public:
 		TYPE_WINDOW
 	};
 
+	virtual void SetScissorRect ( SControlRect rRect );
 	void EnterScissorRect ( SControlRect rRect );
 	void LeaveScissorRect ( void );
+
+	SControlRect GetRect ( void );
 
 	void SetColor ( SControlColor sColor );
 	SControlColor GetColor ( SControlColor sColor );
@@ -198,8 +207,11 @@ public:
 	void SetAction ( tAction pAction );
 	tAction GetAction ( void );
 
-	void SetPos ( int X, int Y );
-	void SetPos ( CPos relPos );
+	void SetPos ( int nX, int nY );
+	void SetPos ( CPos pos );
+
+	void SetPosX ( int nX );
+	void SetPosY ( int nY );
 
 	CPos *GetPos ( void );
 	CPos *GetUpdatedPos ( void );
@@ -215,7 +227,7 @@ public:
 
 	void SetMinSize ( int nMin, int nMax );
 	void SetMinSize ( SIZE size );
-	SIZE GetMinSize ( SIZE size );
+	SIZE GetMinSize ( void);
 
 	virtual bool IsSizingX ( void );
 	virtual bool IsSizingY ( void );
@@ -226,7 +238,7 @@ public:
 	virtual bool IsMovingY ( void );
 	virtual bool IsMoving ( void );
 
-	SIZE GetSize ( void );
+	virtual SIZE GetSize ( void );
 
 	virtual bool CanHaveFocus ( void );
 	bool HasFocus ( void );
@@ -245,6 +257,8 @@ public:
 	void SetFont ( const SIMPLEGUI_CHAR *szFontName, DWORD dwHeight, bool bBold = false );
 	void SetFont ( CD3DFont *pFont );
 	CD3DFont *GetFont ( void );
+
+	virtual CScrollablePane *GetScrollbar ( void ) { return NULL; }
 
 	void SetStateColor ( D3DCOLOR d3dColor, SControlColor::SControlState eState );
 
@@ -273,15 +287,16 @@ public:
 
 	bool SendEvent ( eEVentControl event, int params );
 
+
+public:
 	void LinkPos ( CPos pos );
 
+public:
+	eRelative GetRelativeX ( void );
+	eRelative GetRelativeY ( void );
 
-	bool IsRelativePos ( void ) { return m_bRelativePosX|| m_bRelativePosY; }
-	void SetRelativePosX ( bool bRelative );
-	void SetRelativePosY ( bool bRelative );
-
-	void SetRelativeSizeX ( bool bRelative );
-	void SetRelativeSizeY ( bool bRelative );
+	void SetRelativeX ( eRelative eRelativeType );
+	void SetRelativeY ( eRelative eRelativeType );
 
 	void SetEnabled ( bool bEnabled = true );
 	bool IsEnabled ( void );
@@ -297,7 +312,10 @@ public:
 	virtual void UpdateRects ( void );
 	virtual bool ContainsRect ( CPos pos );
 protected:
+	bool bins ;
+	SIZE m_oldParentSize;
 
+	CPos m_oldPos;
 	SIZE m_size;
 	SIZE m_minSize;
 
@@ -323,10 +341,13 @@ protected:
 
 	SControlColor::SControlState m_eState;
 
+	eRelative m_eRelativeX;
+	eRelative m_eRelativeY;
+
 	CRITICAL_SECTION cs;
 	CPos m_pos;
-	CPos m_oldPos;
-
+	CPos m_nonUpdatedPos;
+	
 	bool m_bRelativePosX;
 	bool m_bRelativePosY;
 

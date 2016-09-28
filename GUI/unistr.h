@@ -1,6 +1,9 @@
 #pragma once
 #include <string>
 
+#define EMPTYCHAR(sz) sz == NULL || \
+ sz == _UI("")
+
 #if defined (_UNICODE)
 #define SIMPLEGUI_STRING std::wstring 
 #define SIMPLEGUI_STRSTREAM std::wstringstream;
@@ -19,7 +22,7 @@
 #define SIMPLEGUI_VFPRINTF vfwprintf
 #define SIMPLEGUI_FPUTS fputws
 #define SIMPLEGUI_FTIME wcsftime
-#define SIMPLEGUI_SPRINTF swprinft
+#define SIMPLEGUI_SPRINTF swprintf 
 #else
 #define SIMPLEGUI_STRING std::string 
 #define SIMPLEGUI_STRSTREAM std::stringstream;

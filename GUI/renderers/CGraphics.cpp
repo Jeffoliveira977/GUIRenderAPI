@@ -997,8 +997,13 @@ void CD3DRender::D3DCircle ( float fX, float fY, float fScale,
 
 	for ( size_t i = 0; i < iVertexSize; i++ )
 	{
-		vVector [ i ].x = fX + fSize + _cos * ( ( fX - fSize * cos ( D3DX_PI * ( i / ( iVertexSize / 2.0f ) ) ) ) - fX ) - _sin * ( ( fY - fSize * sin ( D3DX_PI * ( i / ( iVertexSize / 2.f ) ) ) ) - fY );
-		vVector [ i ].y = fY + fSize + _sin * ( ( fX - fSize * cos ( D3DX_PI * ( i / ( iVertexSize / 2.0f ) ) ) ) - fX ) + _cos * ( ( fY - fSize * sin ( D3DX_PI * ( i / ( iVertexSize / 2.f ) ) ) ) - fY );
+		vVector [ i ].x = fX + fScale / 2.f +
+			cos ( 180.f / D3DX_PI ) * ( ( fX - fScale / 2.f * cos ( D3DX_PI * ( i / ( iVertexSize / 2.0f ) ) ) ) - fX ) -
+			sin ( 180.f / D3DX_PI ) * ( ( fY - fScale / 2.f * sin ( D3DX_PI * ( i / ( iVertexSize / 2.f ) ) ) ) - fY );
+
+		vVector [ i ].y = fY + fScale / 2.f +
+			sin ( 180.f / D3DX_PI ) * ( ( fX - fScale / 2.f * cos ( D3DX_PI * ( i / ( iVertexSize / 2.0f ) ) ) ) - fX ) +
+			cos ( 180.f / D3DX_PI ) * ( ( fY - fScale / 2.f * sin ( D3DX_PI * ( i / ( iVertexSize / 2.f ) ) ) ) - fY );
 	}
 
 	if ( SUCCEEDED ( BeginRender ( D3DPT_TRIANGLEFAN ) ) )
@@ -1045,7 +1050,6 @@ void CD3DRender::D3DBox ( float fX, float fY,
 	vVector [ 4 ].y = fY;
 	vVector [ 5 ].x = fX;
 	vVector [ 5 ].y = fY + fHeight;
-
 
 	// Rotate box
 	if ( fAngle )

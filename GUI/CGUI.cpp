@@ -336,13 +336,15 @@ CEditBox *CDialog::AddEditBox ( CWindow *pWindow, int X, int Y, int Width, int H
 
 	if ( pEditBox )
 	{
+		
 		pEditBox->SetPos ( CPos ( X, Y ) );
+		if ( pWindow )
+			pWindow->AddControl ( pEditBox );
 		pEditBox->SetSize ( Width, Height );
 		pEditBox->SetText ( szString, bSelected );
 		pEditBox->SetAction ( Callback );
 
-		if ( pWindow )
-			pWindow->AddControl ( pEditBox );
+		
 	}
 
 	return pEditBox;
@@ -393,12 +395,14 @@ CTabPanel *CDialog::AddTabPanel ( CWindow *pWindow, int X, int Y, int Width, int
 
 	if ( pTabPanel )
 	{
+		
 		pTabPanel->SetPos ( CPos ( X, Y ) );
+		if ( pWindow )
+			pWindow->AddControl ( pTabPanel );
 		pTabPanel->SetSize ( Width, Height );
 		pTabPanel->SetAction ( Callback );
 
-		if ( pWindow )
-			pWindow->AddControl ( pTabPanel );
+
 	}
 
 	return pTabPanel;
@@ -516,16 +520,19 @@ void CDialog::Draw ( void )
 
 	m_pState->SetRenderStates ();
 
-	for ( size_t i = 0; i < m_vWindows.size (); i++ )
+	if ( !m_vWindows.empty () )
 	{
-		if ( !m_vWindows [ i ] )
-			continue;
+		for ( size_t i = 0; i < m_vWindows.size (); i++ )
+		{
+			if ( !m_vWindows [ i ] )
+				continue;
 
-		if ( !m_vWindows [ i ]->IsVisible ())
-			continue;
+			if ( !m_vWindows [ i ]->IsVisible () )
+				continue;
 
-		m_vWindows [ i ]->UpdateRects ();
-		m_vWindows [ i ]->Draw ();
+			m_vWindows [ i ]->UpdateRects ();
+			m_vWindows [ i ]->Draw ();
+		}
 	}
 
 	m_pMouse->Draw ();
@@ -550,48 +557,6 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 	CPos pos = m_pMouse->GetPos ();
 
-	/*if ( !GetAsyncKeyState(VK_LBUTTON) )
-		m_pMouse->SetCursorType ( CMouse::DEFAULT );
-*/
-
-// First handle messages from the windows widgets
-
-//// Check for any window with focus
-//if ( m_pFocussedWindow )
-//{
-//	CControl *pControl = NULL;
-//	pControl = m_pFocussedWindow->GetFocussedControl ();
-//	if ( pControl && pControl->GetType () == CControl::TYPE_TABPANEL )
-//	{
-//		pControl = static_cast< CTabPanel* >( pControl )->GetFocussedControl ();
-//	}
-
-//	// If the widget is a dropdown, leave handling message outside the windows
-//	if ( pControl )
-//	{
-//		m_pFocussedWindow->OnMouseMove ( pControl, uMsg );
-
-//		if ( pControl->GetType () == CControl::TYPE_DROPDOWN )
-//		{
-//			// Let then give it the first chance at handling keyboard.
-//			if ( pControl->HandleKeyboard ( uMsg, wParam, lParam ) )
-//				return;
-
-//			if ( pControl->HandleMouse ( uMsg, pos, wParam, lParam ) ||
-//				 pControl->ContainsRect ( pos ) )
-//				return;
-//		}
-//		else if ( pControl->GetType () == CControl::TYPE_EDITBOX )
-//		{
-//			if ( uMsg == WM_CHAR && 
-//				 pControl->MsgProc ( uMsg, wParam, lParam ) )
-//				return;
-
-//			if ( pControl->HandleKeyboard ( uMsg, wParam, lParam ) )
-//				return;
-//		}
-//	}
-//}
 	sControlEvents e;
 	e.keyEvent;
 	if ( uMsg == WM_KEYDOWN ||
@@ -645,6 +610,7 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 			break;
 		}
 	}
+
 	// See if the mouse is over any windows
 	CWindow* pWindow = GetWindowAtPos ( pos );
 	if ( m_pFocussedWindow )
@@ -653,19 +619,18 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 		bool bOnDrag = false;
 
+		if( e.keyEvent.uMsg == uMsg )
+			bOnDrag = true;
 
-		if( e.keyEvent.uMsg == uMsg )bOnDrag = true;
-		if ( (pControl &&pWindow== m_pFocussedWindow/*&&(pControl->GetType () == CControl::EControlType::TYPE_DROPDOWN ||
-			 pControl->GetType() ==CControl::EControlType::TYPE_EDITBOX )*/&&  uMsg != WM_LBUTTONDOWN )||
+		if ( (pControl && pWindow == m_pFocussedWindow && uMsg != WM_LBUTTONDOWN )||
 			 ( GetAsyncKeyState ( VK_LBUTTON ) && uMsg == WM_MOUSEMOVE ) )
 		{
 			bOnDrag = true;
 		}
 
-		if ( bOnDrag&& m_pFocussedWindow->ControlMessages ( e ) )
+		if ( bOnDrag && m_pFocussedWindow->ControlMessages ( e ) )
 			return;
 	}
-
 
 	if ( pWindow && pWindow->ControlMessages ( e ) )
 		return;
@@ -675,13 +640,14 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 	if ( m_pFocussedWindow &&
 		 m_pFocussedWindow->IsEnabled () )
 	{
-		if ( m_pFocussedWindow&&m_pFocussedWindow->InjectKeyboard ( e.keyEvent ) )
+		if ( m_pFocussedWindow && m_pFocussedWindow->InjectKeyboard ( e.keyEvent ) )
 			return;
 	}
 
 	if ( pWindow )
 	{
-		pWindow->InjectMouse ( e.mouseEvent );
+		if ( pWindow->InjectMouse ( e.mouseEvent ) )return ;
+
 	}
 	else
 	{
@@ -704,8 +670,7 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 	if ( m_pFocussedWindow && m_pFocussedWindow->InjectMouse ( e.mouseEvent ) )
 		return;
 
-	if ( !( GetAsyncKeyState ( VK_LBUTTON ) && pWindow ) &&
-		 uMsg == WM_MOUSEMOVE )
+	if ( !( GetAsyncKeyState ( VK_LBUTTON )))
 	{
 		// If the mouse is still over the same window, nothing needs to be done
 		if ( pWindow == m_pMouseOverWindow )
@@ -802,7 +767,7 @@ CWindow *CDialog::GetFocussedWindow ( void )
 //--------------------------------------------------------------------------------------
 void CDialog::BringWindowToTop ( CWindow *pWindow )
 {
-	auto iter = std::find ( m_vWindows.begin (), m_vWindows.end (), pWindow );
+	std::vector<CWindow*>::iterator iter = std::find ( m_vWindows.begin (), m_vWindows.end (), pWindow );
 	if ( iter == m_vWindows.end () )
 		return;
 
@@ -824,11 +789,12 @@ void CDialog::BringWindowToTop ( CWindow *pWindow )
 //--------------------------------------------------------------------------------------
 CWindow *CDialog::GetWindowAtPos ( CPos pos )
 {
-	for ( int i = static_cast< int >( m_vWindows.size () ) - 1; i >= 0; i-- )
+	for ( std::vector<CWindow*>::reverse_iterator iter = m_vWindows.rbegin (); iter != m_vWindows.rend (); iter++ )
 	{
-		if ( m_vWindows [ i ]->ContainsRect ( pos ) )
-			return m_vWindows [ i ];
+		if ( ( *iter )->ContainsRect ( pos ) )
+			return ( *iter );
 	}
+
 	return NULL;
 }
 

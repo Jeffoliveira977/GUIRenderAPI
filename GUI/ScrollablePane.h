@@ -14,7 +14,6 @@ public:
 	bool OnMouseButtonUp ( sMouseEvents e );
 	bool OnMouseMove ( CPos pos );
 
-	bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
 	void OnClickLeave ( void );
 
 	bool OnClickEvent ( void );
@@ -37,7 +36,7 @@ public:
 	bool IsVerScrollbarNeeded ( void );
 
 	void SetPageSize ( int nSizeX, int nSizeY );
-	void SetTrackRange ( int nScrollHorValue, int nScrollVerValue );
+	void SetTrackRange (int nScrollHorValue, int nScrollVerValue );
 
 	void UpdateScrollbars ( SControlRect rRect );
 
@@ -54,7 +53,10 @@ public:
 private:
 	bool m_bScrollHorShow;
 	bool m_bScrollVerShow;
+
+	CPos m_pos;
 	SIZE m_pageSize;
+
 	SControlRect m_rRect;
 	CDialog *m_pDialog;
 

@@ -16,6 +16,7 @@ public:
 	void RemoveItem ( SEntryItem *pEntry );
 	void RemoveItem ( UINT uIndex );
 
+	void SetMultiSelection ( bool bMultiSelection );
 	void SetSortedList ( bool bSort );
 
 	SEntryItem *GetSelectedItem ( void );
@@ -50,6 +51,10 @@ public:
 private:
 	CEntryList *m_pEntryList;
 
+	int m_nOldIndex;
 	int m_iIndex;
 	int m_nSelected;
+
+	bool m_bMultiSelection;
+	SControlRect m_rText;
 };

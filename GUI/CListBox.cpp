@@ -9,7 +9,7 @@ CListBox::CListBox ( CDialog *pDialog )
 	m_sControlColor.d3dColorFont = D3DCOLOR_RGBA ( 0, 0, 0, 255 );
 	m_sControlColor.d3dColorSelectedFont = D3DCOLOR_RGBA ( 255, 255, 255, 255 );
 
-	m_nSelected = m_iIndex = -1;
+	m_nSelected = m_iIndex = m_nOldIndex =-1;
 
 	m_pEntryList = new CEntryList ( pDialog );
 
@@ -36,7 +36,83 @@ void CListBox::Draw ( void )
 		return;
 
 	m_pDialog->DrawBox ( m_rBoundingBox, m_sControlColor.d3dColorBoxBack, m_sControlColor.d3dColorOutline, m_bAntAlias );
-	m_pEntryList->Render ( m_rBoundingBox, m_sControlColor.d3dColorBoxSel, m_sControlColor.d3dColorBox [ SControlColor::STATE_PRESSED ], m_sControlColor.d3dColorSelectedFont, m_sControlColor.d3dColorFont, m_iIndex );
+	if (
+		 !m_pEntryList->GetSize() )
+		return;
+
+	CScrollBarVertical *pScrollbarVer = m_pEntryList->GetScrollbar()->GetVerScrollbar ();
+	CScrollBarHorizontal *pScrollbarHor = m_pEntryList->GetScrollbar ()->GetHorScrollbar ();
+
+	SControlRect rRect = m_rText;
+	rRect.pos.SetX ( rRect.pos.GetX () + 4 - pScrollbarHor->GetTrackPos () );
+
+	// Draw all contexts
+	for ( int i = pScrollbarVer->GetTrackPos (); i < pScrollbarVer->GetTrackPos () + pScrollbarVer->GetPageSize (); i++ )
+	{
+		if ( i < ( int ) m_pEntryList->GetSize () )
+		{
+			SIZE fontSize = m_pEntryList->GetTextSize ();
+			if ( i != pScrollbarVer->GetTrackPos () )
+				rRect.pos.SetY ( rRect.pos.GetY () + fontSize.cy );
+
+			SEntryItem *pEntry = m_pEntryList-> GetEntryByIndex ( i );
+
+			// Check for a valid 'pEntry' pointer and if text is not NULL
+			if ( pEntry &&
+				 pEntry->m_sText.c_str () != NULL )
+			{
+				if ( m_pEntryList->IsEntrySelected ( pEntry ) ||
+					 m_iIndex == i )
+				{
+					SControlRect rBoxSel = rRect;
+					rBoxSel.pos.SetX ( rRect.pos.GetX () - 17 );
+					rBoxSel.pos.SetY ( rBoxSel.pos.GetY () + 1 );
+					rBoxSel.size.cx = rRect.size.cx + pScrollbarHor->GetTrackPos ();
+					rBoxSel.size.cy = fontSize.cy - 1;
+					
+					D3DCOLOR d3dColor = m_sControlColor.d3dColorBox [ SControlColor::STATE_PRESSED ];
+					if ( m_pEntryList->IsEntrySelected ( pEntry ) )
+						d3dColor = m_sControlColor.d3dColorBoxSel;
+
+					m_pDialog->DrawBox ( rBoxSel, d3dColor, 0, false );
+					m_pDialog->DrawFont ( rRect, m_sControlColor.d3dColorSelectedFont, pEntry->m_sText.c_str (), 0, m_pFont );
+				}
+				else
+				{
+					m_pDialog->DrawFont ( rRect, m_sControlColor.d3dColorFont, pEntry->m_sText.c_str (), D3DFONT_COLORTABLE, m_pFont );
+				}
+
+				if ( m_bMultiSelection )
+				{
+					CPos pos = rRect.pos;
+					pos.SetX ( pos.GetX () - 16 );
+					pos.SetY ( pos.GetY () + 2 );
+					SIZE size = fontSize;
+					size.cy -= 4;
+					size.cx = size.cy;
+
+					D3DCOLOR d3dColor = m_sControlColor.d3dColorBox [ SControlColor::STATE_PRESSED ];
+					m_pDialog->DrawBox ( SControlRect ( pos, size ), m_sControlColor.d3dColorBox [ m_eState ], m_sControlColor.d3dColorOutline );
+
+					if ( m_pEntryList->IsEntrySelected ( pEntry ) )
+					{
+						size.cx = size.cy -= 2;
+						pos.SetX ( pos.GetX () + 2 ); pos.SetY ( pos.GetY () + 2 );
+
+						m_pDialog->DrawBox ( SControlRect ( pos, size ), m_sControlColor.d3dColorShape, 0 );
+					}
+				}
+			}
+		}
+	}
+
+	m_pEntryList->GetScrollbar()->OnDraw ();
+}
+
+void CListBox::SetMultiSelection ( bool bMultiSelection )
+{
+	m_bMultiSelection = bMultiSelection;
+	m_pEntryList->SetMultiSelection ( bMultiSelection );
 }
 
 void CListBox::SetSortedList ( bool bSort )
@@ -117,6 +193,7 @@ void CListBox::OnMouseEnter ( void )
 void CListBox::OnMouseLeave ( void )
 {
 	CControl::OnMouseLeave ();
+	m_iIndex = -1;
 
 	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
 
@@ -136,49 +213,77 @@ bool CListBox::OnKeyDown ( WPARAM wParam )
 {
 	CScrollBarVertical *pScrollbarVer = m_pEntryList->GetScrollbar ()->GetVerScrollbar ();
 
+	static int oldrow = -1;
+	bool bHandled = false;
 	switch ( wParam )
 	{
-		case VK_LEFT:
 		case VK_UP:
 		{
-			if ( m_iIndex > 0 )
+			if ( m_nSelected > 0 )
 			{
-				m_iIndex--;
-				m_nSelected = m_iIndex;
-				pScrollbarVer->ShowItem ( m_nSelected );
-
-				SendEvent ( EVENT_CONTROL_SELECT, m_nSelected );
+				m_nSelected--;
 			}
 			else
 			{
-				m_nSelected = m_iIndex = m_pEntryList->GetSize () - 1;
-				pScrollbarVer->Scroll ( m_pEntryList->GetSize () - 1 );
+				m_nSelected = ( int ) m_pEntryList->GetSize () - 1;
 			}
-			
-			m_pEntryList->SetSelectedEntryByIndex ( m_nSelected, true );
-			return true;
+
+			if ( m_pEntryList->IsEntrySelectedByIndex ( m_nSelected ) )
+			{
+				m_pEntryList->SetSelectedEntryByIndex ( m_nSelected + 1, false );
+			}
+			else
+			{
+				m_pEntryList->SetSelectedEntryByIndex ( m_nSelected, true );
+			}
+
+			bHandled = true;
+			break;
 		}
 
-		case VK_RIGHT:
 		case VK_DOWN:
 		{
-			if ( m_iIndex + 1 < ( int ) m_pEntryList->GetSize () )
+
+			if ( m_nSelected + 1 < ( int ) m_pEntryList->GetSize () )
 			{
-				m_iIndex++;
-				m_nSelected = m_iIndex;
+				m_nSelected++;
 			}
 			else
 			{
-				m_nSelected = m_iIndex = 0;
+				m_nSelected = 0;
 			}
 
-			pScrollbarVer->ShowItem ( m_nSelected );
-			SendEvent ( EVENT_CONTROL_SELECT, m_nSelected );
-			m_pEntryList->SetSelectedEntryByIndex ( m_nSelected, true );
+			if ( m_pEntryList->IsEntrySelectedByIndex ( m_nSelected ) )
+			{
+				m_pEntryList->SetSelectedEntryByIndex ( m_nSelected - 1, false );
+			}
+			else
+			{
+				m_pEntryList->SetSelectedEntryByIndex ( m_nSelected, true );
+			}
 
-			return true;
+			bHandled = true;
+			break;
 		}
 	}
+
+	if ( bHandled )
+	{
+		if ( !GetAsyncKeyState ( VK_SHIFT ) && m_bMultiSelection )
+			m_pEntryList->ClearSelection ();
+
+		SendEvent ( EVENT_CONTROL_SELECT, m_nSelected );
+		pScrollbarVer->ShowItem ( m_nSelected );
+
+		SControlRect rText = m_rText;
+		rText.pos.SetX ( rText.pos.GetX () - ( m_bMultiSelection ? 18 : 0 ) );
+		rText.size.cx = rText.size.cx + ( m_bMultiSelection ? 0 : -20 );
+		rText.size.cy = TEXTBOX_TEXTSPACE - 2;
+
+		m_iIndex = m_pEntryList->GetItemAtPos ( rText, m_pDialog->GetMouse ()->GetPos () );
+		return true;
+	}
+
 	return false;
 }
 
@@ -222,7 +327,7 @@ bool CListBox::OnMouseButtonUp ( sMouseEvents e )
 			if ( m_iIndex != -1 )
 			{
 				m_nSelected = m_iIndex;
-				m_pEntryList->SetSelectedEntryByIndex ( m_nSelected, true );
+				m_pEntryList->SetSelectedEntryByIndex ( m_nSelected, !m_pEntryList->IsEntrySelectedByIndex(m_nSelected) );
 			}
 
 			SendEvent ( EVENT_CONTROL_SELECT, true );
@@ -240,36 +345,18 @@ bool CListBox::OnMouseMove ( CPos pos )
 		return true;
 
 	CScrollBarVertical *pScrollbarVer = m_pEntryList->GetScrollbar ()->GetVerScrollbar ();
-	m_iIndex = -1;
 
 	if ( GetAsyncKeyState ( VK_LBUTTON ) && !m_bHasFocus )
 		return false;
 
-	SControlRect rText = m_rBoundingBox;
-	rText.pos.SetX ( rText.pos.GetX () + 4 );
-	rText.size.cx -= ( pScrollbarVer->GetWidth () + 3 );
+	SControlRect rText = m_rText;
+	rText.pos.SetX ( rText.pos.GetX () - ( m_bMultiSelection ? 18 : 0 ) );
+	rText.size.cx = rText.size.cx + ( m_bMultiSelection ? 0 : -20 );
 	rText.size.cy = TEXTBOX_TEXTSPACE - 2;
 
-	for ( int i = pScrollbarVer->GetTrackPos (); i < pScrollbarVer->GetTrackPos () + pScrollbarVer->GetPageSize (); i++ )
-	{
-		if ( i < ( int ) m_pEntryList->GetSize () )
-		{
-			if ( i != pScrollbarVer->GetTrackPos () )
-				rText.pos.SetY ( rText.pos.GetY () + m_pEntryList->GetTextSize ().cy );
-
-			SEntryItem *pEntry = m_pEntryList->GetEntryByIndex ( i );
-
-			// Check for a valid 'pEntry' pointer and if text is not NULL
-			// and determine which item has been selected
-			if ( pEntry &&
-				 pEntry->m_sText.c_str () != NULL &&
-				 rText.InControlArea ( pos ) )
-			{
-				m_iIndex = i;
-				//return true;
-			}
-		}
-	}
+	m_iIndex = m_pEntryList->GetItemAtPos ( rText, pos );
+	if ( m_iIndex != -1 )
+		return true;
 
 	return false;
 }
@@ -279,7 +366,7 @@ bool CListBox::OnMouseWheel ( int zDelta )
 	UINT uLines;
 	SystemParametersInfo ( SPI_GETWHEELSCROLLLINES, 0, &uLines, 0 );
 	m_pEntryList->GetScrollbar ()->GetVerScrollbar ()->Scroll ( -zDelta * uLines );
-
+	m_iIndex += -zDelta * uLines;
 	return true;
 }
 
@@ -287,7 +374,11 @@ void CListBox::UpdateRects ( void )
 {
 	CControl::UpdateRects ();
 
-	m_pEntryList->UpdateScrollbars ( m_rBoundingBox );
+	m_rText = m_rBoundingBox;
+	m_rText.pos.SetX ( m_rText.pos.GetX () +( m_bMultiSelection ? 14:0) );
+	m_rText.size.cx -= (m_bMultiSelection?14:0);
+
+	m_pEntryList->UpdateScrollbars ( m_rText );
 }
 
 bool CListBox::ContainsRect ( CPos pos )

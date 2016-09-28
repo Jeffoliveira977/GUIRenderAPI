@@ -87,6 +87,7 @@ void CScrollBarVertical::Draw ( void )
 		else if ( m_rDownButton.InControlArea ( mPos ) )
 			d3dColorDown = m_sControlColor.d3dColorBox [ m_eState ];
 	}
+
 	// Background track layer
 	m_pDialog->DrawBox ( m_rBoundingBox, m_sControlColor.d3dColorBoxBack, m_sControlColor.d3dColorOutline, m_bAntAlias );
 

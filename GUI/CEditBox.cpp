@@ -752,7 +752,7 @@ void CEditBox::Draw ()
 void CEditBox::OnClickLeave ( void )
 {
 	CControl::OnClickLeave ();
-	m_bMouseDrag = false;
+	m_bMouseDrag  = false;
 }
 
 bool CEditBox::OnMouseButtonDown ( sMouseEvents e )
@@ -820,8 +820,8 @@ bool CEditBox::OnMouseMove ( CPos pos )
 			{
 				PlaceCaret ( nCP );
 			}
+			return true;
 		}
-		return true;
 	}
 
 	return false;

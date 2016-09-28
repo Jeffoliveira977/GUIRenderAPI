@@ -88,6 +88,8 @@ bool CScrollablePane::OnMouseButtonUp ( sMouseEvents e )
 
 bool CScrollablePane::OnMouseMove ( CPos pos )
 {
+	m_pos = pos;
+
 	if ( m_pScrollbarHor && m_pScrollbarHor->OnMouseMove ( pos ) )
 	{
 		SetFocussedControl ();
@@ -95,23 +97,6 @@ bool CScrollablePane::OnMouseMove ( CPos pos )
 	}
 
 	if ( m_pScrollbarVer && m_pScrollbarVer->OnMouseMove ( pos ) )
-	{
-		SetFocussedControl ();
-		return true;
-	}
-
-	return false;
-}
-
-bool CScrollablePane::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
-{
-	if ( m_pScrollbarHor && m_pScrollbarHor->HandleMouse ( uMsg, pos, wParam, lParam ) )
-	{
-		SetFocussedControl ();
-		return true;
-	}
-
-	if ( m_pScrollbarVer && m_pScrollbarVer->HandleMouse ( uMsg, pos, wParam, lParam ) )
 	{
 		SetFocussedControl ();
 		return true;

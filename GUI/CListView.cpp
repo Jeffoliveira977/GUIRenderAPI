@@ -4,9 +4,6 @@
 #define LISTVIEW_TITLESIZE 8
 #define LISTVIEW_MINCOLUMNSIZE 50
 
-#define EMPTYCHAR(sz) sz == NULL || \
- sz == _UI("")
-
 UINT CListView::m_nColumnSort = 0;
 
 CListView::CListView ( CDialog *pDialog )
@@ -309,8 +306,8 @@ void CListView::SortColumn ( UINT nColumnId )
 	if ( !m_bSortable )
 		return;
 
-	ColumnItem					mColumnItem;
-	std::vector<ColumnItem>		vColumnItemList;
+	ColumnItem mColumnItem;
+	std::vector<ColumnItem>	vColumnItemList;
 
 	for ( size_t i = 0; i < m_nRowSize; i++ )
 	{
@@ -361,7 +358,9 @@ void CListView::Draw ( void )
 {
 	if ( !m_bVisible ||
 		 m_vColumnList.empty () )
+	{
 		return;
+	}
 
 	CScrollBarVertical *pScrollbarVer = m_pScrollbar->GetVerScrollbar ();
 	CScrollBarHorizontal *pScrollbarHor = m_pScrollbar->GetHorScrollbar ();
@@ -536,8 +535,7 @@ bool CListView::OnClickEvent ( void )
 {
 	return ( CControl::OnClickEvent () ||
 			 m_pScrollbar->OnClickEvent () ||
-			 m_bSizing ||
-			 m_bMoving );
+			 m_bSizing || m_bMoving );
 }
 
 void CListView::OnFocusIn ( void )
@@ -592,6 +590,201 @@ bool CListView::CanHaveFocus ( void )
 			 m_pScrollbar->CanHaveFocus () );
 }
 
+bool CListView::OnMouseButtonDown ( sMouseEvents e )
+{
+	m_pParent->SetFocussedControl ( this );
+
+	if ( !m_bSizing &&
+		 !m_bMoving )
+	{
+		if ( m_pScrollbar->OnMouseButtonDown ( e ) )
+			return true;
+	}
+
+	if ( e.eButton == sMouseEvents::LeftButton )
+	{
+		if ( m_bSizable )
+		{
+			m_nId = GetColumnIdAtAreaBorder ( e.pos );
+			if ( m_nId > -1 )
+			{
+				m_bPressed = m_bSizing = true;
+				m_nDragX = m_rBoundingBox.pos.GetX () + GetColumnWidth ( m_nId ) - e.pos.GetX ();
+				return true;
+			}
+		}
+
+		m_nId = GetColumnIdAtArea ( e.pos );
+		if ( m_nId > -1 && m_bSortable )
+		{
+			m_bPressed = m_bSorting = true;
+		}
+
+		if ( m_bMovable )
+		{
+			if ( m_nId > -1 )
+			{
+				m_bPressed = m_bMoving = true;
+				m_nDragX = e.pos.GetX () - GetColumnOffset ( m_nId );
+				return true;
+			}
+		}
+
+		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		{
+			// Pressed while inside the control
+			m_bPressed = true;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool CListView::OnMouseButtonUp ( sMouseEvents e )
+{
+	if ( !m_bSizing &&
+		 !m_bMoving )
+	{
+		if ( m_pScrollbar->OnMouseButtonUp ( e ) )
+			return true;
+	}
+
+	if ( e.eButton == sMouseEvents::LeftButton )
+	{
+		if ( m_bMoving )
+		{
+			int nId = GetColumnIdAtArea ( e.pos );
+			nId == -1 ? m_vColumnList.size () - 1 : nId;
+
+			MoveColumn ( m_nId, nId );
+			m_bMoving = false;
+		}
+
+		if ( m_bSizing )
+		{
+			SetColumnWidth ( m_nId, e.pos.GetX () - m_rBoundingBox.pos.GetX () + m_nDragX );
+			m_pScrollbar->SetTrackRange ( GetAllColumnsWidth (), 0 );
+			m_bSizing = false;
+		}
+
+		if ( m_bSorting )
+		{
+			SortColumn ( m_nId );
+			m_bSorting = false;
+		}
+
+		if ( m_bPressed )
+		{
+			m_bPressed = false;
+
+			if ( m_rListBoxArea.InControlArea ( e.pos ) )
+			{
+				if ( m_nIndex != -1 )
+				{
+					m_nSelected = m_nIndex;
+				}
+
+				SendEvent ( EVENT_CONTROL_SELECT, m_nSelected );
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool CListView::OnMouseMove ( CPos pos )
+{
+	CScrollBarVertical *pScrollbarVer = m_pScrollbar->GetVerScrollbar ();
+	CScrollBarHorizontal *pScrollbarHor = m_pScrollbar->GetHorScrollbar ();
+
+	if ( !CanHaveFocus () ||
+		 !pScrollbarVer ||
+		 !pScrollbarHor )
+	{
+		return false;
+	}
+
+	if ( m_bMouseOver && !OnClickEvent () )
+	{
+		m_nOverColumnId = GetColumnIdAtArea ( pos );
+	}
+
+	if ( !m_bSizing &&
+		 !m_bMoving )
+	{
+		if ( m_pScrollbar->OnMouseMove ( pos ) )
+			return true;
+	}
+
+	m_nIndex = -1;
+
+	/*if ( ( GetAsyncKeyState ( VK_LBUTTON ) && !m_bHasFocus ) ||
+		 m_pScrollbar->ContainsRect ( pos ) ||
+		 m_pScrollbar->OnClickEvent () )
+	{
+		return false;
+	}*/
+
+	int nId = GetColumnIdAtAreaBorder ( pos );
+	if ( m_bMouseOver &&m_bMoving )
+	{
+		m_bSorting = false;
+		return true;
+	}
+	else if ( m_bMouseOver && m_bSizing || nId > -1 )
+	{
+		if ( nId > -1 )
+		{
+			m_pDialog->GetMouse ()->SetCursorType ( CMouse::E_RESIZE );
+		}
+		return true;
+	}
+
+	if ( !m_bMouseOver ) 
+		return false;
+
+	SControlRect rText = m_rListBoxArea;
+	rText.pos.SetX ( rText.pos.GetX () + 4 );
+	rText.size.cx -= ( pScrollbarVer->GetWidth () + 4 );
+	rText.size.cy = TEXTBOX_TEXTSPACE - 2;
+
+	for ( int i = pScrollbarVer->GetTrackPos (); i < pScrollbarVer->GetTrackPos () + pScrollbarVer->GetPageSize (); i++ )
+	{
+		if ( i < m_nRowSize )
+		{
+			SIMPLEGUI_STRING str;
+			const SEntryItem *pEntry = FindItemInRow ( i );
+
+			if ( pEntry )
+				str = pEntry->m_sText.c_str ();
+
+			SIZE size;
+			m_pFont->GetTextExtent ( str.c_str (), &size );
+
+			rText.pos.SetY ( rText.pos.GetY () + size.cy );
+
+			// Check if selected text is not NULL and determine 
+			// which item has been selected
+			if ( str.c_str () != NULL && rText.InControlArea ( pos ) )
+			{
+				m_nIndex = i;
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool CListView::OnMouseWheel ( int zDelta )
+{
+	UINT uLines;
+	SystemParametersInfo ( SPI_GETWHEELSCROLLLINES, 0, &uLines, 0 );
+	m_pScrollbar->GetVerScrollbar ()->Scroll ( -zDelta * uLines );
+	return true;
+}
+
 bool CListView::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
 {
 	CScrollBarVertical *pScrollbarVer = m_pScrollbar->GetVerScrollbar ();
@@ -610,8 +803,8 @@ bool CListView::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam 
 	if ( !m_bSizing &&
 		 !m_bMoving )
 	{
-		if ( m_pScrollbar->HandleMouse ( uMsg, pos, wParam, lParam ) )
-			return true;
+	/*	if ( m_pScrollbar->HandleMouse ( uMsg, pos, wParam, lParam ) )
+			return true;*/
 	}
 
 	switch ( uMsg )
