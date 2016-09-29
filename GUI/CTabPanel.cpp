@@ -652,7 +652,8 @@ bool CTabPanel::ControlMessages ( sControlEvents e )
 
 	if ( !CanHaveFocus () ||
 		 ( m_pScrollbar->ContainsRect ( e.mouseEvent.pos ) && !bHasDropDown ) ||
-		 !m_rBoundingBox.InControlArea ( e.mouseEvent.pos ) && !( bHasDropDown || HAS_CONTROL_TYPE ( pFocussedControl, CControl::TYPE_EDITBOX )) )
+		 !m_rBoundingBox.InControlArea ( e.mouseEvent.pos ) && 
+		 !( bHasDropDown || HAS_CONTROL_TYPE ( pFocussedControl, CControl::TYPE_EDITBOX || pFocussedControl && pFocussedControl->OnClickEvent () ) ) )
 	{
 		return false;
 	}

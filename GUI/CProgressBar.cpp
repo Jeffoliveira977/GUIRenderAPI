@@ -118,9 +118,6 @@ void CProgressBarHorizontal::SetValue ( float fValue )
 	fValue = __max ( 0.f, fValue );
 	fValue = __min ( m_fMax, fValue );
 
-	if ( m_fValue == fValue )
-		return;
-
 	m_fValue = fValue;
 }
 

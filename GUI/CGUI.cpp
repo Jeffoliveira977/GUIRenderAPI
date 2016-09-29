@@ -647,7 +647,6 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 	if ( pWindow )
 	{
 		if ( pWindow->InjectMouse ( e.mouseEvent ) )return ;
-
 	}
 	else
 	{

@@ -69,7 +69,6 @@ public:
 	bool					OnMouseMove					( CPos pos );
 	bool					OnMouseWheel				 ( int zDelta );
 
-	bool					HandleMouse					( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
 	bool					HandleKeyboard				( UINT uMsg, WPARAM wParam, LPARAM lParam );
 
 	void					UpdateRects					( void );

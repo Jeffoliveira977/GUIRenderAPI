@@ -240,7 +240,7 @@ VOID Init ()
 	sds->AddTab ( _UI ( "Tab 6" ), 100 );
 	sds->AddTab ( _UI ( "Tab 7" ), 120 );
 	sds->AddTab ( _UI ( "Tab 8" ), 100 );
-	sds->SetRelativeX ( CControl::RELATIVE_POS );
+	sds->SetRelativeX ( CControl::RELATIVE_SIZE );
 	sds->SetRelativeY ( CControl::RELATIVE_SIZE );
 
 	auto list = pGui->AddListView ( fServBrowser, 100, 100, 500, 100, _UI ( "as" ) );
@@ -278,6 +278,9 @@ VOID Init ()
 	pListView->AddColumnItem ( 1, _UI ( "ASD" ) );
 	pListView->AddColumnItem ( 1, _UI ( "ASD" ) );
 	pListView->AddColumnItem ( 0, _UI ( "ASD" ) );
+
+	pListView->SetRelativeX ( CControl::RELATIVE_POS );
+	pListView->SetRelativeY ( CControl::RELATIVE_POS );
 
 	CDropDown *pDropd = new CDropDown ( pGui );
 	pDropd->SetPos ( CPos ( 500, 200 ) );

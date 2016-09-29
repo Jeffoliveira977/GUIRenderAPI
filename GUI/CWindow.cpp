@@ -96,10 +96,10 @@ void CWindow::Draw ( void )
 	if ( m_bCloseButtonEnabled )
 	{
 		D3DCOLOR d3dColorButton = m_sControlColor.d3dColorBox [ m_bPressed ? SControlColor::STATE_PRESSED : SControlColor::STATE_NORMAL ];
-		if ( m_rButton.InControlArea ( m_pDialog->GetMouse ()->GetPos () ) && m_pFocussedControl && !m_pFocussedControl->OnClickEvent () )
+		if ( m_rButton.InControlArea ( m_pDialog->GetMouse ()->GetPos () ) && !( m_pFocussedControl && m_pFocussedControl->OnClickEvent () ) )
 			d3dColorButton = m_sControlColor.d3dColorBox [ m_eState ];
 
-		m_pDialog->DrawBox ( m_rButton, d3dColorButton, m_sControlColor.d3dColorWindowTitle, m_bAntAlias );
+		m_pDialog->DrawBox ( m_rButton, d3dColorButton, m_sControlColor.d3dColorOutline, m_bAntAlias );
 
 		CD3DRender *pRender = m_pDialog->GetRenderer ();
 		if ( pRender )
@@ -391,12 +391,6 @@ void CWindow::OnFocusOut ( void )
 void CWindow::OnMouseEnter ( void )
 {
 	CControl::OnMouseEnter ();
-
-	CControl *pControl = GetTabPanelFocussedControl ();
-	bool bHasDropDown = HAS_CONTROL_TYPE ( pControl, CControl::TYPE_DROPDOWN );
-
-	if ( !bHasDropDown )
-		m_pScrollbar->OnMouseEnter ();
 }
 
 //--------------------------------------------------------------------------------------
@@ -755,10 +749,10 @@ bool CWindow::OnMouseMove ( CPos pos )
 	CControl *pControl = GetTabPanelFocussedControl ();
 	bool bHasDropDown = HAS_CONTROL_TYPE ( pControl, CControl::TYPE_DROPDOWN );
 
-	/*if ( m_pScrollbar->ContainsRect ( pos ) && !bHasDropDown && m_bMouseOver )
+	if ( m_pScrollbar->ContainsRect ( pos ) && !bHasDropDown && m_bMouseOver )
 		m_pScrollbar->OnMouseEnter ();
 	else
-		m_pScrollbar->OnMouseLeave ();*/
+		m_pScrollbar->OnMouseLeave ();
 
 	// Check if mouse is over window boundaries
 	if ( GetSizingBorderAtArea ( pos ) == OutArea )
