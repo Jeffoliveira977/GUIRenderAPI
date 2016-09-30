@@ -1149,9 +1149,10 @@ HRESULT CD3DTexture::Initialize ( LPDIRECT3DDEVICE9 pd3dDevice )
 	if ( m_szPath )
 	{
 		D3DCOLOR colorkey = 0xFFFF00FF;
-		hr = D3DXCreateTextureFromFileEx ( m_pDevice, m_szPath, 1024,1024 ,1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED,
+		hr = D3DXCreateTextureFromFileEx ( m_pDevice, m_szPath, D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED,
 										   D3DX_FILTER_NONE, D3DX_DEFAULT,
-										   colorkey, NULL, NULL, &m_pTexture );
+										   0, NULL, NULL, &m_pTexture );
+
 		if ( FAILED ( hr ) )
 			return hr;
 	}
@@ -1254,7 +1255,7 @@ void CD3DTexture::Draw ( float fX, float fY, D3DCOLOR d3dColor )
 		return;
 
 	D3DSURFACE_DESC surfaceDesc;
-
+	
 	//Get texture dimensions
 	m_pTexture->GetLevelDesc ( 0, &surfaceDesc );
 	Draw ( fX, fY, surfaceDesc.Width, surfaceDesc.Height, 0.f, d3dColor );

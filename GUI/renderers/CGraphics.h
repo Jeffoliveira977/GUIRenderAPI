@@ -192,6 +192,8 @@ public:
 	void Draw ( float fX, float fY, float fScaleX, float fScaleY, float fRotation = 0.f, D3DCOLOR d3dColor = D3DCOLOR_XRGB ( 255, 255, 255 ) );
 	void Draw ( float fX, float fY, D3DCOLOR d3dColor = D3DCOLOR_XRGB ( 255, 255, 255 ) );
 
+
+	LPDIRECT3DTEXTURE9 GetTexture ( void ) { return m_pTexture; }
 private:
 	LPDIRECT3DTEXTURE9      m_pTexture;   // The d3d texture for this font
 	LPDIRECT3DVERTEXBUFFER9 m_pVB;        // VertexBuffer for rendering text

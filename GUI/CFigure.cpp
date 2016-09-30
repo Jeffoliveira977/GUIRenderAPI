@@ -18,7 +18,7 @@ void CPictureBox::Draw ( void )
 
 	CControl::Draw ();
 
-	m_pTexture->Draw ( m_rBoundingBox.pos.GetX (), m_rBoundingBox.pos.GetY (), m_rBoundingBox.size.cx, m_rBoundingBox.size.cy, m_fRotImage, m_sControlColor.d3dColorBox [ m_eState ] );
+	m_pTexture->Draw ( m_rBoundingBox.pos.GetX (), m_rBoundingBox.pos.GetY (), m_rBoundingBox.size.cx * 1.5, m_rBoundingBox.size.cy*1.9, 0.f, m_sControlColor.d3dColorBox [ m_eState ] );
 }
 
 bool CPictureBox::OnKeyDown ( WPARAM wParam )
