@@ -1055,7 +1055,6 @@ void CD3DRender::D3DBox ( float fX, float fY,
 	if ( fAngle )
 		RotateVerts ( vVector, iVertexSize, fX, fY, fAngle );
 
-
 	// Draw Box
 	if ( SUCCEEDED ( BeginRender ( D3DPT_TRIANGLEFAN ) ) )
 	{
@@ -1150,7 +1149,7 @@ HRESULT CD3DTexture::Initialize ( LPDIRECT3DDEVICE9 pd3dDevice )
 	if ( m_szPath )
 	{
 		D3DCOLOR colorkey = 0xFFFF00FF;
-		hr = D3DXCreateTextureFromFileEx ( m_pDevice, m_szPath, 0, 0, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED,
+		hr = D3DXCreateTextureFromFileEx ( m_pDevice, m_szPath, 1024,1024 ,1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED,
 										   D3DX_FILTER_NONE, D3DX_DEFAULT,
 										   colorkey, NULL, NULL, &m_pTexture );
 		if ( FAILED ( hr ) )

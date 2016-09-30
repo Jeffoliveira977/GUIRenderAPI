@@ -243,6 +243,10 @@ VOID Init ()
 	sds->SetRelativeX ( CControl::RELATIVE_SIZE );
 	sds->SetRelativeY ( CControl::RELATIVE_SIZE );
 
+	auto image =pGui->AddImage ( fServBrowser3, _UI ( "image.jpg" ), 0, 0, 500, 500 );
+	/*image->SetRelativeX ( CControl::RELATIVE_SIZE );
+	image->SetRelativeY ( CControl::RELATIVE_SIZE );*/
+
 	auto list = pGui->AddListView ( fServBrowser, 100, 100, 500, 100, _UI ( "as" ) );
 	//list->SetRelativeSizeX ( true );
 

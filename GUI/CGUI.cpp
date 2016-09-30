@@ -282,6 +282,8 @@ CListView *CDialog::AddListView ( CWindow *pWindow, int X, int Y, int Width, int
 	if ( pListView )
 	{
 		pListView->SetPos ( CPos ( X, Y ) );
+		if ( pWindow )
+			pWindow->AddControl ( pListView );
 		pListView->SetSize ( Width, Height );
 		pListView->SetAction ( Callback );
 
@@ -408,7 +410,7 @@ CTabPanel *CDialog::AddTabPanel ( CWindow *pWindow, int X, int Y, int Width, int
 	return pTabPanel;
 }
 
-/*//--------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------
 CPictureBox *CDialog::AddImage ( CWindow *pWindow, const TCHAR * szPath, int X, int Y, int Width, int Height, tAction Callback )
 {
 	CPictureBox *pImage = new CPictureBox ( this );
@@ -416,17 +418,19 @@ CPictureBox *CDialog::AddImage ( CWindow *pWindow, const TCHAR * szPath, int X, 
 	if ( pImage )
 	{
 		pImage->SetPos ( CPos ( X, Y ) );
-		pImage->SetHeight ( Height );
-		pImage->SetTexture ( szPath );
-		pImage->SetAction ( Callback );
 
 		if ( pWindow )
 			pWindow->AddControl ( pImage );
+
+		pImage->SetSize ( Width, Height );
+		pImage->SetTexture ( szPath );
+		pImage->SetAction ( Callback );
+	
 	}
 
 	return pImage;
 }
-*/
+
 //--------------------------------------------------------------------------------------
 CTrackBarHorizontal *CDialog::AddTrackBar ( CWindow * pWindow, int X, int Y, int Width, int Height, int nMin, int nMax, int nValue, tAction Callback )
 {
