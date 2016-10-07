@@ -6,6 +6,8 @@ CDialog::CDialog ( IDirect3DDevice9 *pDevice )
 {
 	InitializeCriticalSection ( &cs );
 
+	ZeroMemory ( &m_oldvp, sizeof ( D3DVIEWPORT9 ) );
+
 	if ( !pDevice )
 		MessageBox ( 0, _UI ( "pDevice invalid." ), 0, 0 );
 
@@ -851,6 +853,40 @@ void CDialog::OnResetDevice ( void )
 
 	if ( m_pState )
 		m_pState->Initialize ( m_pDevice );
+
+	D3DVIEWPORT9 vp;
+	m_pDevice->GetViewport ( &vp );
+
+	if ( m_oldvp.Width != vp.Width ||
+		 m_oldvp.Height != vp.Height )
+	{
+		if ( vp.Width < m_oldvp.Width && m_oldvp.Width > 0 ||
+			 vp.Height < m_oldvp.Height && m_oldvp.Height > 0 )
+		{
+			for ( auto &window : m_vWindows )
+			{
+				if ( !window )
+					continue;
+
+				CPos pos = *window->GetPos ();
+				SIZE size = window->GetSize ();
+
+				if ( pos.GetX () + size.cx >= vp.Width )
+				{
+					int nX = vp.Width - size.cx;
+					int nY = vp.Height - size.cy;
+
+					window->SetPos ( nX <= 1 ? 1 : nX, nY <= 1 ? 1 : nY );
+				}
+
+				window->SetSize ( size.cx >= vp.Width ? vp.Width : size.cx,
+								  size.cy >= vp.Height ? vp.Height : size.cy );
+			}
+		}
+
+		m_oldvp.Width = vp.Width;
+		m_oldvp.Height = vp.Height;
+	}
 
 	LeaveCriticalSection ( &cs );
 }
