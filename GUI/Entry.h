@@ -77,5 +77,10 @@ private:
 	CDialog						*m_pDialog;
 
 	CScrollablePane				*m_pScrollbar;
+
+	bool asds = false;
+	SControlRect rect ;
+	int nCount = 0;
+	int oldRow = 0;
 };
 

@@ -287,6 +287,46 @@ void CD3DStateBlock::SetRenderStates ( void )
 	m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_POINT );
 	m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
 	m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
+//
+//	m_pd3dDevice->SetRenderState ( D3DRS_ZENABLE, D3DZB_FALSE );
+//	m_pd3dDevice->SetRenderState ( D3DRS_CULLMODE, D3DCULL_NONE );
+//	m_pd3dDevice->SetRenderState ( D3DRS_ALPHATESTENABLE, FALSE );
+//	m_pd3dDevice->SetRenderState ( D3DRS_ALPHABLENDENABLE, TRUE );
+//	m_pd3dDevice->SetRenderState ( D3DRS_BLENDOP, D3DBLENDOP_ADD );
+//	m_pd3dDevice->SetRenderState ( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
+//	m_pd3dDevice->SetRenderState ( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
+//	m_pd3dDevice->SetRenderState ( D3DRS_CLIPPLANEENABLE, 0 );
+//	m_pd3dDevice->SetRenderState ( D3DRS_FILLMODE, D3DFILL_SOLID );
+//	m_pd3dDevice->SetRenderState ( D3DRS_LASTPIXEL, FALSE );
+//	m_pd3dDevice->SetRenderState ( D3DRS_FOGENABLE, FALSE );
+//	m_pd3dDevice->SetRenderState ( D3DRS_STENCILENABLE, FALSE );
+//	m_pd3dDevice->SetRenderState ( D3DRS_COLORWRITEENABLE, 0x0000000F );
+//	m_pd3dDevice->SetRenderState ( D3DRS_SCISSORTESTENABLE, FALSE );
+//	
+//	D3DCAPS9 caps;
+//	m_pd3dDevice->GetDeviceCaps (&caps );
+//
+//	//if ( caps.PrimitiveMiscCaps & D3DPMISCCAPS_SEPARATEALPHABLEND )
+//		m_pd3dDevice->SetRenderState ( D3DRS_SEPARATEALPHABLENDENABLE, FALSE );
+//
+////	if( caps.LineCaps & D3DLINECAPS_ANTIALIAS )
+//		m_pd3dDevice->SetRenderState ( D3DRS_ANTIALIASEDLINEENABLE, FALSE );
+//
+//	m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_COLOROP, D3DTOP_MODULATE );
+//	m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_COLORARG1, D3DTA_TEXTURE );
+//	m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_COLORARG2, D3DTA_DIFFUSE );
+//	m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1 );
+//	m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE );
+//	m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_PASSTHRU );
+//	m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE );
+//	m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
+//	m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
+//	m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
+//	m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_POINT );
+//	m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
+//
+//	m_pd3dDevice->SetVertexShader ( NULL );
+//	m_pd3dDevice->SetPixelShader ( NULL );
 }
 
 //-----------------------------------------------------------------------------

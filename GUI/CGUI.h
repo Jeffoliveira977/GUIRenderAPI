@@ -155,6 +155,8 @@ private:
 
 	CD3DStateBlock *m_pState;
 
+	D3DVIEWPORT9 m_oldvp;
+
 	bool m_bVisible;
 
 	CMouse *m_pMouse;

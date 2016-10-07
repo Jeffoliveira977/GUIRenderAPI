@@ -296,10 +296,7 @@ CControl *CTabPanel::GetControlAtArea ( UINT nTabID, CPos pos )
 
 int CTabPanel::GetTabSizeY ( void )
 {
-	SIZE size;
-	m_pTitleFont->GetTextExtent ( _UI ( "Y" ), &size );
-
-	return size.cy + 8;
+	return m_rTabArea.size.cy;
 }
 
 SIZE CTabPanel::GetSize ( void )
@@ -428,7 +425,7 @@ void CTabPanel::Draw ( void )
 	{
 		if ( control )
 		{
-			control->LinkPos ( m_rBoundingBox.pos - ( CPos ( m_nTrackX [ m_nSelectedTab ], m_nTrackY [ m_nSelectedTab ] ) ) );
+			control->LinkPos ( m_rBoundingBox.pos +CPos ( 0, m_rTabArea.size.cy ) - ( CPos ( m_nTrackX [ m_nSelectedTab ], m_nTrackY [ m_nSelectedTab ] ) ) );
 
 			CPos *pos = control->GetPos ();
 			SIZE size = control->GetSize ();

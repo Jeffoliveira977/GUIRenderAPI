@@ -139,7 +139,7 @@ VOID Init ()
 
 
 	auto fServBrowser2 = pGui->AddWindow ( s_iWidth / 2, s_iHeight / 2 + 600, 750, 500, _UI ( "SERVER BROWSER" ) );
-	auto fServBrowser3 = pGui->AddWindow ( 800, s_iHeight / 2 + 600, 750, 500, _UI ( "SERVER BROWSER" ),1 );
+	auto fServBrowser3 = pGui->AddWindow ( 1400, s_iHeight / 2 + 600, 750, 500, _UI ( "SERVER BROWSER" ),1 );
 
 
 	CButton *sbTab2 [ 4 ];
@@ -174,24 +174,13 @@ VOID Init ()
 	auto pScroll = pGui->AddScrollBar ( fServBrowser1, 300, 200, 18, 200, 0, 100, 10, 1 );
 	pScroll->SetTrackRange ( 0, 300 );
 	auto pDrop = pGui->AddDropDown ( fServBrowser1, 500, 200, 200, 20, _UI ( "WWWWWWWWWWWWW") );
-	pDrop->AddItem ( _UI ( "ASD" ) );
-	pDrop->AddItem ( _UI ( "ASDaasdasdsasdas{FF750000} asd as asd asdasdas asd" ) );
-	pDrop->AddItem ( _UI ( "ASD" ) );
-	pDrop->AddItem ( _UI ( "ASD" ) );
-	pDrop->AddItem ( _UI ( "ASD" ) );
-	pDrop->AddItem ( _UI ( "ASD" ) );
-	pDrop->AddItem ( _UI ( "ASD" ) );
-	pDrop->AddItem ( _UI ( "ASD" ) );
-	pDrop->AddItem ( _UI ( "ASD" ) );
-	pDrop->AddItem ( _UI ( "ASD" ) );
-	pDrop->AddItem ( _UI ( "ASD" ) );
-	pDrop->AddItem ( _UI ( "ASD" ) );
-	pDrop->AddItem ( _UI ( "ASD" ) ); pDrop->AddItem ( _UI ( "ASD" ) );
-	pDrop->AddItem ( _UI ( "ASD" ) );
-	pDrop->AddItem ( _UI ( "ASD" ) ); pDrop->AddItem ( _UI ( "ASD" ) );
-	pDrop->AddItem ( _UI ( "ASD" ) );
-	pDrop->AddItem ( _UI ( "ASD" ) );
-	
+	for ( size_t i = 0; i < 1000; i++ )
+	{
+
+		TCHAR szzx [ 30 ];
+		SIMPLEGUI_SPRINTF ( szzx, _UI ( "%i" ), i );
+		pDrop->AddItem ( szzx );
+	}
 
 	auto pTextBox = pGui->AddListBox ( fServBrowser1, 20, 350, 350, 108 );
 	for ( size_t i = 0; i < 40; i++ )
@@ -243,9 +232,7 @@ VOID Init ()
 	sds->SetRelativeX ( CControl::RELATIVE_SIZE );
 	sds->SetRelativeY ( CControl::RELATIVE_SIZE );
 
-	auto image =pGui->AddImage ( fServBrowser3, _UI ( "image.jpg" ), 0, 0, 626, 200 );
-	image->SetRelativeX ( CControl::RELATIVE_SIZE );
-	image->SetRelativeY ( CControl::RELATIVE_SIZE );
+
 
 	auto list = pGui->AddListView ( fServBrowser, 100, 100, 500, 100, _UI ( "as" ) );
 	//list->SetRelativeSizeX ( true );
@@ -309,7 +296,11 @@ VOID Init ()
 	pDropd->AddItem ( _UI ( "ASD" ) ); pDropd->AddItem ( _UI ( "ASD" ) );
 	pDropd->AddItem ( _UI ( "ASD" ) );
 	pDropd->AddItem ( _UI ( "ASD" ) );
-
+	pDropd->AddItem ( _UI ( "ASD" ) ); pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) ); pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) );
+	pDropd->AddItem ( _UI ( "ASD" ) );
 
 	CButton* pButton = new CButton ( pGui );
 
