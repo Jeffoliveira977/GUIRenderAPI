@@ -3,7 +3,7 @@
 #include "CGUI.h"
 
 
-class CLogBox : public CControl
+class CLogBox : public CWidget
 {
 public:
 	enum E_LOGTYPE
@@ -45,17 +45,17 @@ public:
 	bool OnMouseButtonUp ( sMouseEvents e );
 
 	bool OnMouseWheel ( int zDelta );
-	bool OnMouseMove ( CPos pos );
+	bool OnMouseMove ( CVector pos );
 
 	void UpdateRects ( void );
-	bool ContainsRect ( CPos pos );
+	bool ContainsPoint ( CVector pos );
 
 	void GenerateLogFile ( bool bSet );
 
 private:
 	const SIMPLEGUI_CHAR *GetModeType ( E_LOGTYPE eType );
 
-	bool m_bSet;
+	bool m_bGenerateLog;
 	CLogFile *m_pLogFile;
 	CEntryList *m_pEntryList;
 };

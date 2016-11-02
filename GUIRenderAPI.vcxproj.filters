@@ -135,6 +135,9 @@
     <ClInclude Include="GUI\Scrollbar.h">
       <Filter>GUI</Filter>
     </ClInclude>
+    <ClInclude Include="GUI\TextUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -238,6 +241,9 @@
     </ClCompile>
     <ClCompile Include="GUI\CTabPanel.cpp">
       <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\TextUtils.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

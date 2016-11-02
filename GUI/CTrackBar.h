@@ -1,7 +1,7 @@
 #pragma once
 #include "CGUI.h"
 
-class CTrackBarHorizontal : public CControl
+class CTrackBarHorizontal : public CWidget
 {
 public:
 	CTrackBarHorizontal ( CDialog *pDialog );
@@ -28,11 +28,11 @@ public:
 	bool OnMouseButtonDown ( sMouseEvents e );
 	bool OnMouseButtonUp ( sMouseEvents e );
 
-	bool OnMouseMove ( CPos pos );
+	bool OnMouseMove ( CVector pos );
 	bool OnMouseWheel ( int zDelta );
 
 	void UpdateRects ( void );
-	bool ContainsRect ( CPos pos );
+	bool ContainsPoint ( CVector pos );
 
 private:
 	int m_nValue;

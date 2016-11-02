@@ -17,15 +17,15 @@ void CTrackBarHorizontal::Draw ( void )
 	if ( !m_bVisible )
 		return;
 
-	CControl::Draw ();
+	CWidget::Draw ();
 
 	SControlRect rBox = m_rBoundingBox;
-	rBox.pos.SetY ( rBox.pos.GetY () + m_rBoundingBox.size.cy / 2 - 2 );
+	rBox.m_pos.m_nY += m_rBoundingBox.m_size.cy / 2 - 2;
 
-	rBox.size.cy = 5;
+	rBox.m_size.cy = 5;
 	m_pDialog->DrawBox ( rBox, m_sControlColor.d3dColorBoxBack, m_sControlColor.d3dColorOutline, m_bAntAlias );
 	
-	rBox.size.cx = m_nButtonX;
+	rBox.m_size.cx = m_nButtonX;
 	m_pDialog->DrawBox ( rBox, m_sControlColor.d3dColorBoxSel, m_sControlColor.d3dColorOutline, m_bAntAlias );
 
 	m_pDialog->DrawBox ( m_rThumb, m_sControlColor.d3dColorBox [ m_eState ], m_sControlColor.d3dColorOutline, m_bAntAlias );
@@ -75,36 +75,34 @@ bool CTrackBarHorizontal::OnMouseButtonDown ( sMouseEvents e )
 
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		if ( m_rThumb.InControlArea ( e.pos ) )
+		if ( m_rThumb.ContainsPoint ( e.pos ) )
 		{
 			// Pressed while inside the control
 			m_bPressed = true;
 
-			m_nDragOffset = e.pos.GetX () - m_rThumb.pos.GetX ();
+			m_nDragOffset = e.pos.m_nX - m_rThumb.m_pos.m_nX;
 
-			if ( m_pParent && !m_bHasFocus )
-				m_pParent->SetFocussedControl ( this );
+			_SetFocus ();
 
 			return true;
 		}
 
-		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		if ( m_rBoundingBox.ContainsPoint ( e.pos ) )
 		{
 			m_nDragOffset = 0;
 
 			// Pressed while inside the control
 			m_bPressed = true;
 
-			if ( m_pParent && !m_bHasFocus )
-				m_pParent->SetFocussedControl ( this );
+			_SetFocus ();
 
-			if ( e.pos.GetX () > m_rThumb.pos.GetX () )
+			if ( e.pos.m_nX > m_rThumb.m_pos.m_nX)
 			{
 				SetValue ( m_nValue + 1 );
 				return true;
 			}
 
-			if ( e.pos.GetX () < m_rThumb.pos.GetX () )
+			if ( e.pos.m_nX < m_rThumb.m_pos.m_nX)
 			{
 				SetValue ( m_nValue - 1 );
 				return true;
@@ -122,8 +120,7 @@ bool CTrackBarHorizontal::OnMouseButtonUp ( sMouseEvents e )
 		m_bPressed = false;
 		SendEvent ( EVENT_CONTROL_SELECT, m_nValue );
 
-		if ( m_pParent )
-			m_pParent->ClearControlFocus ();
+		_ClearFocus ();
 
 		return true;
 	}
@@ -131,11 +128,11 @@ bool CTrackBarHorizontal::OnMouseButtonUp ( sMouseEvents e )
 	return false;
 }
 
-bool CTrackBarHorizontal::OnMouseMove ( CPos pos )
+bool CTrackBarHorizontal::OnMouseMove ( CVector pos )
 {
 	if ( m_bPressed )
 	{
-		SetValue ( ValueFromPos ( pos.GetX () - m_rBoundingBox.pos.GetX () - m_nDragOffset ) );
+		SetValue ( ValueFromPos ( pos.m_nX - m_rBoundingBox.m_pos.m_nX - m_nDragOffset ) );
 		return true;
 	}
 
@@ -151,7 +148,7 @@ bool CTrackBarHorizontal::OnMouseWheel ( int zDelta )
 //--------------------------------------------------------------------------------------
 int CTrackBarHorizontal::ValueFromPos ( int iX )
 {
-	float fValuePerPixel = ( float ) ( m_nMax - m_nMin ) / ( m_rBoundingBox.size.cx - TRACKBAR_THUMBSIZE );
+	float fValuePerPixel = ( float ) ( m_nMax - m_nMin ) / ( m_rBoundingBox.m_size.cx - TRACKBAR_THUMBSIZE );
 	return ( int ) ( 0.5 + m_nMin + fValuePerPixel * iX );
 }
 
@@ -180,21 +177,21 @@ void CTrackBarHorizontal::SetValue ( int nValue )
 //--------------------------------------------------------------------------------------
 void CTrackBarHorizontal::UpdateRects ( void )
 {
-	CControl::UpdateRects ();
+	CWidget::UpdateRects ();
 
 	m_rThumb = m_rBoundingBox;
-	m_rThumb.pos.SetX ( m_rThumb.pos.GetX () + m_nButtonX );
-	m_rThumb.size.cx = TRACKBAR_THUMBSIZE;
+	m_rThumb.m_pos.m_nX += m_nButtonX;
+	m_rThumb.m_size.cx = TRACKBAR_THUMBSIZE;
 
-	m_nButtonX = ( int ) ( ( m_nValue - m_nMin ) * ( float ) ( m_rBoundingBox.size.cx - TRACKBAR_THUMBSIZE ) / ( m_nMax - m_nMin ) );
+	m_nButtonX = ( int ) ( ( m_nValue - m_nMin ) * ( float ) ( m_rBoundingBox.m_size.cx - TRACKBAR_THUMBSIZE ) / ( m_nMax - m_nMin ) );
 }
 
 //--------------------------------------------------------------------------------------
-bool CTrackBarHorizontal::ContainsRect ( CPos pos )
+bool CTrackBarHorizontal::ContainsPoint ( CVector pos )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
-	return ( m_rBoundingBox.InControlArea ( pos ) ||
-			 m_rThumb.InControlArea ( pos ) );
+	return ( m_rBoundingBox.ContainsPoint ( pos ) ||
+			 m_rThumb.ContainsPoint ( pos ) );
 }

@@ -3,30 +3,20 @@
 CLabel::CLabel ( CDialog *pDialog )
 {
 	SetControl ( pDialog, TYPE_LABEL );
-	m_dwAlign = 0;
 }
 
 CLabel::~CLabel ( void )
 {}
 
-void CLabel::Draw ( void )
+void CLabel::Draw(void)
 {
-	if ( !m_bVisible )
+	if (!m_bVisible)
 		return;
 
-	if ( !m_bEnabledStateColor )
-		m_eState = SControlColor::STATE_NORMAL;
-	else if ( !m_bEnabled )
-		m_eState = SControlColor::STATE_DISABLED;
-	else if ( m_bPressed )
-		m_eState = SControlColor::STATE_PRESSED;
-	else if ( m_bMouseOver )
-		m_eState = SControlColor::STATE_MOUSE_OVER;
-	else
-		m_eState = SControlColor::STATE_NORMAL;
+	CWidget::Draw();
 
-	m_pDialog->DrawFont ( SControlRect ( m_rBoundingBox.pos.GetX () + m_rBoundingBox.size.cx / 2, m_rBoundingBox.pos.GetY () ),
-						  m_sControlColor.d3dColorBox [ m_eState ], GetText (), m_dwAlign, m_pFont );
+	m_pDialog->DrawFont(SControlRect(m_rBoundingBox.m_pos.m_nX, m_rBoundingBox.m_pos.m_nY),
+		m_sControlColor.d3dColorBox[m_eState], m_sFormatted.c_str(), 0, m_pFont);
 }
 
 bool CLabel::OnKeyDown ( WPARAM wParam )
@@ -61,13 +51,12 @@ bool CLabel::OnMouseButtonDown ( sMouseEvents e )
 
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		if ( m_rBoundingBox.ContainsPoint ( e.pos ) )
 		{
 			// Pressed while inside the control
 			m_bPressed = true;
 
-			if ( m_pParent && !m_bHasFocus )
-				m_pParent->SetFocussedControl ( this );
+			_SetFocus ();
 
 			return true;
 		}
@@ -82,11 +71,10 @@ bool CLabel::OnMouseButtonUp ( sMouseEvents e )
 	{
 		m_bPressed = false;
 
-		if ( m_pParent )
-			m_pParent->ClearControlFocus ();
+		_ClearFocus ();
 
 		// Button click
-		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		if ( m_rBoundingBox.ContainsPoint ( e.pos ) )
 			SendEvent ( EVENT_CONTROL_CLICKED, true );
 
 		return true;
@@ -95,43 +83,68 @@ bool CLabel::OnMouseButtonUp ( sMouseEvents e )
 	return false;
 }
 
-void CLabel::UpdateRects ( void )
+void CLabel::SetText(SIMPLEGUI_STRING sText, bool)
 {
-	CControl::UpdateRects ();
+	if (m_sText != sText)
+	{
+		SIZE size;
+		if (m_pFont)
+			m_pFont->GetTextExtent(sText.c_str(), &size);
+
+		m_sFontInfo.m_size.cx = size.cx;
+
+		SetWidth(m_realSize.cx);
+
+		m_sFormatted = m_sText = sText;
+	}
 }
 
-void CLabel::SetAlign ( DWORD dwAlign )
+void CLabel::SetWordwrap(bool bWordwrap)
 {
-	m_dwAlign = dwAlign;
+	m_bWordwrap = bWordwrap;
 }
 
-void CLabel::SetWidth ( int nWidth )
+bool CLabel::IsWordwrap(void)
 {
-	if ( !m_pFont )
-		return;
+	return m_bWordwrap;
+}
 
-	SIZE size;
-	m_pFont->GetTextExtent ( GetText (), &size );
-	m_rBoundingBox.size.cx = m_size.cx = min ( nWidth, size.cx );
+void CLabel::SetWidth(int nWidth)
+{
+	m_realSize.cx = m_rBoundingBox.m_size.cx = m_size.cx = 
+		min(m_sFontInfo.m_size.cx, max(m_sFontInfo.m_size.cy, nWidth));
 }
 
 void CLabel::SetHeight ( int nHeight )
 {
-	if ( !m_pFont )
-		return;
-
-	SIZE size;
-	m_pFont->GetTextExtent ( GetText (), &size );
-	m_rBoundingBox.size.cy = m_size.cy = min ( nHeight, size.cy );
+	m_realSize.cy = m_rBoundingBox.m_size.cy = m_size.cy = m_sFontInfo.m_size.cy;
 }
 
-void CLabel::SetSize ( SIZE size )
+void CLabel::UpdateRects(void)
 {
-	SetSize ( size.cx, size.cy );
+	CWidget::UpdateRects();
+
+	int nWidth = m_rBoundingBox.m_size.cx;
+	if (m_oldTextSize.cx != nWidth)
+	{
+		SIZE size;
+		if (m_bWordwrap)
+		{
+			if(m_pFont)
+			{m_sFormatted = m_sText;
+			m_pFont->RemoveLinesFromText(m_sFormatted);
+			m_pFont->FormatText(m_sFormatted, nWidth);
+			m_pFont->GetTextExtent(m_sFormatted.c_str(), &size); }
+		}
+
+		m_oldTextSize.cx = m_rBoundingBox.m_size.cx =
+			min(m_bWordwrap ? size.cx : m_sFontInfo.m_size.cx, nWidth);
+
+		m_realSize.cy = m_rBoundingBox.m_size.cy = m_size.cy = size.cy;
+	}
 }
 
-void CLabel::SetSize ( int nWidth, int nHeight )
+bool CLabel::ContainsPoint(Pos pos)
 {
-	SetWidth ( nWidth );
-	SetHeight ( nHeight );
+	return m_rBoundingBox.ContainsPoint(pos);
 }

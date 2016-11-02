@@ -26,20 +26,20 @@ void CScrollBarVertical::Draw ( void )
 	if ( !m_bVisible )
 		return;
 
-	CPos mPos = m_pDialog->GetMouse ()->GetPos ();
+	CVector mPos = m_pDialog->GetMouse ()->GetPos ();
 
 	// Check if the arrow button has been held for a while.
 	// If so, update the thumb position to simulate repeated
 	// scroll.
 	if ( m_Arrow == CLICKED_UP &&
-		 m_rUpButton.InControlArea ( m_LastMouse ) &&
+		 m_rUpButton.ContainsPoint ( m_LastMouse ) &&
 		 !m_timer.Running () )
 	{
 		Scroll ( -m_nStep );
 		m_timer.Start ( SCROLLBAR_ARROWCLICK_START );
 	}
 	else if ( m_Arrow == CLICKED_DOWN &&
-			  m_rDownButton.InControlArea ( m_LastMouse ) &&
+			  m_rDownButton.ContainsPoint ( m_LastMouse ) &&
 			  !m_timer.Running () )
 	{
 		Scroll ( m_nStep );
@@ -49,25 +49,25 @@ void CScrollBarVertical::Draw ( void )
 	// Check for click on track
 	if ( m_bPressed &&
 		 !m_timer.Running () &&
-		 m_rBoundingBox.InControlArea ( m_LastMouse ) )
+		 m_rBoundingBox.ContainsPoint ( m_LastMouse ) )
 	{
 		if ( m_Arrow == HELD_UP &&
-			 m_rThumb.pos.GetY () > m_LastMouse.GetY () &&
-			 m_rBoundingBox.pos.GetY () <= m_LastMouse.GetY () )
+			 m_rThumb.m_pos.m_nY > m_LastMouse.m_nY &&
+			 m_rBoundingBox.m_pos.m_nY <= m_LastMouse.m_nY)
 		{
 			Scroll ( -( m_nPageSize - 1 ) );
 			m_timer.Start ( SCROLLBAR_ARROWCLICK_START );
 		}
 		else if ( m_Arrow == HELD_DOWN &&
-				  m_rThumb.pos.GetY () + m_rThumb.size.cy <= m_LastMouse.GetY () &&
-				  ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cx ) + m_rBoundingBox.size.cy > m_LastMouse.GetY () )
+				  m_rThumb.m_pos.m_nY + m_rThumb.m_size.cy <= m_LastMouse.m_nY &&
+				  ( m_rBoundingBox.m_pos.m_nY + m_rBoundingBox.m_size.cx ) + m_rBoundingBox.m_size.cy > m_LastMouse.m_nY)
 		{
 			Scroll ( m_nPageSize - 1 );
 			m_timer.Start ( SCROLLBAR_ARROWCLICK_START );
 		}
 	}
 
-	CControl::Draw ();
+	CWidget::Draw ();
 
 	SControlColor::SControlState eState = m_bShowThumb && m_bEnabled ?
 		SControlColor::STATE_NORMAL :
@@ -80,11 +80,11 @@ void CScrollBarVertical::Draw ( void )
 	if ( m_bShowThumb &&
 		 !m_bPressed )
 	{
-		if ( m_rThumb.InControlArea ( mPos ) )
+		if ( m_rThumb.ContainsPoint ( mPos ) )
 			d3dColorThumb = m_sControlColor.d3dColorBox [ m_eState ];
-		else if ( m_rUpButton.InControlArea ( mPos ) )
+		else if ( m_rUpButton.ContainsPoint ( mPos ) )
 			d3dColorUp = m_sControlColor.d3dColorBox [ m_eState ];
-		else if ( m_rDownButton.InControlArea ( mPos ) )
+		else if ( m_rDownButton.ContainsPoint ( mPos ) )
 			d3dColorDown = m_sControlColor.d3dColorBox [ m_eState ];
 	}
 
@@ -95,17 +95,18 @@ void CScrollBarVertical::Draw ( void )
 	m_pDialog->DrawBox ( m_rUpButton, d3dColorUp, m_sControlColor.d3dColorOutline, m_bAntAlias );
 
 	SControlRect rShape = m_rUpButton;
-	rShape.pos.SetX ( m_rUpButton.pos.GetX () + m_rUpButton.size.cx / 2 );
-	rShape.pos.SetY ( m_rUpButton.pos.GetY () + m_rUpButton.size.cx / 2 + 4 );
-	rShape.size.cx = m_rUpButton.size.cx / 2 - 3;
+	rShape.m_pos.m_nX = m_rUpButton.m_pos.m_nX + m_rUpButton.m_size.cx / 2 ;
+	rShape.m_pos.m_nY = m_rUpButton.m_pos.m_nY + m_rUpButton.m_size.cx / 2 + 4;
+	rShape.m_size.cx = m_rUpButton.m_size.cx / 2 - 3;
+
 	m_pDialog->DrawTriangle ( rShape, 0.f, m_sControlColor.d3dColorShape, 0 );
 
 	// Down Arrow
 	m_pDialog->DrawBox ( m_rDownButton, d3dColorDown, m_sControlColor.d3dColorOutline, m_bAntAlias );
 
-	rShape.pos.SetX ( m_rDownButton.pos.GetX () + m_rDownButton.size.cx / 2 );
-	rShape.pos.SetY ( m_rDownButton.pos.GetY () + m_rDownButton.size.cx / 2 - 4 );
-	m_pDialog->DrawTriangle ( SControlRect ( rShape.pos, rShape.size ), 180.f, m_sControlColor.d3dColorShape, 0 );
+	rShape.m_pos.m_nX = m_rDownButton.m_pos.m_nX + m_rDownButton.m_size.cx / 2;
+	rShape.m_pos.m_nY = m_rDownButton.m_pos.m_nY + m_rDownButton.m_size.cx / 2 - 4;
+	m_pDialog->DrawTriangle ( SControlRect ( rShape.m_pos, rShape.m_size ), 180.f, m_sControlColor.d3dColorShape, 0 );
 
 	// Thumb button
 	m_pDialog->DrawBox ( m_rThumb, d3dColorThumb, m_sControlColor.d3dColorOutline, m_bAntAlias );
@@ -119,7 +120,7 @@ bool CScrollBarVertical::OnMouseButtonDown ( sMouseEvents e )
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
 		// Check for click on up button
-		if ( m_rUpButton.InControlArea ( e.pos ) )
+		if ( m_rUpButton.ContainsPoint ( e.pos ) )
 		{
 			if ( m_nPosition > m_nStart )
 				m_nPosition -= m_nStep;
@@ -129,14 +130,13 @@ bool CScrollBarVertical::OnMouseButtonDown ( sMouseEvents e )
 			m_bPressed = true;
 			m_Arrow = CLICKED_UP;
 
-			if ( m_pParent )
-				m_pParent->SetFocussedControl ( this );
+			_SetFocus ();
 
 			return true;
 		}
 
 		// Check for click on down button
-		if ( m_rDownButton.InControlArea ( e.pos ) )
+		if ( m_rDownButton.ContainsPoint ( e.pos ) )
 		{
 			if ( m_nPosition + m_nPageSize <= m_nEnd )
 				m_nPosition += m_nStep;
@@ -146,36 +146,33 @@ bool CScrollBarVertical::OnMouseButtonDown ( sMouseEvents e )
 			m_bPressed = true;
 			m_Arrow = CLICKED_DOWN;
 
-			if ( m_pParent )
-				m_pParent->SetFocussedControl ( this );
+			_SetFocus ();
 
 			return true;
 		}
 
 		// Check for click on thumb
-		if ( m_rThumb.InControlArea ( e.pos ) )
+		if ( m_rThumb.ContainsPoint ( e.pos ) )
 		{
-			nThumbOffset = e.pos.GetY () - m_rThumb.pos.GetY ();
+			nThumbOffset = e.pos.m_nY - m_rThumb.m_pos.m_nY;
 			m_Arrow = CLICKED_THUMB;
 			m_bDrag = true;
 			m_bPressed = true;
 
-			if ( m_pParent )
-				m_pParent->SetFocussedControl ( this );
+			_SetFocus ();
 
 			return true;
 		}
 
 		// Check for click on track
-		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		if ( m_rBoundingBox.ContainsPoint ( e.pos ) )
 		{
-			if ( m_rThumb.pos.GetY () > e.pos.GetY () &&
-				 m_rBoundingBox.pos.GetY () <= e.pos.GetY () )
+			if ( m_rThumb.m_pos.m_nY > e.pos.m_nY &&
+				 m_rBoundingBox.m_pos.m_nY <= e.pos.m_nY)
 			{
 				Scroll ( -( m_nPageSize - 1 ) );
 
-				if ( m_pParent )
-					m_pParent->SetFocussedControl ( this );
+				_SetFocus ();
 
 				m_timer.Start ( 0.5 );
 				m_bPressed = true;
@@ -183,13 +180,12 @@ bool CScrollBarVertical::OnMouseButtonDown ( sMouseEvents e )
 
 				return true;
 			}
-			else if ( m_rThumb.pos.GetY () + m_rThumb.size.cy <= e.pos.GetY () &&
-					  ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cx ) + m_rBoundingBox.size.cy > e.pos.GetY () )
+			else if ( m_rThumb.m_pos.m_nY + m_rThumb.m_size.cy <= e.pos.m_nY &&
+					  ( m_rBoundingBox.m_pos.m_nY + m_rBoundingBox.m_size.cx ) + m_rBoundingBox.m_size.cy > e.pos.m_nY)
 			{
 				Scroll ( m_nPageSize - 1 );
 
-				if ( m_pParent )
-					m_pParent->SetFocussedControl ( this );
+				_SetFocus ();
 
 				m_timer.Start ( 0.5 );
 				m_bPressed = true;
@@ -212,8 +208,7 @@ bool CScrollBarVertical::OnMouseButtonUp ( sMouseEvents e )
 		m_bPressed = false;
 		m_bDrag = false;
 
-		if ( m_pParent )
-			m_pParent->ClearControlFocus ();
+		_ClearFocus ();
 
 		return true;
 	}
@@ -221,28 +216,27 @@ bool CScrollBarVertical::OnMouseButtonUp ( sMouseEvents e )
 	return false;
 }
 
-bool CScrollBarVertical::OnMouseMove ( CPos pos )
+bool CScrollBarVertical::OnMouseMove ( CVector pos )
 {
 	if ( m_bDrag )
 	{
-		m_rThumb.pos.SetY ( pos.GetY () - nThumbOffset );
+		m_rThumb.m_pos.m_nY = pos.m_nY - nThumbOffset;
 
-		if ( m_rThumb.pos.GetY () < ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cx ) )
+		if ( m_rThumb.m_pos.m_nY < ( m_rBoundingBox.m_pos.m_nY + m_rBoundingBox.m_size.cx ) )
 		{
-			m_rThumb.pos.SetY ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cx );
+			m_rThumb.m_pos.m_nY = m_rBoundingBox.m_pos.m_nY + m_rBoundingBox.m_size.cx;
 		}
-		else if ( m_rThumb.pos.GetY () + m_rThumb.size.cy >= ( m_rBoundingBox.pos.GetY () ) + ( m_rBoundingBox.size.cy - m_rBoundingBox.size.cx ) )
+		else if ( m_rThumb.m_pos.m_nY + m_rThumb.m_size.cy >= m_rBoundingBox.m_pos.m_nY + ( m_rBoundingBox.m_size.cy - m_rBoundingBox.m_size.cx ) )
 		{
-			m_rThumb.pos.SetY ( m_rBoundingBox.pos.GetY () +
-								( m_rBoundingBox.size.cy - m_rBoundingBox.size.cx - m_rThumb.size.cy ) );
+			m_rThumb.m_pos.m_nY = m_rBoundingBox.m_pos.m_nY + (m_rBoundingBox.m_size.cy - m_rBoundingBox.m_size.cx - m_rThumb.m_size.cy);
 		}
 
 		// Compute first item index based on thumb position
 		int nMaxFirstItem = m_nEnd - m_nStart - m_nPageSize + 1;  // Largest possible index for first item
-		int nMaxThumb = ( m_rBoundingBox.size.cy - ( m_rBoundingBox.size.cx * 2 ) ) - m_rThumb.size.cy;  // Largest possible thumb position from the top
+		int nMaxThumb = ( m_rBoundingBox.m_size.cy - ( m_rBoundingBox.m_size.cx * 2 ) ) - m_rThumb.m_size.cy;  // Largest possible thumb position from the top
 
 		m_nPosition = m_nStart +
-			( m_rThumb.pos.GetY () - ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cx ) +
+			( m_rThumb.m_pos.m_nY - ( m_rBoundingBox.m_pos.m_nY + m_rBoundingBox.m_size.cx ) +
 			  nMaxThumb / ( nMaxFirstItem * 2 ) ) * // Shift by half a row to avoid last row covered by only one pixel
 			nMaxFirstItem / nMaxThumb;
 
@@ -255,37 +249,34 @@ bool CScrollBarVertical::OnMouseMove ( CPos pos )
 //--------------------------------------------------------------------------------------
 void CScrollBarVertical::UpdateRects ( void )
 {
-	CControl::UpdateRects ();
+	CWidget::UpdateRects ();
 
 	// Make the buttons square
 	m_rUpButton = m_rBoundingBox;
-	m_rUpButton.pos.SetY ( m_rBoundingBox.pos.GetY ()  );
-	m_rUpButton.size.cy = m_rBoundingBox.size.cx;
+	m_rUpButton.m_size.cy = m_rBoundingBox.m_size.cx;
 
 	m_rDownButton = m_rBoundingBox;
-	m_rDownButton.pos.SetY ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cy - m_rBoundingBox.size.cx );
-	m_rDownButton.size.cy = m_rBoundingBox.size.cx;
+	m_rDownButton.m_pos.m_nY += m_rBoundingBox.m_size.cy - m_rBoundingBox.m_size.cx;
+	m_rDownButton.m_size.cy = m_rBoundingBox.m_size.cx;
 
-	m_rThumb = m_rBoundingBox;
-
-	CScrollbar::SetBackPos ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cx );
-	CScrollbar::SetBackSize ( m_rBoundingBox.size.cy - ( m_rBoundingBox.size.cx * 2 ) );
+	CScrollbar::SetBackPos ( m_rBoundingBox.m_pos.m_nY + m_rBoundingBox.m_size.cx );
+	CScrollbar::SetBackSize ( m_rBoundingBox.m_size.cy - ( m_rBoundingBox.m_size.cx * 2 ) );
 
 	CScrollbar::UpdateThumbRect ();
 
 	m_rThumb = m_rBoundingBox;
-	m_rThumb.pos.SetY ( CScrollbar::GetThumbPos () );
-	m_rThumb.size.cy = CScrollbar::GetThumbSize ();
+	m_rThumb.m_pos.m_nY = CScrollbar::GetThumbPos();
+	m_rThumb.m_size.cy = CScrollbar::GetThumbSize ();
 }
 
 //--------------------------------------------------------------------------------------
-bool CScrollBarVertical::ContainsRect ( CPos pos )
+bool CScrollBarVertical::ContainsPoint ( Pos pos )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
-	return ( m_rBoundingBox.InControlArea ( pos ) ||
-			 m_rUpButton.InControlArea ( pos ) ||
-			 m_rDownButton.InControlArea ( pos ) ||
-			 m_rThumb.InControlArea ( pos ) );
+	return ( m_rBoundingBox.ContainsPoint ( pos ) ||
+			 m_rUpButton.ContainsPoint ( pos ) ||
+			 m_rDownButton.ContainsPoint ( pos ) ||
+			 m_rThumb.ContainsPoint ( pos ) );
 }

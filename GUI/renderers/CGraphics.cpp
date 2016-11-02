@@ -33,37 +33,55 @@ void RotateVerts ( VECTOR2 *pVector, size_t size, float fX, float fY, float fAng
 {
 	fAngle /= ( 180.f / D3DX_PI );
 
+	float _cos = cos ( fAngle );
+	float _sin = sin ( fAngle );
+
 	for ( size_t i = 0; i < size; i++ )
 	{
-		float fOldX = pVector [ i ].x;
-		float fOldY = pVector [ i ].y;
+		float fOldX = pVector [ i ].x - fX;
+		float fOldY = pVector [ i ].y - fY;
 
-		pVector [ i ].x = fX + ( fOldX - fX ) * cos ( fAngle ) + ( fOldY - fY ) * sin ( fAngle );
-		pVector [ i ].y = fY - ( fOldX - fX ) * sin ( fAngle ) + ( fOldY - fY ) * cos ( fAngle );
+		pVector [ i ].x = fX + fOldX * _cos + fOldY * _sin;
+		pVector [ i ].y = fY - fOldX * _sin + fOldY * _cos;
 	}
 }
 
-void SetScissor ( IDirect3DDevice9 *pD3dd, RECT rect )
+RECT g_scissor;
+IDirect3DDevice9 *g_pD3DD = NULL;
+
+void CScissor::SetScissor ( IDirect3DDevice9 *pD3dd, RECT rect )
 {
-	if ( rect.left + rect.right > 0 &&
-		 rect.top + rect.bottom > 0 )
+	if ( pD3dd )
 	{
-		rect.right += 1;
-		rect.bottom += 1;
+		m_pDevice = pD3dd;
+		pD3dd->GetScissorRect ( &g_scissor );
 
-		pD3dd->SetScissorRect ( &rect );
-		pD3dd->SetRenderState ( D3DRS_SCISSORTESTENABLE, TRUE );
+		if ( rect.left + rect.right > 0 &&
+			 rect.top + rect.bottom > 0 )
+		{
+			rect.right += 1;
+			rect.bottom += 1;
+
+			pD3dd->SetScissorRect ( &rect );
+			pD3dd->SetRenderState ( D3DRS_SCISSORTESTENABLE, TRUE );
+		}
+		else
+			pD3dd->SetRenderState ( D3DRS_SCISSORTESTENABLE, FALSE );
 	}
-	else
-		pD3dd->SetRenderState ( D3DRS_SCISSORTESTENABLE, FALSE );
 }
 
-void SetScissor ( IDirect3DDevice9 *pD3dd, int iX, int iY, int iWidth, int iHeight )
+void CScissor::SetScissor ( IDirect3DDevice9 *pD3dd, int iX, int iY, int iWidth, int iHeight )
 {
 	RECT rRect;
 	SetRect ( &rRect, iX, iY, iX + iWidth, iY + iHeight );
 
 	SetScissor ( pD3dd, rRect );
+}
+
+void CScissor::RestoreScissor ( void )
+{
+	if ( m_pDevice )
+		SetScissor ( m_pDevice, m_rOldScissor );
 }
 
 CGraphics::CGraphics ( IDirect3DDevice9 *pDevice )
@@ -287,46 +305,47 @@ void CD3DStateBlock::SetRenderStates ( void )
 	m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_POINT );
 	m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
 	m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
+
 //
-//	m_pd3dDevice->SetRenderState ( D3DRS_ZENABLE, D3DZB_FALSE );
-//	m_pd3dDevice->SetRenderState ( D3DRS_CULLMODE, D3DCULL_NONE );
-//	m_pd3dDevice->SetRenderState ( D3DRS_ALPHATESTENABLE, FALSE );
-//	m_pd3dDevice->SetRenderState ( D3DRS_ALPHABLENDENABLE, TRUE );
-//	m_pd3dDevice->SetRenderState ( D3DRS_BLENDOP, D3DBLENDOP_ADD );
-//	m_pd3dDevice->SetRenderState ( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
-//	m_pd3dDevice->SetRenderState ( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
-//	m_pd3dDevice->SetRenderState ( D3DRS_CLIPPLANEENABLE, 0 );
-//	m_pd3dDevice->SetRenderState ( D3DRS_FILLMODE, D3DFILL_SOLID );
-//	m_pd3dDevice->SetRenderState ( D3DRS_LASTPIXEL, FALSE );
-//	m_pd3dDevice->SetRenderState ( D3DRS_FOGENABLE, FALSE );
-//	m_pd3dDevice->SetRenderState ( D3DRS_STENCILENABLE, FALSE );
-//	m_pd3dDevice->SetRenderState ( D3DRS_COLORWRITEENABLE, 0x0000000F );
-//	m_pd3dDevice->SetRenderState ( D3DRS_SCISSORTESTENABLE, FALSE );
-//	
-//	D3DCAPS9 caps;
-//	m_pd3dDevice->GetDeviceCaps (&caps );
-//
-//	//if ( caps.PrimitiveMiscCaps & D3DPMISCCAPS_SEPARATEALPHABLEND )
-//		m_pd3dDevice->SetRenderState ( D3DRS_SEPARATEALPHABLENDENABLE, FALSE );
-//
-////	if( caps.LineCaps & D3DLINECAPS_ANTIALIAS )
-//		m_pd3dDevice->SetRenderState ( D3DRS_ANTIALIASEDLINEENABLE, FALSE );
-//
-//	m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_COLOROP, D3DTOP_MODULATE );
-//	m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_COLORARG1, D3DTA_TEXTURE );
-//	m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_COLORARG2, D3DTA_DIFFUSE );
-//	m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1 );
-//	m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE );
-//	m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_PASSTHRU );
-//	m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE );
-//	m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
-//	m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
-//	m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
-//	m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_POINT );
-//	m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
-//
-//	m_pd3dDevice->SetVertexShader ( NULL );
-//	m_pd3dDevice->SetPixelShader ( NULL );
+	//m_pd3dDevice->SetRenderState ( D3DRS_ZENABLE, D3DZB_FALSE );
+	//m_pd3dDevice->SetRenderState ( D3DRS_CULLMODE, D3DCULL_NONE );
+	//m_pd3dDevice->SetRenderState ( D3DRS_ALPHATESTENABLE, FALSE );
+	//m_pd3dDevice->SetRenderState ( D3DRS_ALPHABLENDENABLE, TRUE );
+	//m_pd3dDevice->SetRenderState ( D3DRS_BLENDOP, D3DBLENDOP_ADD );
+	//m_pd3dDevice->SetRenderState ( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
+	//m_pd3dDevice->SetRenderState ( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
+	//m_pd3dDevice->SetRenderState ( D3DRS_CLIPPLANEENABLE, 0 );
+	//m_pd3dDevice->SetRenderState ( D3DRS_FILLMODE, D3DFILL_SOLID );
+	//m_pd3dDevice->SetRenderState ( D3DRS_LASTPIXEL, FALSE );
+	//m_pd3dDevice->SetRenderState ( D3DRS_FOGENABLE, FALSE );
+	//m_pd3dDevice->SetRenderState ( D3DRS_STENCILENABLE, FALSE );
+	//m_pd3dDevice->SetRenderState ( D3DRS_COLORWRITEENABLE, 0x0000000F );
+	//m_pd3dDevice->SetRenderState ( D3DRS_SCISSORTESTENABLE, FALSE );
+	//
+	//D3DCAPS9 caps;
+	//m_pd3dDevice->GetDeviceCaps (&caps );
+
+	////if ( caps.PrimitiveMiscCaps & D3DPMISCCAPS_SEPARATEALPHABLEND )
+	////	m_pd3dDevice->SetRenderState ( D3DRS_SEPARATEALPHABLENDENABLE, FALSE );
+
+	////if( caps.LineCaps & D3DLINECAPS_ANTIALIAS )
+	////	m_pd3dDevice->SetRenderState ( D3DRS_ANTIALIASEDLINEENABLE, FALSE );
+
+	//m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_COLOROP, D3DTOP_MODULATE );
+	//m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_COLORARG1, D3DTA_TEXTURE );
+	//m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_COLORARG2, D3DTA_DIFFUSE );
+	//m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1 );
+	//m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE );
+	//m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_PASSTHRU );
+	//m_pd3dDevice->SetTextureStageState ( 0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE );
+	//m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
+	//m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
+	//m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
+	//m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_MINFILTER, D3DTEXF_POINT );
+	//m_pd3dDevice->SetSamplerState ( 0, D3DSAMP_MIPFILTER, D3DTEXF_NONE );
+
+	//m_pd3dDevice->SetVertexShader ( NULL );
+	//m_pd3dDevice->SetPixelShader ( NULL );
 }
 
 //-----------------------------------------------------------------------------
@@ -372,7 +391,7 @@ HRESULT CD3DFont::Initialize ( LPDIRECT3DDEVICE9 pd3dDevice )
 
 	m_pd3dDevice = pd3dDevice;
 
-	// Establish the font and texture size
+	// Establish the font and texture m_size
 	m_fTextScale = 1.0f;
 	m_dwTexWidth = m_dwTexHeight = 1024;
 
@@ -450,7 +469,7 @@ HRESULT CD3DFont::Initialize ( LPDIRECT3DDEVICE9 pd3dDevice )
 	GetTextExtentPoint32 ( hDC, str, 1, &size );
 	x = m_dwSpacing = ( DWORD ) ceil ( size.cy * 0.3f );
 
-	for ( int c = 32; c < 255; c++ )
+	for ( int c = 32; c < 65536; c++ )
 	{
 		str [ 0 ] = btowc ( c );
 		if ( !GetTextExtentPoint32 ( hDC, str, 1, &size ) )
@@ -512,7 +531,6 @@ HRESULT CD3DFont::Invalidate ( void )
 	SAFE_RELEASE ( m_pVB );
 	SAFE_RELEASE ( m_pTexture );
 	DeleteDC ( m_hDC );
-
 	return S_OK;
 }
 
@@ -520,18 +538,18 @@ HRESULT CD3DFont::Invalidate ( void )
 // Name: GetTextExtent()
 // Desc: Get the dimensions of a text string
 //-----------------------------------------------------------------------------
-HRESULT CD3DFont::GetTextExtent ( const TCHAR* str, SIZE* pSize )
+HRESULT CD3DFont::GetTextExtent ( const TCHAR *str, SIZE *pSize )
 {
 	if ( !str ||
 		 !pSize )
 		return E_FAIL;
 
-	FLOAT fRowWidth		= 0.0f;
-	FLOAT fRowHeight	= ( m_fTexCoords [ 0 ] [ 3 ] - m_fTexCoords [ 0 ] [ 1 ] ) * m_dwTexHeight;
-	FLOAT fWidth		= 0.0f;
-	FLOAT fHeight		= fRowHeight;
+	FLOAT fRowWidth = 0.0f;
+	FLOAT fRowHeight = ( m_fTexCoords [ 0 ] [ 3 ] - m_fTexCoords [ 0 ] [ 1 ] ) * m_dwTexHeight;
+	FLOAT fOldWidth = 0.0f;
+	FLOAT fHeight = fRowHeight;
 
-	TCHAR *strText		= ( TCHAR* ) str;
+	TCHAR *strText = ( TCHAR* ) str;
 
 	while ( *strText )
 	{
@@ -552,9 +570,10 @@ HRESULT CD3DFont::GetTextExtent ( const TCHAR* str, SIZE* pSize )
 					bTagFound = false;
 					break;
 				}
+
 				TCHAR ch = toupper ( *strText );
-				bool numeric =	( ch >= '0' && ch <= '9' ) ||
-								( ch >= 'A' && ch <= 'F' );
+				bool numeric = ( ch >= '0' && ch <= '9' ) ||
+					( ch >= 'A' && ch <= 'F' );
 
 				if ( numeric )
 				{
@@ -566,7 +585,7 @@ HRESULT CD3DFont::GetTextExtent ( const TCHAR* str, SIZE* pSize )
 			}
 
 			if ( bTagFound &&
-				 costumColor.size () >= 8 )
+				 costumColor.size () == 8 )
 			{
 				c = *strData++;
 				strText = strData;
@@ -574,26 +593,388 @@ HRESULT CD3DFont::GetTextExtent ( const TCHAR* str, SIZE* pSize )
 			}
 		}
 
-		FLOAT tx1 = m_fTexCoords [ c - 32 ] [ 0 ];
-		FLOAT tx2 = m_fTexCoords [ c - 32 ] [ 2 ];
-
-		if ( *strText == '\n' ||
-			 fRowWidth >= m_fWidth )
+		if ( c == '\n' )
 		{
 			fRowWidth = 0.0f;
 			fHeight += fRowHeight;
+			continue;
 		}
+
+		FLOAT tx1 = m_fTexCoords [ c - 32 ] [ 0 ];
+		FLOAT tx2 = m_fTexCoords [ c - 32 ] [ 2 ];
 
 		fRowWidth += ( tx2 - tx1 ) * m_dwTexWidth - 2 * m_dwSpacing;
 
-		if ( fRowWidth > fWidth )
-			fWidth = fRowWidth;
+		if ( fRowWidth > fOldWidth )
+			fOldWidth = fRowWidth;
 	}
 
-	pSize->cx = ( int ) fWidth;
+	pSize->cx = ( int ) fOldWidth;
 	pSize->cy = ( int ) fHeight;
 
 	return S_OK;
+}
+
+HRESULT CD3DFont::RemoveLinesFromText ( D3DSTRING &text )
+{
+	D3DSTRING str;
+	HRESULT hr = RemoveLinesFromText ( text.c_str (), str );
+	if ( SUCCEEDED ( hr ) )
+	{
+		text = str;
+		return S_OK;
+	}
+
+	return E_FAIL;
+}
+
+HRESULT CD3DFont::RemoveLinesFromText ( const TCHAR *text, D3DSTRING &out_text )
+{
+	// Make sure we have valid text.
+	if ( text == NULL )
+	{
+		return E_FAIL;
+	}
+
+	TCHAR *theText = ( TCHAR* ) text;
+	while ( *theText )
+	{
+		TCHAR c = *theText++;
+
+		// Check for newline case.
+		if ( c != _T ( '\n' ) )
+		{
+			out_text.push_back ( c );
+		}
+	}
+
+	return S_OK;
+}
+
+HRESULT CD3DFont::FormatText ( D3DSTRING &text, float fMaxWidth )
+{
+	D3DSTRING str;
+	HRESULT hr = FormatText ( text.c_str (), str, fMaxWidth );
+	if ( SUCCEEDED ( hr ) )
+	{
+		text = str;
+		return S_OK;
+	}
+
+	return E_FAIL;
+}
+
+HRESULT CD3DFont::FormatText ( const TCHAR* text, D3DSTRING &out_text, float fMaxWidth )
+{
+	// Make sure we have valid text.
+	if ( text == NULL )
+	{
+		return E_FAIL;
+	}
+
+	FLOAT fCurrentWidth = 0.0f;
+	TCHAR *theText = ( TCHAR* ) text;
+
+	while ( *theText )
+	{
+		TCHAR c = *theText++;
+
+		// Check for newline case.
+		// If we find a newline, reset current width and continue.
+		if ( c == _T ( '\n' ) )
+		{
+			fCurrentWidth = 0.0f;
+			out_text.push_back ( c );
+			continue;
+		}
+
+		if ( c == '{' )
+		{
+			D3DSTRING			costumColor;
+			TCHAR				*strData = theText;
+
+			bool				bTagFound = true;
+			size_t				count = 0;
+
+			while ( *strData != '}' )
+			{
+				if ( count >= 8 )
+				{
+					bTagFound = false;
+					break;
+				}
+
+				TCHAR ch = toupper ( *strData );
+				bool numeric = ( ch >= '0' && ch <= '9' ) ||
+					( ch >= 'A' && ch <= 'F' );
+
+				if ( numeric )
+				{
+					costumColor.push_back ( ch );
+				}
+
+				strData++;
+				count++;
+			}
+
+			if ( bTagFound &&
+				 costumColor.size () == 8 )
+			{
+				c = *strData++;
+				theText = strData;
+
+				// Insert tags
+				costumColor.insert ( costumColor.begin (), '{' );
+				costumColor.push_back ( '}' );
+
+				out_text.append ( costumColor );
+				continue;
+			}
+		}
+
+		FLOAT tx1 = m_fTexCoords [ c - 32 ] [ 0 ];
+		FLOAT tx2 = m_fTexCoords [ c - 32 ] [ 2 ];
+
+		// Add the character to the width if it isn't a space.
+		if ( c != _T ( ' ' ) )
+		{
+			fCurrentWidth += ( tx2 - tx1 ) * m_dwTexWidth - 2 * m_dwSpacing;
+		}
+
+		// If we've gone over our limit, emit a newline,
+		// increment the output index, reset, and continue.
+		if ( fCurrentWidth >= fMaxWidth )
+		{
+			out_text.push_back ( '\n' );
+			fCurrentWidth = 0.0f;
+			continue;
+		}
+
+		out_text.push_back ( c );
+
+		// If we reach a space, we have to look ahead to see
+		// if the word will fit in our string. If not, we either
+		// have to put the word on the next line, or chop the word
+		// at some point. 
+		if ( c == _T ( ' ' ) )
+		{
+			FLOAT fWordWidth = 0.0f;
+			TCHAR *theWord = theText;
+
+			while ( *theWord )
+			{
+				TCHAR c = *theWord++;
+
+				if ( c == '{' )
+				{
+
+					D3DSTRING			costumColor;
+					TCHAR				*strData = theWord;
+
+					bool				bTagFound = true;
+					size_t				count = 0;
+
+					while ( *strData != '}' )
+					{
+						if ( count >= 8 )
+						{
+							bTagFound = false;
+							break;
+						}
+
+						TCHAR ch = toupper ( *strData );
+						bool numeric = ( ch >= '0' && ch <= '9' ) ||
+							( ch >= 'A' && ch <= 'F' );
+
+						if ( numeric )
+						{
+							costumColor.push_back ( ch );
+						}
+
+						strData++;
+						count++;
+					}
+
+					if ( bTagFound &&
+						 costumColor.size () == 8 )
+					{
+						c = *strData++;
+						theWord = strData;
+						continue;
+					}
+				}
+
+				FLOAT tx1 = m_fTexCoords [ c - 32 ] [ 0 ];
+				FLOAT tx2 = m_fTexCoords [ c - 32 ] [ 2 ];
+
+				fWordWidth += ( tx2 - tx1 ) * m_dwTexWidth - 2 * m_dwSpacing;
+
+				// Check if word length is over limit.  If it is,
+				// we emit a newline, reset, and break out of the
+				// word loop.
+				if ( ( fWordWidth + fCurrentWidth ) >= fMaxWidth )
+				{
+					out_text.push_back ( '\n' );
+					fCurrentWidth = 0.0f;
+					break;
+				}
+
+				// We've found the end of the word, and it
+				// fits in, so lets copy it into our output
+				// buffer.
+				if ( c == _T ( ' ' ) || c == _T ( '\n' ) )
+				{
+					DWORD dwWordLen = theWord - theText - 1;
+
+					out_text.append ( theText, dwWordLen );
+					theText += dwWordLen;
+
+					if ( c == _T ( ' ' ) )
+					{
+						fCurrentWidth += fWordWidth;
+					}
+					else
+					{
+						fCurrentWidth = 0.0f;
+					}
+
+					break;
+				}
+			}
+		}
+	}
+
+	return S_OK;
+}
+
+void CD3DFont::CutString ( int iMaxWidth, D3DSTRING &text )
+{
+	if ( text.empty () )
+		return;
+
+	D3DSTRING str;
+	CutString ( text.c_str (), str, iMaxWidth );
+	text = str;
+}
+
+void CD3DFont::CutString ( const TCHAR* theText, D3DSTRING &out_text, int nMaxWidth )
+{
+	FLOAT fCurrentWidth = 0.0f;
+
+	// Make sure we have valid parameter.
+	if ( theText == NULL )
+	{
+		return;
+	}
+
+	while ( *theText )
+	{
+		TCHAR c = *theText++;
+
+		if ( c == '{' )
+		{
+			D3DSTRING			customColor;
+			TCHAR				*strData = ( TCHAR* ) theText;
+
+			bool				bTagFound = true;
+			size_t				count = 0;
+
+			while ( *strData != '}' )
+			{
+				if ( count >= 8 )
+				{
+					bTagFound = false;
+					break;
+				}
+
+				TCHAR ch = toupper ( *strData );
+				bool numeric = ( ch >= '0' && ch <= '9' ) ||
+					( ch >= 'A' && ch <= 'F' );
+
+				if ( numeric )
+				{
+					customColor.push_back ( ch );
+				}
+				else
+				{
+					break;
+				}
+
+				strData++;
+				count++;
+			}
+
+			if ( bTagFound &&
+				 customColor.size () == 8 )
+			{
+				c = *strData++;
+				theText = strData;
+
+				// Insert tags
+				customColor.insert ( customColor.begin (), '{' );
+				customColor.push_back ( '}' );
+
+				out_text.append ( customColor );
+
+				continue;
+			}
+		}
+
+		out_text.push_back ( c );
+
+		FLOAT tx1 = m_fTexCoords [ c - 32 ] [ 0 ];
+		FLOAT tx2 = m_fTexCoords [ c - 32 ] [ 2 ];
+
+		fCurrentWidth += ( tx2 - tx1 ) * m_dwTexWidth - 2 * m_dwSpacing;
+
+		// If we've gone over our limit, emit a newline,
+		// increment the output index, reset, and continue.
+		if ( fCurrentWidth > nMaxWidth )
+		{
+			return;
+		}
+	}
+}
+
+void CD3DFont::RemoveColorTableFromString ( D3DSTRING &sString )
+{
+	for ( size_t i = 0; i < sString.size (); i++ )
+	{
+		if ( sString [ i ] == '{' )
+		{
+			bool				bTagFound = true;
+
+			size_t				nTagCount = 0;
+			size_t				nColorCount = 0;
+
+			while ( i + nTagCount < sString.size () && sString [ i + nTagCount ] != '}' )
+			{
+				if ( nColorCount > 8 )
+				{
+					bTagFound = false;
+					break;
+				}
+
+				TCHAR c = toupper ( sString [ i + nTagCount ] );
+				bool bKey = ( c >= '0' && c <= '9' ) ||
+					( c >= 'A' && c <= 'F' );
+
+				if ( bKey )
+				{
+					nColorCount++;
+				}
+
+				nTagCount++;
+			}
+
+			if ( bTagFound &&
+				 nColorCount == 8 )
+			{
+				sString.erase ( i, 10 );
+				continue;
+			}
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -609,25 +990,23 @@ HRESULT CD3DFont::Print ( FLOAT sx, FLOAT sy, DWORD dwColor,
 
 	TCHAR *szStr = ( TCHAR* ) szText;
 
+	SIZE sz;
+	GetTextExtent(szStr, &sz);
+
 	// Center the text block in the viewport
 	if ( dwFlags & D3DFONT_CENTERED_X )
 	{
-		SIZE pSize;
-		GetTextExtent ( szStr, &pSize );
-		sx -= ( FLOAT ) pSize.cx / 2.0f;
+		sx -= ( FLOAT )sz.cx / 2.0f;
 	}
 
 	if ( dwFlags & D3DFONT_CENTERED_Y )
 	{
-		SIZE sz;
-		GetTextExtent ( szStr, &sz );
 		sy -= ( FLOAT ) sz.cy / 2.0f;
 	}
 
 	// Adjust for character spacing
 	sx -= m_dwSpacing;
 	FLOAT fStartX = sx;
-
 	// Fill vertex buffer
 	FONT2DVERTEX* pVertices = NULL;
 	DWORD         dwNumTriangles = 0;
@@ -639,12 +1018,12 @@ HRESULT CD3DFont::Print ( FLOAT sx, FLOAT sy, DWORD dwColor,
 	{
 		int c = *szStr++ & 0xFF;
 
-		if ( c == '{' )
+		if ( c == '{' && dwFlags & D3DFONT_COLORTABLE)
 		{
-			size_t tCount = 0;
-			std::vector<TCHAR> vColor;
-			TCHAR *szStrTag = szStr;
-			bool bTagFound = true;
+			size_t				tCount = 0;
+			std::vector<TCHAR>	vColor;
+			TCHAR				*szStrTag = szStr;
+			bool				bTagFound = true;
 
 			while ( *szStrTag != '}' )
 			{
@@ -682,20 +1061,14 @@ HRESULT CD3DFont::Print ( FLOAT sx, FLOAT sy, DWORD dwColor,
 			}
 		}
 
-		if ( c == '\n' ||
-			 addSize >= m_fWidth )
-		{
-			addSize = 0;
-			sx = fStartX;
-			sy += ( m_fTexCoords [ 0 ] [ 3 ] - m_fTexCoords [ 0 ] [ 1 ] ) * m_dwTexHeight;
-		}
-
 		FLOAT tx1 = m_fTexCoords [ c - 32 ] [ 0 ];
 		FLOAT ty1 = m_fTexCoords [ c - 32 ] [ 1 ];
 		FLOAT tx2 = m_fTexCoords [ c - 32 ] [ 2 ];
 		FLOAT ty2 = m_fTexCoords [ c - 32 ] [ 3 ];
+
 		FLOAT w = ( tx2 - tx1 ) *  m_dwTexWidth / m_fTextScale;
 		FLOAT h = ( ty2 - ty1 ) * m_dwTexHeight / m_fTextScale;
+
 
 		if ( c != ' ' )
 		{
@@ -763,9 +1136,13 @@ HRESULT CD3DFont::Print ( FLOAT sx, FLOAT sy, DWORD dwColor,
 				dwNumTriangles = 0L;
 			}
 		}
-
-		addSize += w - ( 2 * m_dwSpacing );
 		sx += w - ( 2 * m_dwSpacing );
+		if (c == '\n')
+		{
+			sx = fStartX;
+			sy += (m_fTexCoords[0][3] - m_fTexCoords[0][1]) * m_dwTexHeight;
+		}
+
 	}
 
 	// Unlock and render the vertex buffer
@@ -774,65 +1151,6 @@ HRESULT CD3DFont::Print ( FLOAT sx, FLOAT sy, DWORD dwColor,
 		m_pd3dDevice->DrawPrimitive ( D3DPT_TRIANGLELIST, 0, dwNumTriangles );
 
 	return S_OK;
-}
-
-void CD3DFont::CutString ( int iMaxWidth, D3DSTRING &sString )
-{
-	if ( sString.empty () )
-		return;
-
-	SIZE size;
-	GetTextExtent ( sString.c_str (), &size );
-
-	while ( size.cx > iMaxWidth )
-	{
-		if ( sString.empty () )
-			break;
-
-		sString.pop_back ();
-		GetTextExtent ( sString.c_str (), &size );
-	}
-}
-
-void CD3DFont::RemoveColorTableFromString ( D3DSTRING &sString )
-{
-	for ( size_t i = 0; i < sString.size (); i++ )
-	{
-		if ( sString [ i ] == '{' )
-		{
-			bool				bTagFound	= true;
-
-			size_t				nTagCount	= 0;
-			size_t				nColorCount = 0;
-
-			while ( i + nTagCount < sString.size () && sString [ i + nTagCount ] != '}' )
-			{
-				if ( nColorCount > 8 )
-				{
-					bTagFound = false;
-					break;
-				}
-
-				TCHAR c = toupper ( sString [ i + nTagCount ] );
-				bool bKey = ( c >= '0' && c <= '9' ) || 
-					( c >= 'A' && c <= 'F' );
-
-				if ( bKey )
-				{
-					nColorCount++;
-				}
-
-				nTagCount++;
-			}
-
-			if ( bTagFound &&
-				 nColorCount == 8 )
-			{
-				sString.erase ( i, 10 );
-				continue;
-			}
-		}
-	}
 }
 
 CD3DRender::CD3DRender ( int numVertices )
@@ -859,6 +1177,9 @@ CD3DRender::~CD3DRender ( void )
 
 HRESULT CD3DRender::Initialize ( IDirect3DDevice9 *pD3Ddevevice )
 {
+	if (!pD3Ddevevice)
+		return E_FAIL;
+
 	if ( !m_canRender )
 	{
 		m_pd3dDevice = pD3Ddevevice;
@@ -866,6 +1187,10 @@ HRESULT CD3DRender::Initialize ( IDirect3DDevice9 *pD3Ddevevice )
 		if ( FAILED ( m_pd3dDevice->CreateVertexBuffer ( m_maxVertex * sizeof ( LVERTEX ),
 			 D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, 0, D3DPOOL_DEFAULT, &m_pD3Dbuf, NULL ) ) )
 			return E_FAIL;
+
+		D3DCAPS9 caps;
+		m_pd3dDevice->GetDeviceCaps(&caps);
+		m_bAcceptableAntialias = caps.LineCaps & D3DLINECAPS_ANTIALIAS;
 
 		m_canRender = true;
 	}
@@ -1000,11 +1325,13 @@ void CD3DRender::D3DTriangle ( float fX, float fY, float fSize, float fAngle,
 
 	if ( SUCCEEDED ( BeginRender ( D3DPT_TRIANGLEFAN ) ) )
 	{
-		D3DColor ( d3dColor );
+		if (m_bAcceptableAntialias)
+		{
+			m_pd3dDevice->SetRenderState(D3DRS_MULTISAMPLEANTIALIAS, bAntAlias);
+			m_pd3dDevice->SetRenderState(D3DRS_ANTIALIASEDLINEENABLE, bAntAlias);
+		}
 
-		m_pd3dDevice->SetRenderState ( D3DRS_MULTISAMPLEANTIALIAS, bAntAlias );
-		m_pd3dDevice->SetRenderState ( D3DRS_ANTIALIASEDLINEENABLE, bAntAlias );
-
+		D3DColor(d3dColor);
 		for ( size_t i = 0; i < iVertexSize; i++ )
 			D3DVertex2f ( vVector [ i ].x, vVector [ i ].y );
 
@@ -1013,11 +1340,13 @@ void CD3DRender::D3DTriangle ( float fX, float fY, float fSize, float fAngle,
 
 	if ( SUCCEEDED ( BeginRender ( D3DPT_LINESTRIP ) ) )
 	{
-		D3DColor ( d3dOutlineColor );
+		if (m_bAcceptableAntialias)
+		{
+			m_pd3dDevice->SetRenderState(D3DRS_MULTISAMPLEANTIALIAS, bAntAlias);
+			m_pd3dDevice->SetRenderState(D3DRS_ANTIALIASEDLINEENABLE, bAntAlias);
+		}
 
-		m_pd3dDevice->SetRenderState ( D3DRS_MULTISAMPLEANTIALIAS, bAntAlias );
-		m_pd3dDevice->SetRenderState ( D3DRS_ANTIALIASEDLINEENABLE, bAntAlias );
-
+		D3DColor(d3dOutlineColor);
 		for ( size_t i = 0; i < iVertexSize; i++ )
 			D3DVertex2f ( vVector [ i ].x, vVector [ i ].y );
 
@@ -1028,43 +1357,50 @@ void CD3DRender::D3DTriangle ( float fX, float fY, float fSize, float fAngle,
 void CD3DRender::D3DCircle ( float fX, float fY, float fScale,
 							 D3DCOLOR d3dColor, D3DCOLOR d3dOutlineColor, bool bAntAlias )
 {
-	const int iVertexSize = 100;
-	D3DXVECTOR2 vVector [ iVertexSize ];
+	const int nVertexSize = 100;
+	D3DXVECTOR2 vVector [ nVertexSize ];
 
-	float _cos = cos ( 180.f / D3DX_PI );
-	float _sin = sin ( 180.f / D3DX_PI );
-	float fSize = fScale / 2.f;
+	float _cos			= cos ( 180.f / D3DX_PI );
+	float _sin			= sin ( 180.f / D3DX_PI );
+	float fSize			= fScale / 2.f;
+	float fVertexHalf	= static_cast< float >( nVertexSize ) / 2.f;
 
-	for ( size_t i = 0; i < iVertexSize; i++ )
+	for ( size_t i = 0; i < nVertexSize; i++ )
 	{
-		vVector [ i ].x = fX + fScale / 2.f +
-			cos ( 180.f / D3DX_PI ) * ( ( fX - fScale / 2.f * cos ( D3DX_PI * ( i / ( iVertexSize / 2.0f ) ) ) ) - fX ) -
-			sin ( 180.f / D3DX_PI ) * ( ( fY - fScale / 2.f * sin ( D3DX_PI * ( i / ( iVertexSize / 2.f ) ) ) ) - fY );
+		float fAngle = D3DX_PI * ( i / fVertexHalf );
 
-		vVector [ i ].y = fY + fScale / 2.f +
-			sin ( 180.f / D3DX_PI ) * ( ( fX - fScale / 2.f * cos ( D3DX_PI * ( i / ( iVertexSize / 2.0f ) ) ) ) - fX ) +
-			cos ( 180.f / D3DX_PI ) * ( ( fY - fScale / 2.f * sin ( D3DX_PI * ( i / ( iVertexSize / 2.f ) ) ) ) - fY );
+		vVector [ i ].x = fX + fSize + _cos * ( ( fX - fSize * cos ( fAngle ) ) - fX ) -
+			_sin * ( ( fY - fSize * sin ( fAngle ) ) - fY );
+
+		vVector [ i ].y = fY + fSize + _sin * ( ( fX - fSize * cos ( fAngle ) ) - fX ) +
+			_cos * ( ( fY - fSize * sin ( fAngle ) ) - fY );
 	}
 
 	if ( SUCCEEDED ( BeginRender ( D3DPT_TRIANGLEFAN ) ) )
 	{
-		m_pd3dDevice->SetRenderState ( D3DRS_MULTISAMPLEANTIALIAS, bAntAlias );
-		m_pd3dDevice->SetRenderState ( D3DRS_ANTIALIASEDLINEENABLE, bAntAlias );
+		if ( m_bAcceptableAntialias )
+		{
+			m_pd3dDevice->SetRenderState ( D3DRS_MULTISAMPLEANTIALIAS, bAntAlias );
+			m_pd3dDevice->SetRenderState ( D3DRS_ANTIALIASEDLINEENABLE, bAntAlias );
+		}
 
 		D3DColor ( d3dColor );
-		for ( size_t i = 0; i < iVertexSize; i++ )
+		for ( size_t i = 0; i < nVertexSize; i++ )
 			D3DVertex2f ( vVector [ i ].x, vVector [ i ].y );
 
 		EndRender ();
 	}
-	
+
 	if ( SUCCEEDED ( BeginRender ( D3DPT_LINESTRIP ) ) )
 	{
-		m_pd3dDevice->SetRenderState ( D3DRS_MULTISAMPLEANTIALIAS, bAntAlias );
-		m_pd3dDevice->SetRenderState ( D3DRS_ANTIALIASEDLINEENABLE, bAntAlias );
+		if ( m_bAcceptableAntialias )
+		{
+			m_pd3dDevice->SetRenderState ( D3DRS_MULTISAMPLEANTIALIAS, bAntAlias );
+			m_pd3dDevice->SetRenderState ( D3DRS_ANTIALIASEDLINEENABLE, bAntAlias );
+		}
 
 		D3DColor ( d3dOutlineColor );
-		for ( size_t i = 0; i < iVertexSize; i++ )
+		for ( size_t i = 0; i < nVertexSize; i++ )
 			D3DVertex2f ( vVector [ i ].x, vVector [ i ].y );
 
 		EndRender ();
@@ -1098,8 +1434,11 @@ void CD3DRender::D3DBox ( float fX, float fY,
 	// Draw Box
 	if ( SUCCEEDED ( BeginRender ( D3DPT_TRIANGLEFAN ) ) )
 	{
-		m_pd3dDevice->SetRenderState ( D3DRS_MULTISAMPLEANTIALIAS, bAntAlias );
-		m_pd3dDevice->SetRenderState ( D3DRS_ANTIALIASEDLINEENABLE, bAntAlias );
+		if (m_bAcceptableAntialias)
+		{
+			m_pd3dDevice->SetRenderState(D3DRS_MULTISAMPLEANTIALIAS, bAntAlias);
+			m_pd3dDevice->SetRenderState(D3DRS_ANTIALIASEDLINEENABLE, bAntAlias);
+		}
 
 		D3DColor ( d3dColor );
 		for ( size_t i = 0; i < iVertexSize; i++ )
@@ -1111,8 +1450,11 @@ void CD3DRender::D3DBox ( float fX, float fY,
 	// Draw line
 	if ( SUCCEEDED ( BeginRender ( D3DPT_LINESTRIP ) ) )
 	{
-		m_pd3dDevice->SetRenderState ( D3DRS_MULTISAMPLEANTIALIAS, bAntAlias );
-		m_pd3dDevice->SetRenderState ( D3DRS_ANTIALIASEDLINEENABLE, bAntAlias );
+		if (m_bAcceptableAntialias)
+		{
+			m_pd3dDevice->SetRenderState(D3DRS_MULTISAMPLEANTIALIAS, bAntAlias);
+			m_pd3dDevice->SetRenderState(D3DRS_ANTIALIASEDLINEENABLE, bAntAlias);
+		}
 
 		D3DColor ( d3dOutlineColor );
 		for ( size_t i = 0; i < iVertexSize; i++ )
@@ -1127,8 +1469,11 @@ void CD3DRender::D3DLine ( float fStartX, float fStartY, float fEndX, float fEnd
 {
 	if ( SUCCEEDED ( BeginRender ( D3DPT_LINELIST ) ) )
 	{
-		m_pd3dDevice->SetRenderState ( D3DRS_MULTISAMPLEANTIALIAS, bAntAlias );
-		m_pd3dDevice->SetRenderState ( D3DRS_ANTIALIASEDLINEENABLE, bAntAlias );
+		if (m_bAcceptableAntialias)
+		{
+			m_pd3dDevice->SetRenderState(D3DRS_MULTISAMPLEANTIALIAS, bAntAlias);
+			m_pd3dDevice->SetRenderState(D3DRS_ANTIALIASEDLINEENABLE, bAntAlias);
+		}
 
 		D3DColor ( d3dColor );
 		D3DVertex2f ( fStartX, fStartY );
@@ -1182,7 +1527,6 @@ HRESULT CD3DTexture::Initialize ( LPDIRECT3DDEVICE9 pd3dDevice )
 	//Create vertex buffer and set as stream source
 	hr = m_pDevice->CreateVertexBuffer ( sizeof ( TLVERTEX ) * 4, NULL, D3DFVF_TLVERTEX, D3DPOOL_MANAGED,
 										 &m_pVB, NULL );
-
 	if ( FAILED ( hr ) )
 		return hr;
 
@@ -1192,7 +1536,6 @@ HRESULT CD3DTexture::Initialize ( LPDIRECT3DDEVICE9 pd3dDevice )
 		hr = D3DXCreateTextureFromFileEx ( m_pDevice, m_szPath, D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED,
 										   D3DX_FILTER_NONE, D3DX_DEFAULT,
 										   0, NULL, NULL, &m_pTexture );
-
 		if ( FAILED ( hr ) )
 			return hr;
 	}

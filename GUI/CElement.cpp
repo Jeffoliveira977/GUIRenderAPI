@@ -1,52 +1,52 @@
 #include "CGUI.h"
 
-const SIZE GetControlMinSize ( CControl::EControlType eType )
+const SIZE GetControlMinSize ( CWidget::EControlType eType )
 {
 	SIZE size;
 
 	switch ( eType )
 	{
-		case CControl::TYPE_DROPDOWN:
-		case CControl::TYPE_EDITBOX:
-		case CControl::TYPE_BUTTON:
+		case CWidget::TYPE_DROPDOWN:
+		case CWidget::TYPE_EDITBOX:
+		case CWidget::TYPE_BUTTON:
 			size.cx = 80;
 			size.cy = 20;
 			break;
-		case CControl::TYPE_RADIOBUTTON:
-		case CControl::TYPE_CHECKBOX:
+		case CWidget::TYPE_RADIOBUTTON:
+		case CWidget::TYPE_CHECKBOX:
 			size.cx = 80;
 			size.cy = 15;
 			break;
-		case CControl::TYPE_IMAGE:
-		case CControl::TYPE_BOX:
+		case CWidget::TYPE_IMAGE:
+		case CWidget::TYPE_BOX:
 			size.cx = 80;
 			size.cy = 80;
 			break;
-		case CControl::TYPE_TEXTBOX:
-		case CControl::TYPE_LISTBOX:
-		case CControl::TYPE_LISTVIEW:
+		case CWidget::TYPE_TEXTBOX:
+		case CWidget::TYPE_LISTBOX:
+		case CWidget::TYPE_LISTVIEW:
 			size.cy = 100;
 			break;
-		case CControl::TYPE_SCROLLBARHORIZONTAL:
-		case CControl::TYPE_PROGRESSBARHORIZONTAL:
-		case CControl::TYPE_TRACKBARHORIZONTAL:
+		case CWidget::TYPE_SCROLLBARHORIZONTAL:
+		case CWidget::TYPE_PROGRESSBARHORIZONTAL:
+		case CWidget::TYPE_TRACKBARHORIZONTAL:
 			size.cx = 80;
 			size.cy = 18;
 			break;
-		case CControl::TYPE_SCROLLBARVERTICAL:
-		case CControl::TYPE_TRACKBARVERTICAL:
-		case CControl::TYPE_PROGRESSBARVERTICAL:
+		case CWidget::TYPE_SCROLLBARVERTICAL:
+		case CWidget::TYPE_TRACKBARVERTICAL:
+		case CWidget::TYPE_PROGRESSBARVERTICAL:
 			size.cx = 18;
 			size.cy = 80;
 			break;
-		case CControl::TYPE_LABEL:
-			size.cx = 400;
+		case CWidget::TYPE_LABEL:
+			size.cx = 20;
 			break;
-		case CControl::TYPE_TABPANEL:
+		case CWidget::TYPE_TABPANEL:
 			size.cx = 200;
 			size.cy = 200;
 			break;
-		case CControl::TYPE_WINDOW:
+		case CWidget::TYPE_WINDOW:
 			size.cx = 100;
 			size.cy = 100;
 			break;
@@ -58,8 +58,13 @@ const SIZE GetControlMinSize ( CControl::EControlType eType )
 	return size;
 }
 
-void CControl::SetControl ( CDialog *pDialog, EControlType eType )
+void CWidget::SetControl ( CDialog *pDialog, EControlType eType )
 {
+	if( !pDialog )
+	{
+		MessageBox ( 0, _UI ( "CControl::SetControl - Invalid 'pDialog' parameter" ), 0, 0 );
+		return;
+	}
 	// Default state
 	m_eState														= SControlColor::STATE_NORMAL;
 
@@ -80,44 +85,84 @@ void CControl::SetControl ( CDialog *pDialog, EControlType eType )
 	m_bAntAlias														= true;
 	m_bEnabledStateColor											= true;
 	m_bVisible														= true;
-
+	m_bUpdatedFont													= false;
 
 	m_eType															= eType;
 	m_pParent														= NULL;
-	m_pFont															= pDialog->GetFont ();
+
+
+	m_pDialog = pDialog;
+	SetFont(															pDialog->GetFont ());
 	m_pTexture														= NULL;
-	m_pDialog														= pDialog;
 
 	m_minSize														= GetControlMinSize ( eType );
 
 	m_eRelativeX = NO_RELATIVE;
 	m_eRelativeY = NO_RELATIVE;
+
+	m_sFontInfo.m_size.cx = 0;
+	m_sFontInfo.m_size.cy = 0;
+	//m_sFontInfo.m_bBold = false;
+	//ZeroMemory(&m_sFontInfo.m_size, sizeof(SIZE));
+
 	ZeroMemory ( &m_size, sizeof ( SIZE ) );
 	ZeroMemory ( &m_oldParentSize, sizeof ( SIZE ) );
 
-	ZeroMemory ( &m_pos, sizeof ( CPos ) );
-	ZeroMemory ( &m_nonUpdatedPos, sizeof ( CPos ) );
+	ZeroMemory ( &m_pos, sizeof ( CVector ) );
+	ZeroMemory ( &m_nonUpdatedPos, sizeof ( CVector ) );
 
 	ZeroMemory ( &m_rContentBox, sizeof ( SControlRect ) );
 }
 
-void CControl::ClearControlFocus ( void )
-{}
+void CWidget::_SetFocus ( void )
+{
+	if ( m_pParent )
+	{
+		if ( m_pParent->GetType () == TYPE_WINDOW )
+		{
+			reinterpret_cast<CWindow*>( m_pParent )->SetFocussedWidget ( this );
+		}
+		else if ( m_pParent->GetType () == TYPE_TABPANEL )
+		{
+			reinterpret_cast<CTabPanel*>( m_pParent )->SetFocussedControl ( this );
+		}
+	}
+	else
+	{
+		m_pDialog->SetFocussedWidget ( this );
+	}
+}
 
-void CControl::SetFocussedControl ( CControl *pControl )
-{}
+void CWidget::_ClearFocus ( void )
+{
+	if ( m_pParent )
+	{
+		if ( m_pParent->GetType () == TYPE_WINDOW )
+		{
+			reinterpret_cast< CWindow* >( m_pParent )->ClearControlFocus ();
+		}
+		else if ( m_pParent->GetType () == TYPE_TABPANEL )
+		{
+			reinterpret_cast< CTabPanel* >( m_pParent )->ClearControlFocus ();
+		}
+	}
+	else
+	{
+		m_pDialog->ClearFocussedWidget ();
+	}
+}
 
-void CControl::SetColor ( SControlColor sColor )
+void CWidget::SetColor ( SControlColor sColor )
 {
 	m_sControlColor = sColor;
 }
 
-SControlColor CControl::GetColor ( SControlColor sColor )
+SControlColor CWidget::GetColor ( SControlColor sColor )
 {
 	return m_sControlColor;
 }
 
-void CControl::SetParent ( CControl *pParent )
+void CWidget::SetParent ( CWidget *pParent )
 {
 	if ( pParent && ( pParent->GetType () == EControlType::TYPE_TABPANEL || 
 		 pParent->GetType () == EControlType::TYPE_WINDOW ) )
@@ -126,116 +171,101 @@ void CControl::SetParent ( CControl *pParent )
 	}
 }
 
-CControl *CControl::GetParent ( void )
+CWidget *CWidget::GetParent ( void )
 {
 	return m_pParent;
 }
 
-void CControl::SetAction ( tAction pAction )
+void CWidget::SetAction ( tAction pAction )
 {
 	m_pAction = pAction;
 }
 
-tAction CControl::GetAction ( void )
+tAction CWidget::GetAction ( void )
 {
 	return m_pAction;
 }
 
-void CControl::SetPos ( CPos pos )
+void CWidget::SetPos (Pos pos )
 {
-	SetPosX ( pos.GetX () );
-	SetPosY ( pos.GetY () );
+	SetPosX ( pos.m_nX );
+	SetPosY ( pos.m_nY );
 }
 
-void CControl::SetPos ( int nX, int nY )
+void CWidget::SetPos ( int nX, int nY )
 {
-	SetPos ( CPos ( nX, nY ) );
+	SetPos ( Pos ( nX, nY ) );
 }
 
-void CControl::SetPosX ( int nX )
+void CWidget::SetPosX(int nX)
 {
-	m_rBoundingBox.pos.SetX ( nX );
-	m_pos.SetX ( nX );
-	m_nonUpdatedPos.SetX ( nX );
+	m_rBoundingBox.m_pos.m_nX	= nX;
+	m_pos.m_nX					= nX;
+	m_nonUpdatedPos.m_nX		= nX;
 }
 
-void CControl::SetPosY ( int nY )
+void CWidget::SetPosY(int nY)
 {
-	m_rBoundingBox.pos.SetY ( nY );
-	m_pos.SetY ( nY );
-	m_nonUpdatedPos.SetY ( nY );
+	m_rBoundingBox.m_pos.m_nY	= nY;
+	m_pos.m_nY					= nY;
+	m_nonUpdatedPos.m_nY		= nY;
 }
 
-CPos *CControl::GetPos ( void )
+Pos *CWidget::GetPos ( void )
 {
 	return &m_pos;
 }
 
-CPos *CControl::GetUpdatedPos ( void )
+Pos *CWidget::GetUpdatedPos ( void )
 {
-	return &m_rBoundingBox.pos;
+	return &m_rBoundingBox.m_pos;
 }
 
-void CControl::SetWidth ( int iWidth )
+int CWidget::GetWidth(void)
 {
-	if ( m_pParent )
-	{
-		if ( iWidth >= m_pParent->GetSize ().cx  )
-			iWidth = m_pParent->GetSize ().cx ;
-	}
-
-	m_realSize.cx = m_rBoundingBox.size.cx = m_size.cx = max ( m_minSize.cx, iWidth );
+	return m_rBoundingBox.m_size.cx;
 }
 
-int CControl::GetWidth ( void )
+int CWidget::GetHeight(void)
 {
-	return m_rBoundingBox.size.cx;
+	return m_rBoundingBox.m_size.cy;
 }
 
-void CControl::SetHeight ( int iHeight )
+void CWidget::SetWidth ( int iWidth )
 {
-	if ( m_pParent )
-	{
-		int nTitle = 0;
-		if ( m_pParent->GetType () == TYPE_WINDOW )
+	/*if(m_pParent )
+	if ( m_rBoundingBox.m_size.cx >= m_pParent->GetWidth() )
 		{
-			nTitle = static_cast< CWindow* >( m_pParent )->GetTitleBarHeight ();
-		}
-		else if ( m_pParent->GetType () == TYPE_TABPANEL )
-		{
-			nTitle = static_cast< CTabPanel* >( this )->GetTabSizeY ();
-		}
+		iWidth =m_pParent->GetWidth () ;
+		}*/
+	m_realSize.cx = m_rBoundingBox.m_size.cx = m_size.cx = max ( m_minSize.cx, iWidth );
+}
 
-		if ( iHeight >= m_pParent->GetSize ().cy - nTitle )
-			iHeight = m_pParent->GetSize ().cy - nTitle;
-	}
-
+void CWidget::SetHeight ( int iHeight )
+{
 	SIZE size;
 	if ( m_pFont )
 	{
 		m_pFont->GetTextExtent ( GetText (), &size );
 	}
 
-	m_realSize.cy = m_rBoundingBox.size.cy = m_size.cy = max ( iHeight, max ( m_minSize.cy, size.cy ) );
+	m_realSize.cy = m_rBoundingBox.m_size.cy = m_size.cy = max ( iHeight, max ( m_minSize.cy, size.cy ) );
+	UpdateRects ();
 }
 
-int CControl::GetHeight ( void )
-{
-	return m_rBoundingBox.size.cy;
-}
-
-void CControl::SetSize ( SIZE size )
+void CWidget::SetSize ( SIZE size )
 {
 	SetSize ( size.cx, size.cy );
 }
 
-void CControl::SetSize ( int iWidth, int iHeight )
+void CWidget::SetSize ( int iWidth, int iHeight )
 {
 	SetWidth ( iWidth );
 	SetHeight ( iHeight );
+	
 }
 
-void CControl::SetMinSize ( int nMin, int nMax )
+void CWidget::SetMinSize ( int nMin, int nMax )
 {
 	SIZE size = GetControlMinSize ( m_eType );
 	if ( size.cx > nMin )
@@ -245,103 +275,122 @@ void CControl::SetMinSize ( int nMin, int nMax )
 		m_minSize.cy = nMax;
 }
 
-void CControl::SetMinSize ( SIZE size )
+void CWidget::SetMinSize ( SIZE size )
 {
 	SetMinSize ( size.cx, size.cy );
 }
 
-SIZE CControl::GetMinSize ( void )
+SIZE CWidget::GetMinSize ( void )
 {
 	return m_minSize;
 }
 
-bool CControl::IsSizingX ( void )
+bool CWidget::IsSizingX ( void )
 {
-	if ( m_rBoundingBox.size.cx != m_rContentBox.size.cx )
+	if ( m_rBoundingBox.m_size.cx != m_rContentBox.m_size.cx )
 	{
-		m_rContentBox.size.cx = m_rBoundingBox.size.cx;
+		m_rContentBox.m_size.cx = m_rBoundingBox.m_size.cx;
 		return true;
 	}
 
 	return false;
 }
 
-bool CControl::IsSizingY ( void )
+bool CWidget::IsSizingY ( void )
 {
-	if ( m_rBoundingBox.size.cy != m_rContentBox.size.cy )
+	if ( m_rBoundingBox.m_size.cy != m_rContentBox.m_size.cy )
 	{
-		m_rContentBox.size.cy = m_rBoundingBox.size.cy;
+		m_rContentBox.m_size.cy = m_rBoundingBox.m_size.cy;
 		return true;
 	}
 
 	return false;
 }
 
-bool CControl::IsSizing ( void )
+bool CWidget::IsSizing ( void )
 {
 	return ( IsSizingX () ||
 			 IsSizingY () );
 }
 
-bool CControl::IsMovingX ( void )
+bool CWidget::IsMovingX ( void )
 {
-	if ( m_pos.GetX () != m_rContentBox.pos.GetX () )
+	if ( m_pos.m_nY != m_rContentBox.m_pos.m_nY)
 	{
-		m_rContentBox.pos.SetX ( m_pos.GetX() );
+		m_rContentBox.m_pos.m_nX =m_pos.m_nY;
 		return true;
 	}
 
 	return false;
 }
 
-bool CControl::IsMovingY ( void )
+bool CWidget::IsMovingY ( void )
 {
-	if ( m_rBoundingBox.pos.GetY () != m_rContentBox.pos.GetY () )
+	if ( m_rBoundingBox.m_pos.m_nY != m_rContentBox.m_pos.m_nY)
 	{
-		m_rContentBox.pos.SetY ( m_rBoundingBox.pos.GetY () );
+		m_rContentBox.m_pos.m_nY = m_rBoundingBox.m_pos.m_nY;
 		return true;
 	}
 
 	return false;
 }
 
-bool CControl::IsMoving ( void )
+bool CWidget::IsMoving ( void )
 {
 	return ( IsMovingX () ||
 			 IsMovingY () );
 }
 
-SIZE CControl::GetSize ( void )
+SIZE CWidget::GetSize ( void )
 {
-	return m_rBoundingBox.size;
+	return m_rBoundingBox.m_size;
 }
 
-SIZE CControl::GetRealSize ( void )
+SIZE CWidget::GetRealSize ( void )
 {
 	return m_realSize;
 }
 
-bool CControl::CanHaveFocus ( void )
+bool CWidget::CanHaveFocus ( void )
 {
 	return ( m_bVisible && m_bEnabled );
 }
 
-bool CControl::HasFocus ( void )
+bool CWidget::HasFocus ( void )
 {
 	return m_bHasFocus;
 }
 
-void CControl::SetText ( SIMPLEGUI_STRING sString, bool )
+void CWidget::SetText(SIMPLEGUI_STRING sText, bool)
 {
-	m_sText = sString;
+	m_sText = sText;
+	//if (m_sText != sText)
+	//{
+	//	if (!m_sText.empty() || m_realSize.cx == 0)
+	//	{
+	//		SIZE size;
+	//		if(m_pFont)
+	//		m_pFont->GetTextExtent(sText.c_str(), &size);
+	//		m_sFontInfo.m_size.cx = size.cx;
+
+	//		// Update the control size, if the text was changed
+	//		if (m_oldTextSize.cx != size.cx)
+	//		{
+	//			SetWidth(m_rBoundingBox.m_size.cx);
+	//			m_oldTextSize.cx = size.cx;
+	//		}
+	//	}
+
+	//	m_sText = sText;
+	//}
 }
 
-const SIMPLEGUI_CHAR *CControl::GetText ( void )
+const SIMPLEGUI_CHAR *CWidget::GetText ( void )
 {
 	return m_sText.c_str ();
 }
 
-void CControl::Draw ( void )
+void CWidget::Draw ( void )
 {
 	if ( !m_bEnabledStateColor )
 		m_eState = SControlColor::STATE_NORMAL;
@@ -355,178 +404,231 @@ void CControl::Draw ( void )
 		m_eState = SControlColor::STATE_NORMAL;
 }
 
-bool CControl::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
+bool CWidget::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	return false;
 }
 
-bool CControl::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
+bool CWidget::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	return false;
 }
 
-bool CControl::HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam )
+bool CWidget::HandleMouse ( UINT uMsg, CVector pos, WPARAM wParam, LPARAM lParam )
 {
 	return false;
 }
 
-void CControl::SetFont ( const TCHAR *szFontName, DWORD dwHeight, bool bBold )
+void CWidget::SetFont(const SIMPLEGUI_CHAR *szFontName, DWORD dwHeight, bool bBold)
 {
-	if ( !m_pDialog )
+	if ( !m_pDialog /*|| szFontName == NULL*/ )
+	{
+		MessageBox ( 0, _UI ( "CControl::SetFont - Invalid 'm_pDialog' " ), 0, 0 );
 		return;
+	}
 
-	SAFE_DELETE ( m_pFont );
+	SAFE_DELETE(m_pFont);
 
-	m_pDialog->LoadFont ( szFontName, dwHeight, bBold, &m_pFont );
+	m_pDialog->LoadFont(szFontName, dwHeight, bBold, &m_pFont);
+
+	if (!m_pFont)
+	{
+		MessageBox ( 0, _UI ( "CControl::SetFont - error for loading font" ), 0, 0 );
+		return;
+	}
+
+	////SIMPLEGUI_STRCPY(m_sFontInfo.m_szFontName, szFontName);
+	m_sFontInfo.m_bBold = bBold;
+
+	if (m_sFontInfo.m_dwHeight != dwHeight)
+	{
+		SIZE size;
+		m_pFont->GetTextExtent(_UI("Y"), &size);
+		m_sFontInfo.m_size.cy = size.cy;
+
+		SetHeight(m_size.cy);
+		m_sFontInfo.m_dwHeight = dwHeight;
+	}
 }
 
-void CControl::SetFont ( CD3DFont *pFont )
+SFontInfo CWidget::GetFontInfo(void)
+{
+	return SFontInfo();
+}
+
+void CWidget::SetFont(SFontInfo sInfo)
+{
+	//SetFont(sInfo.m_szFontName, sInfo.m_dwHeight, sInfo.m_bBold);
+}
+
+void CWidget::SetFont ( CD3DFont *pFont )
 {
 	SAFE_DELETE ( m_pFont );
 
 	m_pFont = pFont;
+
+	if ( !pFont )
+	{
+		MessageBox ( 0, _UI ( "CControl::SetFont - Invalid 'pFont' parameter" ), 0, 0 );
+		return;
+	}
+
+	//m_sFontInfo.m_bBold = bBold;
+
+	/*if (m_sFontInfo.m_dwHeight != dwHeight)
+	{*/
+	if (m_size.cy)
+	{
+		SIZE size;
+		m_pFont->GetTextExtent(_UI("Y"), &size);
+		m_sFontInfo.m_size.cy = 123;
+
+		SetHeight(m_size.cy);
+	}
+		//m_sFontInfo.m_dwHeight = dwHeight;
+	//}
 }
 
-CD3DFont *CControl::GetFont ( void )
+CD3DFont *CWidget::GetFont ( void )
 {
 	return m_pFont;
 }
 
-void CControl::SetStateColor ( D3DCOLOR d3dColor, SControlColor::SControlState eState )
+void CWidget::SetStateColor ( D3DCOLOR d3dColor, SControlColor::SControlState eState )
 {
 	m_sControlColor.d3dColorBox [ eState ] = d3dColor;
 }
 
-CControl::eRelative CControl::GetRelativeX ( void )
+CWidget::eRelative CWidget::GetRelativeX ( void )
 {
 	return m_eRelativeX;
 }
 
-CControl::eRelative CControl::GetRelativeY ( void )
+CWidget::eRelative CWidget::GetRelativeY ( void )
 {
 	return m_eRelativeY;
 }
 
-void CControl::SetRelativeX ( eRelative eRelativeType )
+void CWidget::SetRelativeX ( eRelative eRelativeType )
 {
 	m_eRelativeX = eRelativeType;
 }
 
-void CControl::SetRelativeY ( eRelative eRelativeType )
+void CWidget::SetRelativeY ( eRelative eRelativeType )
 {
 	m_eRelativeY = eRelativeType;
 }
 
-void CControl::SetEnabled ( bool bEnabled )
+void CWidget::SetEnabled ( bool bEnabled )
 {
 	m_bEnabled = bEnabled;
 }
 
-bool CControl::IsEnabled ( void )
+bool CWidget::IsEnabled ( void )
 {
 	return m_bEnabled;
 }
 
-void CControl::SetVisible ( bool bVisible )
+void CWidget::SetVisible ( bool bVisible )
 {
 	m_bVisible = bVisible;
 }
 
-bool CControl::IsVisible ( void )
+bool CWidget::IsVisible ( void )
 {
 	return m_bVisible;
 }
 
-void CControl::SetEnabledStateColor ( bool bEnable )
+void CWidget::SetEnabledStateColor ( bool bEnable )
 {
 	m_bEnabledStateColor = bEnable;
 }
 
-void CControl::SetAntAlias ( bool bAntAlias )
+void CWidget::SetAntAlias ( bool bAntAlias )
 {
 	m_bAntAlias = bAntAlias;
 }
 
-CControl::EControlType CControl::GetType ( void )
+CWidget::EControlType CWidget::GetType ( void )
 {
 	return m_eType;
 }
 
-void CControl::OnFocusIn ( void )
+void CWidget::OnFocusIn ( void )
 {
 	m_bHasFocus = true;
 }
 
-void CControl::OnFocusOut ( void )
+void CWidget::OnFocusOut ( void )
 {
 	m_bHasFocus = false;
 }
 
-bool CControl::OnMouseOver ( void )
+bool CWidget::OnMouseOver ( void )
 {
 	return m_bMouseOver;
 }
 
-void CControl::OnMouseEnter ( void )
+void CWidget::OnMouseEnter ( void )
 {
 	m_bMouseOver = true;
 }
 
-void CControl::OnMouseLeave ( void )
+void CWidget::OnMouseLeave ( void )
 {
 	m_bMouseOver = false;
 }
 
-void CControl::OnClickEnter ( void )
+void CWidget::OnClickEnter ( void )
 {
 	m_bPressed = true;
 }
 
-void CControl::OnClickLeave ( void )
+void CWidget::OnClickLeave ( void )
 {
 	m_bPressed = false;
 }
 
-bool CControl::OnClickEvent ( void )
+bool CWidget::OnClickEvent ( void )
 {
 	return m_bPressed;
 }
 
-bool CControl::OnMouseButtonDown ( sMouseEvents e )
+bool CWidget::OnMouseButtonDown ( sMouseEvents e )
 {
 	return false;
 }
 
-bool CControl::OnMouseButtonUp ( sMouseEvents e )
+bool CWidget::OnMouseButtonUp ( sMouseEvents e )
 {
 	return false;
 }
 
-bool CControl::OnMouseMove ( CPos pos )
+bool CWidget::OnMouseMove ( CVector pos )
 {
 	return false;
 }
-bool CControl::OnMouseWheel ( int nDelta )
-{
-	return false;
-}
-
-bool CControl::OnKeyDown ( WPARAM wParam )
+bool CWidget::OnMouseWheel ( int nDelta )
 {
 	return false;
 }
 
-bool CControl::OnKeyUp ( WPARAM wParam )
+bool CWidget::OnKeyDown ( WPARAM wParam )
 {
 	return false;
 }
 
-bool CControl::OnKeyCharacter ( WPARAM wParam )
+bool CWidget::OnKeyUp ( WPARAM wParam )
 {
 	return false;
 }
 
-bool CControl::InjectKeyboard ( sKeyEvents e )
+bool CWidget::OnKeyCharacter ( WPARAM wParam )
+{
+	return false;
+}
+
+bool CWidget::InjectKeyboard ( sKeyEvents e )
 {
 	if ( e.uMsg == WM_KEYDOWN )
 	{
@@ -547,7 +649,7 @@ bool CControl::InjectKeyboard ( sKeyEvents e )
 	return false;
 }
 
-bool CControl::InjectMouse ( sMouseEvents e )
+bool CWidget::InjectMouse ( sMouseEvents e )
 {
 	if ( e.eMouseMessages == sMouseEvents::ButtonDown )
 	{
@@ -573,7 +675,7 @@ bool CControl::InjectMouse ( sMouseEvents e )
 	return false;
 }
 
-bool CControl::SendEvent ( eEVentControl event, int params )
+bool CWidget::SendEvent ( eEVentControl event, int params )
 {
 	if ( !m_pAction )
 		return false;
@@ -582,13 +684,197 @@ bool CControl::SendEvent ( eEVentControl event, int params )
 	return true;
 }
 
-void CControl::UpdateRects ( void )
+void CWidget::EnterScissorRect ( void )
 {
-	m_rBoundingBox.size = m_size;
+	m_rScissor = m_rBoundingBox;
+
+	sCissor.SetScissor ( m_pDialog->GetDevice (), m_rScissor.GetRect () );
+}
+
+void CWidget::EnterScissorRect ( SControlRect rRect )
+{
+	m_rScissor = m_rBoundingBox;
+
+	if ( m_pParent )
+	{
+		int nDragOffSet;
+		if ( rRect.m_pos.m_nY + rRect.m_size.cy < m_rScissor.m_pos.m_nY + m_rScissor.m_size.cy - 1 )
+		{
+			m_rScissor.m_size.cy = rRect.m_pos.m_nY + rRect.m_size.cy - m_rScissor.m_pos.m_nY - 1;
+		}
+
+		if ( m_rScissor.m_pos.m_nY < rRect.m_pos.m_nY + 1 )
+		{
+			nDragOffSet = rRect.m_pos.m_nY + 1 - m_rScissor.m_pos.m_nY;
+			m_rScissor.m_pos.m_nY += nDragOffSet;
+			m_rScissor.m_size.cy = m_rScissor.m_size.cy - nDragOffSet;
+		}
+
+		if ( rRect.m_pos.m_nX + rRect.m_size.cx < m_rScissor.m_pos.m_nX + m_rScissor.m_size.cx + 1 )
+		{
+			m_rScissor.m_size.cx = rRect.m_pos.m_nX + rRect.m_size.cx - m_rScissor.m_pos.m_nX - 1;
+		}
+
+		if ( m_rScissor.m_pos.m_nX < rRect.m_pos.m_nX + 1 )
+		{
+			nDragOffSet = rRect.m_pos.m_nX - m_rScissor.m_pos.m_nX + 1;
+			m_rScissor.m_pos.m_nX += nDragOffSet;
+			m_rScissor.m_size.cx = m_rScissor.m_size.cx - nDragOffSet;
+		}
+	}
+
+	sCissor.SetScissor ( m_pDialog->GetDevice (), m_rScissor.GetRect () );
+}
+
+void CWidget::LeaveScissorRect ( void )
+{
+	sCissor.RestoreScissor ();
+}
+
+SControlRect CWidget::GetRect ( void )
+{
+	return m_rBoundingBox;
+}
+
+void CWidget::LinkPos ( Pos pos )
+{
+	Pos newPos = m_nonUpdatedPos + pos;
+
+	if ( m_pParent &&
+		 m_eType != TYPE_WINDOW )
+	{
+		SIZE parentRealSize = m_pParent->GetRealSize ();
+		SIZE parentSize = m_pParent->GetSize ();
+		Pos  parentPos = *m_pParent->GetPos ();
+
+		//if ( m_realSize.cx >= parentRealSize.cx )
+		//{
+		//	SetWidth ( parentRealSize.cx );
+		//}
+
+		int nTitle = 0;
+		if ( m_pParent->GetType () == TYPE_WINDOW )
+		{
+			nTitle = static_cast< CWindow* >( m_pParent )->GetTitleBarHeight ();
+		}
+		else if ( m_pParent->GetType () == TYPE_TABPANEL )
+		{
+			nTitle = static_cast< CTabPanel* >( m_pParent )->GetTabSizeY ();
+		}
+
+		//int nParentHeight = parentRealSize.cy - nTitle;
+		//if ( m_realSize.cy >= nParentHeight )
+		//{
+		//	//SetHeight ( nParentHeight );
+		//	//m_rBoundingBox.m_size.cy = m_size.cy = nParentHeight;
+		//}
+
+		int nScrollSize = 0;
+
+		if ( m_eRelativeX == eRelative::RELATIVE_POS )
+		{
+			CScrollablePane *pScrollbar = m_pParent->GetScrollbar ();
+
+			nScrollSize = pScrollbar && pScrollbar->IsVerScrollbarNeeded () ?
+				pScrollbar->GetVerScrollbar ()->GetWidth () : 0;
+
+			newPos.m_nX += parentSize.cx - nScrollSize - parentRealSize.cx;
+			if ( newPos.m_nX < parentPos.m_nX ||
+				 m_pos.m_nX < 0 )
+			{
+				newPos.m_nX = pos.m_nX;
+			}
+			else if ( m_oldParentSize.cx != parentSize.cx )
+			{
+				if ( m_oldParentSize.cx )
+					m_pos.m_nX = newPos.m_nX - parentPos.m_nX;
+
+				m_oldParentSize.cx = parentSize.cx;
+			}
+		}
+
+		int nControlAreaX = parentPos.m_nX + m_nonUpdatedPos.m_nX + m_size.cx;
+		int nWindowAreaX = parentPos.m_nX + parentRealSize.cx;
+
+		if ( m_eRelativeX != NO_RELATIVE &&
+			 m_oldPos.m_nX != m_nonUpdatedPos.m_nX &&
+			 nControlAreaX > nWindowAreaX )
+		{
+			m_nonUpdatedPos.m_nX -= nControlAreaX - nWindowAreaX;
+			m_pos.m_nX = m_nonUpdatedPos.m_nX;
+			m_oldPos.m_nX = m_nonUpdatedPos.m_nX;
+		}
+
+		if ( m_eRelativeY == eRelative::RELATIVE_POS )
+		{
+			CScrollablePane *pScrollbar = m_pParent->GetScrollbar ();
+
+			nScrollSize = pScrollbar && pScrollbar->IsHorScrollbarNeeded () ?
+				pScrollbar->GetHorScrollbar ()->GetHeight () :
+				0;
+
+			newPos.m_nY += parentSize.cy - nScrollSize - parentRealSize.cy;
+
+			if ( newPos.m_nY < parentPos.m_nY + nTitle ||
+				 m_pos.m_nY < nTitle )
+			{
+				newPos.m_nY = pos.m_nY;
+			}
+			else if ( m_oldParentSize.cy != parentSize.cy )
+			{
+				if ( m_oldParentSize.cy )
+					m_pos.m_nY = newPos.m_nY - parentPos.m_nY;
+
+				m_oldParentSize.cy = parentSize.cy;
+			}
+		}
+
+		int nControlAreaY = parentPos.m_nY + m_nonUpdatedPos.m_nY + m_size.cy;
+		int nWindowAreaY = parentPos.m_nY- nTitle + parentRealSize.cy;
+
+		if ( m_eRelativeY != NO_RELATIVE &&
+			 m_oldPos.m_nY != m_nonUpdatedPos.m_nY &&
+			 nControlAreaY > nWindowAreaY )
+		{
+			m_nonUpdatedPos.m_nY -= nControlAreaY - nWindowAreaY;
+			m_pos.m_nY = m_nonUpdatedPos.m_nY;
+			m_oldPos.m_nY = m_nonUpdatedPos.m_nY;
+		}
+	}
+
+	m_rBoundingBox.m_pos = newPos;
+	UpdateRects ();
+}
+
+void CWidget::UpdateRects ( void )
+{
+	m_rBoundingBox.m_size = m_size;
 
 	if ( m_pParent )
 	{
 		SIZE size = m_pParent->GetSize ();
+
+		if ( m_realSize.cx >= size.cx )
+		{
+			m_rBoundingBox.m_size.cx = m_size.cx = size.cx;
+			//SetWidth ( parentRealSize.cx );
+		}
+
+		int nTitle = 0;
+		if ( m_pParent->GetType () == TYPE_WINDOW )
+		{
+			nTitle = static_cast< CWindow* >( m_pParent )->GetTitleBarHeight ();
+		}
+		else if ( m_pParent->GetType () == TYPE_TABPANEL )
+		{
+			nTitle = static_cast< CTabPanel* >( m_pParent )->GetTabSizeY ();
+		}
+
+		int nParentHeight = size.cy - nTitle;
+		if ( m_realSize.cy >= nParentHeight )
+		{
+			m_rBoundingBox.m_size.cy = m_size.cy = nParentHeight;
+		}
 
 		if ( m_eRelativeX == eRelative::RELATIVE_SIZE )
 		{
@@ -597,161 +883,29 @@ void CControl::UpdateRects ( void )
 			//if ( scrollbar )
 			asd = scrollbar&& scrollbar->IsVerScrollbarNeeded () ? scrollbar->GetVerScrollbar ()->GetWidth () : 0;
 
-			m_size.cx = m_realSize.cx - asd;
-			m_rBoundingBox.size.cx = max ( m_minSize.cx, m_size.cx + ( m_pParent->GetSize ().cx - m_pParent->GetRealSize ().cx ) );
+			//size.cx = m_realSize.cx - asd;
+			m_rBoundingBox.m_size.cx = max ( m_minSize.cx, m_size.cx + ( m_pParent->GetSize ().cx - m_pParent->GetRealSize ().cx ) );
 		}
 
 		if ( m_eRelativeY == eRelative::RELATIVE_SIZE )
 		{
 			int asd = 0;
 			CScrollablePane *scrollbar = m_pParent->GetType () == TYPE_WINDOW ? static_cast< CWindow* >( m_pParent )->GetScrollbar () : NULL;
-			if ( scrollbar )
-			asd =  scrollbar->IsHorScrollbarNeeded () ? scrollbar->GetHorScrollbar ()->GetHeight () : 0;
+			/*if ( scrollbar )
+			asd =  scrollbar->IsHorScrollbarNeeded () ? scrollbar->GetHorScrollbar ()->GetHeight () : 0;*/
 			/*int nControlAreaY = m_pParent->GetPos ()->GetY () + m_nonUpdatedPos.GetY () + m_size.cy;
 			int nWindowAreaY = m_pParent->GetPos ()->GetY () + m_pParent->GetRealSize ().cy;
 			if ( nControlAreaY > nWindowAreaY )*/
-				m_size.cy = m_realSize.cy - asd;
-			m_rBoundingBox.size.cy = max ( m_minSize.cy, m_size.cy + ( m_pParent->GetSize ().cy - m_pParent->GetRealSize ().cy ) );
+			//size.cy = m_realSize.cy - asd;
+			m_rBoundingBox.m_size.cy = max ( m_minSize.cy, m_size.cy + ( m_pParent->GetSize ().cy - m_pParent->GetRealSize ().cy ) );
 		}
 	}
 }
 
-void CControl::SetScissorRect ( SControlRect rRect )
-{
-	m_rScissorCpy = rRect;
-	m_rScissor = m_rBoundingBox;
-
-	int nDragOffSet;
-	if ( rRect.pos.GetY () + rRect.size.cy < m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cy - 1 )
-	{
-		m_rScissor.size.cy = rRect.pos.GetY () + rRect.size.cy - m_rBoundingBox.pos.GetY () - 1;
-	}
-
-	if ( m_rBoundingBox.pos.GetY () < rRect.pos.GetY () + 1 )
-	{
-		nDragOffSet = rRect.pos.GetY () + 1 - m_rBoundingBox.pos.GetY ();
-		m_rScissor.pos.SetY ( m_rScissor.pos.GetY () + nDragOffSet );
-		m_rScissor.size.cy = m_rScissor.size.cy - nDragOffSet;
-	}
-
-	if ( rRect.pos.GetX () + rRect.size.cx < m_rBoundingBox.pos.GetX () + m_rBoundingBox.size.cx + 1 )
-	{
-		m_rScissor.size.cx = rRect.pos.GetX () + rRect.size.cx - m_rBoundingBox.pos.GetX () - 1;
-	}
-
-	if ( m_rBoundingBox.pos.GetX () < rRect.pos.GetX () + 1 )
-	{
-		nDragOffSet = rRect.pos.GetX () - m_rBoundingBox.pos.GetX () + 1;
-		m_rScissor.pos.SetX ( m_rScissor.pos.GetX () + nDragOffSet );
-		m_rScissor.size.cx = m_rScissor.size.cx - nDragOffSet;
-	}
-}
-
-void CControl::EnterScissorRect ( SControlRect rRect )
-{
-	SetScissorRect ( rRect );
-	SetScissor ( m_pDialog->GetDevice (), m_rScissor.GetRect () );
-}
-
-void CControl::LeaveScissorRect ( void )
-{
-	SetScissor ( m_pDialog->GetDevice (), m_rScissorCpy.GetRect () );
-}
-
-SControlRect CControl::GetRect ( void )
-{
-	return m_rBoundingBox;
-}
-
-void CControl::LinkPos ( CPos pos )
-{
-	CPos newPos = m_nonUpdatedPos + pos;
-
-	if ( m_pParent && 
-		 m_eType != TYPE_WINDOW )
-	{
-		SIZE parentSize = m_pParent->GetSize ();
-		CPos parentPos = *m_pParent->GetPos ();
-
-		if ( m_eRelativeX == eRelative::RELATIVE_POS )
-		{
-			newPos.SetX ( newPos.GetX () + parentSize.cx - m_pParent->GetRealSize ().cx );
-			if ( newPos.GetX () <= parentPos.GetX () &&
-				 m_pos.GetX () <= 0 )
-			{
-				newPos.SetX ( pos.GetX () );
-			}
-			else if ( m_oldParentSize.cx != parentSize.cx )
-			{
-				if ( m_oldParentSize.cx )
-					m_pos.SetX ( newPos.GetX () - parentPos.GetX () );
-
-				m_oldParentSize.cx = parentSize.cx;
-			}
-		}
-
-		int nControlAreaX = parentPos.GetX () + m_nonUpdatedPos.GetX () + m_size.cx;
-		int nWindowAreaX = parentPos.GetX () + m_pParent->GetRealSize ().cx;
-
-		if ( m_eRelativeX != NO_RELATIVE && 
-			 m_oldPos.GetX () != m_nonUpdatedPos.GetX () && 
-			 nControlAreaX > nWindowAreaX )
-		{
-			m_nonUpdatedPos.SetX ( m_nonUpdatedPos.GetX () - ( nControlAreaX - nWindowAreaX ) );
-			m_pos.SetX ( m_nonUpdatedPos.GetX () );
-			m_oldPos.SetX ( m_nonUpdatedPos.GetX () );
-		}
-
-		int nTitle = 0;
-		if ( m_pParent->GetType () == TYPE_WINDOW )
-		{
-			nTitle = static_cast< CWindow* >( m_pParent )->GetTitleBarHeight ();
-		}
-		else if ( m_eType == TYPE_TABPANEL )
-		{
-			nTitle = static_cast< CTabPanel* >( this )->GetTabSizeY ();
-		}
-
-		if ( m_eRelativeY == eRelative::RELATIVE_POS )
-		{
-			newPos.SetY ( newPos.GetY () + parentSize.cy - m_pParent->GetRealSize ().cy );
-
-			if ( newPos.GetY () < parentPos.GetY () + nTitle &&
-				 m_pos.GetY () < nTitle  )
-			{
-				newPos.SetY ( pos.GetY () );
-
-			}
-			else if ( m_oldParentSize.cy != parentSize.cy )
-			{
-				if ( m_oldParentSize.cy )
-					m_pos.SetY ( newPos.GetY () - parentPos.GetY () );
-
-				m_oldParentSize.cy = parentSize.cy;
-			}
-		}
-
-		int nControlAreaY = parentPos.GetY () + m_nonUpdatedPos.GetY () + m_size.cy;
-		int nWindowAreaY = parentPos.GetY () - nTitle + m_pParent->GetRealSize ().cy;
-
-		if ( m_eRelativeY != NO_RELATIVE && 
-			 m_oldPos.GetY () != m_nonUpdatedPos.GetY () && 
-			 nControlAreaY > nWindowAreaY )
-		{
-			m_nonUpdatedPos.SetY ( m_nonUpdatedPos.GetY () - ( nControlAreaY - nWindowAreaY ) );
-			m_pos.SetY ( m_nonUpdatedPos.GetY () );
-			m_oldPos.SetY ( m_nonUpdatedPos.GetY () );
-		}
-	}
-	
-	m_rBoundingBox.pos = newPos;
-	UpdateRects ();
-}
-
-bool CControl::ContainsRect ( CPos pos )
+bool CWidget::ContainsPoint ( Pos pos )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
-	return m_rBoundingBox.InControlArea ( pos );
+	return m_rBoundingBox.ContainsPoint ( pos );
 }

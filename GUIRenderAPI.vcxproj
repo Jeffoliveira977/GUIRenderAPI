@@ -76,7 +76,7 @@
     <LibraryPath>D3D9Headers;$(LibraryPath)</LibraryPath>
     <IncludePath>D3D9Headers;$(IncludePath)</IncludePath>
     <ReferencePath>D3D9Headers;$(ReferencePath)</ReferencePath>
-    <OutDir>..\..\..\Documents\GTA San Andreas\scripts</OutDir>
+    <OutDir>..\..\..\Documents\GTA San Andreas</OutDir>
     <TargetExt>.asi</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -95,7 +95,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;GUIRENDERAPI_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;GUIRENDERAPI_EXPORTS;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <MinimalRebuild>false</MinimalRebuild>
       <ProgramDataBaseFileName />
@@ -196,6 +196,7 @@
     <ClInclude Include="GUI\ScrollablePane.h" />
     <ClInclude Include="GUI\Scrollbar.h" />
     <ClInclude Include="GUI\ScrollbarHorizontal.h" />
+    <ClInclude Include="GUI\TextUtils.h" />
     <ClInclude Include="GUI\TrackBar.h" />
     <ClInclude Include="GUI\unistr.h" />
     <ClInclude Include="Resource.h" />
@@ -235,6 +236,7 @@
     <ClCompile Include="GUI\ScrollablePane.cpp" />
     <ClCompile Include="GUI\Scrollbar.cpp" />
     <ClCompile Include="GUI\ScrollbarHorizontal.cpp" />
+    <ClCompile Include="GUI\TextUtils.cpp" />
     <ClCompile Include="GUI\TrackBar.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

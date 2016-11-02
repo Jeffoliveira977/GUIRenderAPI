@@ -153,7 +153,7 @@ typedef enum _D3DXREGISTER_SET
     D3DXRS_FLOAT4,
     D3DXRS_SAMPLER,
 
-    // force 32-bit size enum
+    // force 32-bit m_size enum
     D3DXRS_FORCE_DWORD = 0x7fffffff
 
 } D3DXREGISTER_SET, *LPD3DXREGISTER_SET;
@@ -172,7 +172,7 @@ typedef enum _D3DXPARAMETER_CLASS
     D3DXPC_OBJECT,
     D3DXPC_STRUCT,
 
-    // force 32-bit size enum
+    // force 32-bit m_size enum
     D3DXPC_FORCE_DWORD = 0x7fffffff
 
 } D3DXPARAMETER_CLASS, *LPD3DXPARAMETER_CLASS;
@@ -204,7 +204,7 @@ typedef enum _D3DXPARAMETER_TYPE
     D3DXPT_PIXELFRAGMENT,
     D3DXPT_VERTEXFRAGMENT,
 
-    // force 32-bit size enum
+    // force 32-bit m_size enum
     D3DXPT_FORCE_DWORD = 0x7fffffff
 
 } D3DXPARAMETER_TYPE, *LPD3DXPARAMETER_TYPE;
@@ -243,7 +243,7 @@ typedef struct _D3DXCONSTANT_DESC
     UINT Elements;                      // Number of array elements
     UINT StructMembers;                 // Number of structure member sub-parameters
 
-    UINT Bytes;                         // Data size, in bytes
+    UINT Bytes;                         // Data m_size, in bytes
     LPCVOID DefaultValue;               // Pointer to default value
 
 } D3DXCONSTANT_DESC, *LPD3DXCONSTANT_DESC;
@@ -416,7 +416,7 @@ typedef enum _D3DXINCLUDE_TYPE
     D3DXINC_LOCAL,
     D3DXINC_SYSTEM,
 
-    // force 32-bit size enum
+    // force 32-bit m_size enum
     D3DXINC_FORCE_DWORD = 0x7fffffff
 
 } D3DXINCLUDE_TYPE, *LPD3DXINCLUDE_TYPE;
@@ -742,7 +742,7 @@ LPCSTR WINAPI
 //      Returns a pointer to the comment data (not including comment token
 //      and FourCC).  Can be NULL.
 //  pSizeInBytes
-//      Returns the size of the comment data in bytes.  Can be NULL.
+//      Returns the m_size of the comment data in bytes.  Can be NULL.
 //----------------------------------------------------------------------------
 
 HRESULT WINAPI
@@ -756,7 +756,7 @@ HRESULT WINAPI
 //----------------------------------------------------------------------------
 // D3DXGetShaderSize:
 // ------------------
-// Returns the size of the shader byte-code, in bytes.
+// Returns the m_size of the shader byte-code, in bytes.
 //
 // Parameters:
 //  pFunction
@@ -982,7 +982,7 @@ HRESULT WINAPI
 //----------------------------------------------------------------------------
 // D3DXCreateFragmentLinker:
 // -------------------------
-// Creates a fragment linker with a given cache size.  The interface returned 
+// Creates a fragment linker with a given cache m_size.  The interface returned 
 // can be used to link together shader fragments.  (both HLSL & ASM fragements)
 //
 // Parameters:

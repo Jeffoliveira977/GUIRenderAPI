@@ -16,9 +16,9 @@ void CPictureBox::Draw ( void )
 	if ( !m_bVisible )
 		return;
 
-	CControl::Draw ();
+	CWidget::Draw ();
 
-	m_pTexture->Draw ( m_rBoundingBox.pos.GetX (), m_rBoundingBox.pos.GetY (), m_rBoundingBox.size.cx * 1.5, m_rBoundingBox.size.cy*1.9, 0.f, m_sControlColor.d3dColorBox [ m_eState ] );
+	m_pTexture->Draw ( m_rBoundingBox.m_pos.m_nX, m_rBoundingBox.m_pos.m_nY, m_rBoundingBox.m_size.cx * 1.5, m_rBoundingBox.m_size.cy * 1.9, 0.f, m_sControlColor.d3dColorBox [ m_eState ] );
 }
 
 bool CPictureBox::OnKeyDown ( WPARAM wParam )
@@ -57,13 +57,12 @@ bool CPictureBox::OnMouseButtonDown ( sMouseEvents e )
 
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		if ( m_rBoundingBox.ContainsPoint ( e.pos ) )
 		{
 			// Pressed while inside the control
 			m_bPressed = true;
 
-			if ( m_pParent && !m_bHasFocus )
-				m_pParent->SetFocussedControl ( this );
+			_SetFocus ();
 
 			return true;
 		}
@@ -78,11 +77,10 @@ bool CPictureBox::OnMouseButtonUp ( sMouseEvents e )
 	{
 		m_bPressed = false;
 
-		if ( m_pParent )
-			m_pParent->ClearControlFocus ();
+		_ClearFocus ();
 
 		// Button click
-		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		if ( m_rBoundingBox.ContainsPoint ( e.pos ) )
 			SendEvent ( EVENT_CONTROL_CLICKED, true );
 
 		return true;

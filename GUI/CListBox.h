@@ -2,7 +2,7 @@
 
 #include "CGUI.h"
 
-class CListBox : public CControl
+class CListBox : public CWidget
 {
 public:
 	CListBox ( CDialog *pDialog );
@@ -42,11 +42,11 @@ public:
 	bool OnMouseButtonDown ( sMouseEvents e );
 	bool OnMouseButtonUp ( sMouseEvents e );
 
-	bool OnMouseMove ( CPos pos );
+	bool OnMouseMove ( CVector pos );
 	bool OnMouseWheel ( int zDelta );
 
 	void UpdateRects ( void );
-	bool ContainsRect ( CPos pos );
+	bool ContainsPoint ( CVector pos );
 
 private:
 	CEntryList *m_pEntryList;

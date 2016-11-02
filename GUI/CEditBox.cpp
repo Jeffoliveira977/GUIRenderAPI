@@ -64,7 +64,7 @@ void CUniBuffer::Uninitialize ()
 //--------------------------------------------------------------------------------------
 bool CUniBuffer::SetBufferSize ( int nNewSize )
 {
-	// If the current size is already the maximum allowed,
+	// If the current m_size is already the maximum allowed,
 	// we can't possibly allocate more.
 	if ( m_nBufferSize == 0xFFFF )
 		return false;
@@ -72,7 +72,7 @@ bool CUniBuffer::SetBufferSize ( int nNewSize )
 	int nAllocateSize = ( nNewSize == -1 || nNewSize < m_nBufferSize * 2 ) ? ( m_nBufferSize ? m_nBufferSize *
 																			   2 : 256 ) : nNewSize * 2;
 
-	// Cap the buffer size at the maximum allowed.
+	// Cap the buffer m_size at the maximum allowed.
 	if ( nAllocateSize > 0xFFFF )
 	{
 		nAllocateSize = 0xFFFF;
@@ -113,11 +113,11 @@ HRESULT CUniBuffer::Analyse ()
 	if ( !m_pFontNode )
 		return E_FAIL;
 
-	HDC hDC = m_pFontNode->GetHDC ();
+	HDC hDC = m_pFontNode->GetDC ();
 	HRESULT hr = _ScriptStringAnalyse ( hDC,
 										m_pwszBuffer,
-										lstrlenW ( m_pwszBuffer ) + 1,  // NULL is also analyzed.
-										lstrlenW ( m_pwszBuffer ) * 3 / 2 + 16,
+										SIMPLEGUI_STRLEN ( m_pwszBuffer ) + 1,  // NULL is also analyzed.
+										SIMPLEGUI_STRLEN ( m_pwszBuffer ) * 3 / 2 + 16,
 										-1,
 										SSA_BREAK | SSA_GLYPHS | SSA_FALLBACK | SSA_LINK,
 										0,
@@ -198,7 +198,7 @@ bool CUniBuffer::InsertChar ( int nIndex, WCHAR wChar )
 	if ( GetTextSize () + 1 >= DXUT_MAX_EDITBOXLENGTH )
 		return false;
 
-	if ( lstrlenW ( m_pwszBuffer ) + 1 >= m_nBufferSize )
+	if ( SIMPLEGUI_STRLEN ( m_pwszBuffer ) + 1 >= m_nBufferSize )
 	{
 		if ( !SetBufferSize ( -1 ) )
 			return false;  // out of memory
@@ -207,7 +207,7 @@ bool CUniBuffer::InsertChar ( int nIndex, WCHAR wChar )
 	assert ( m_nBufferSize >= 2 );
 
 	// Shift the characters after the index, start by copying the null terminator
-	WCHAR* dest = m_pwszBuffer + lstrlenW ( m_pwszBuffer ) + 1;
+	WCHAR* dest = m_pwszBuffer + SIMPLEGUI_STRLEN ( m_pwszBuffer ) + 1;
 	WCHAR* stop = m_pwszBuffer + nIndex;
 	WCHAR* src = dest - 1;
 
@@ -230,12 +230,12 @@ bool CUniBuffer::InsertChar ( int nIndex, WCHAR wChar )
 //--------------------------------------------------------------------------------------
 bool CUniBuffer::RemoveChar ( int nIndex )
 {
-	if ( !lstrlenW ( m_pwszBuffer ) ||
+	if ( !SIMPLEGUI_STRLEN ( m_pwszBuffer ) ||
 		 nIndex < 0 ||
-		 nIndex >= lstrlenW ( m_pwszBuffer ) )
+		 nIndex >= SIMPLEGUI_STRLEN ( m_pwszBuffer ) )
 		return false;  // Invalid index
 
-	MoveMemory ( m_pwszBuffer + nIndex, m_pwszBuffer + nIndex + 1, sizeof ( WCHAR ) * ( lstrlenW ( m_pwszBuffer ) - nIndex ) );
+	MoveMemory ( m_pwszBuffer + nIndex, m_pwszBuffer + nIndex + 1, sizeof ( WCHAR ) * ( SIMPLEGUI_STRLEN ( m_pwszBuffer ) - nIndex ) );
 	m_bAnalyseRequired = true;
 	return true;
 }
@@ -251,25 +251,25 @@ bool CUniBuffer::InsertString ( int nIndex, const WCHAR* pStr, int nCount )
 	if ( nIndex < 0 )
 		return false;
 
-	if ( nIndex > lstrlenW ( m_pwszBuffer ) )
+	if ( nIndex > SIMPLEGUI_STRLEN ( m_pwszBuffer ) )
 		return false;  // invalid index
 
 	if ( -1 == nCount )
 	{
-		nCount = lstrlenW ( pStr );
+		nCount = SIMPLEGUI_STRLEN ( pStr );
 	}
 
 	// Check for maximum length allowed
 	if ( GetTextSize () + nCount >= DXUT_MAX_EDITBOXLENGTH )
 		return false;
 
-	if ( lstrlenW ( m_pwszBuffer ) + nCount >= m_nBufferSize )
+	if ( SIMPLEGUI_STRLEN ( m_pwszBuffer ) + nCount >= m_nBufferSize )
 	{
-		if ( !SetBufferSize ( lstrlenW ( m_pwszBuffer ) + nCount + 1 ) )
+		if ( !SetBufferSize ( SIMPLEGUI_STRLEN ( m_pwszBuffer ) + nCount + 1 ) )
 			return false;  // out of memory
 	}
 
-	MoveMemory ( m_pwszBuffer + nIndex + nCount, m_pwszBuffer + nIndex, sizeof ( WCHAR ) * ( lstrlenW ( m_pwszBuffer ) - nIndex + 1 ) );
+	MoveMemory ( m_pwszBuffer + nIndex + nCount, m_pwszBuffer + nIndex, sizeof ( WCHAR ) * ( SIMPLEGUI_STRLEN ( m_pwszBuffer ) - nIndex + 1 ) );
 	CopyMemory ( m_pwszBuffer + nIndex, pStr, nCount * sizeof ( WCHAR ) );
 	m_bAnalyseRequired = true;
 
@@ -297,7 +297,7 @@ bool CUniBuffer::SetText ( TCHAR* wszText )
 	// Check again in case out of memory occurred inside while loop.
 	if ( GetBufferSize () >= nRequired )
 	{
-		wcscpy_s ( m_pwszBuffer, GetBufferSize (), wszText );
+		SIMPLEGUI_STRCPY_S ( m_pwszBuffer, GetBufferSize (), wszText );
 		m_bAnalyseRequired = true;
 		return true;
 	}
@@ -330,6 +330,7 @@ HRESULT CUniBuffer::CPtoX ( int nCP, BOOL bTrail, int* pX )
 HRESULT CUniBuffer::XtoCP ( int nX, int* pCP, int* pnTrail )
 {
 	assert ( pCP && pnTrail );
+
 	*pCP = 0; 
 	*pnTrail = FALSE;  // Default
 
@@ -351,9 +352,9 @@ HRESULT CUniBuffer::XtoCP ( int nX, int* pCP, int* pnTrail )
 	{
 		*pCP = 0; *pnTrail = FALSE;
 	}
-	else if ( *pCP > lstrlenW ( m_pwszBuffer ) && *pnTrail == FALSE )
+	else if ( *pCP > SIMPLEGUI_STRLEN ( m_pwszBuffer ) && *pnTrail == FALSE )
 	{
-		*pCP = lstrlenW ( m_pwszBuffer ); *pnTrail = TRUE;
+		*pCP = SIMPLEGUI_STRLEN ( m_pwszBuffer ); *pnTrail = TRUE;
 	}
 
 	return hr;
@@ -513,10 +514,10 @@ void CEditBox::PlaceCaret ( int nCP )
 	else
 	{	// If the right of the character is bigger than the offset of the control's
 		// right edge, we need to scroll right to this character.
-		if ( nX2 > nX1st + m_rText.size.cx )
+		if ( nX2 > nX1st + m_rText.m_size.cx )
 		{
 			// Compute the X of the new left-most pixel
-			int nXNewLeft = nX2 - m_rText.size.cx;
+			int nXNewLeft = nX2 - m_rText.m_size.cx;
 
 			// Compute the char position of this character
 			int nCPNew1st, nNewTrail;
@@ -557,6 +558,7 @@ void CEditBox::CopyToClipboard ()
 				{
 					CopyMemory ( pwszText, m_Buffer.GetBuffer () + nFirst, ( nLast - nFirst ) * sizeof ( TCHAR ) );
 				}
+
 				pwszText [ nLast - nFirst ] = L'\0';  // Terminate it
 				GlobalUnlock ( hBlock );
 			}
@@ -591,6 +593,7 @@ void CEditBox::PasteFromClipboard ()
 				{
 					PlaceCaret ( m_nCaret + SIMPLEGUI_STRLEN ( pwszText ) );
 				}
+
 				m_nSelStart = m_nCaret;
 				GlobalUnlock ( handle );
 			}
@@ -649,9 +652,15 @@ void CEditBox::DeleteSelectionText ()
 		m_Buffer.RemoveChar ( nFirst );
 }
 
+void CEditBox::ResetCaretBlink ( void )
+{
+	m_bCaretOn = true;
+	m_timer.Start ( 0.6f );
+}
+
 void CEditBox::Draw ()
 {
-	CControl::Draw ();
+	CWidget::Draw ();
 
 	if ( m_bHasFocus )
 	{
@@ -686,7 +695,6 @@ void CEditBox::Draw ()
 	// Render the selection rectangle
 	if ( m_nCaret != m_nSelStart && m_bHasFocus )
 	{
-		RECT rcSelection;
 		int nSelLeftX = nCaretX;
 		int	nSelRightX = nSelStartX;
 
@@ -698,24 +706,31 @@ void CEditBox::Draw ()
 			nSelRightX = nTemp;
 		}
 
-		SetRect ( &rcSelection, nSelLeftX, m_rText.GetRect ().top, nSelRightX, m_rText.GetRect ().bottom );
-		OffsetRect ( &rcSelection, m_rText.GetRect ().left - nXFirst, 0 );
-		IntersectRect ( &rcSelection, &m_rText.GetRect (), &rcSelection );
+		SControlRect rSelection ( nSelLeftX + m_rText.m_pos.m_nX - nXFirst, m_rText.m_pos.m_nY,
+								  nSelRightX - nSelLeftX, m_rText.m_size.cy );
 
-		SControlRect rSelecion ( rcSelection );
-		m_pDialog->DrawBox ( rSelecion, D3DCOLOR_RGBA ( 40, 40, 40, 255 ), 0, false );
+		m_pDialog->DrawBox ( rSelection, D3DCOLOR_RGBA ( 40, 40, 40, 255 ), D3DCOLOR_RGBA ( 40, 40, 40, 255 ), false );
 
-		// Insert color key to string
-		str.insert ( MinState ( m_nSelStart, m_nCaret, max ( m_nSelStart - m_nFirstVisible, 0 ), min ( m_nSelStart - m_nFirstVisible, str.size () ) ),
-					 MinState ( m_nSelStart, m_nCaret, _UI ( "{FFFFFFFF}" ), _UI ( "{00000000}" ) ) ); // Insert at begin selection
+		int nMinSelStart = m_nSelStart - m_nFirstVisible;
+		int nMinCaret = m_nCaret - m_nFirstVisible;
 
-		str.insert ( MinState ( m_nSelStart, m_nCaret, min ( m_nCaret + 10 - m_nFirstVisible, str.size () ), m_nCaret - m_nFirstVisible ),
-					 MinState ( m_nSelStart, m_nCaret, _UI ( "{00000000}" ), _UI ( "{FFFFFFFF}" ) ) ); // Insert at end selection
+		SIMPLEGUI_STRING strColBlk = _UI ( "{00000000}" );
+		SIMPLEGUI_STRING strColWht = _UI ( "{FFFFFFFF}" );
+
+		SKeyColor sBeginKey = m_nSelStart < m_nCaret ? SKeyColor ( max ( nMinSelStart, 0 ), strColWht ) :
+			SKeyColor ( min ( nMinSelStart, str.size () ), strColBlk );
+
+		str.insert ( sBeginKey.nPos, sBeginKey.strColor );
+
+		SKeyColor sEndKey = m_nSelStart < m_nCaret ? SKeyColor ( min ( nMinCaret + 10, str.size () ), strColBlk ) :
+			SKeyColor ( nMinCaret, strColWht );
+
+		str.insert ( sEndKey.nPos, sEndKey.strColor );
 	}
 
 	SIZE size;
-	m_pFont->GetTextExtent ( GetText (), &size );
-	m_pDialog->DrawFont ( SControlRect ( m_rText.pos.GetX (), m_rText.pos.GetY () + m_rText.size.cy / 2 - ( size.cy / 2 ) ),
+	m_pFont->GetTextExtent ( _UI ( "Y" ), &size );
+	m_pDialog->DrawFont ( SControlRect ( m_rText.m_pos.m_nX, m_rText.m_pos.m_nY + m_rText.m_size.cy / 2 - ( size.cy / 2 ) ),
 						  m_sControlColor.d3dColorSelectedFont, str.c_str (), D3DFONT_COLORTABLE, m_pFont );
 
 	if ( !m_timer.Running () )
@@ -727,7 +742,7 @@ void CEditBox::Draw ()
 	// Render the caret if this control has the focus
 	if ( m_bHasFocus && m_bCaretOn )
 	{
-		int nX = m_rText.pos.GetX () - nXFirst + nCaretX;
+		int nX = m_rText.m_pos.m_nX - nXFirst + nCaretX;
 
 		CD3DRender *pRender = m_pDialog->GetRenderer ();
 
@@ -739,19 +754,20 @@ void CEditBox::Draw ()
 			 m_nCaret < str.size () )
 		{
 			TCHAR szStr [ 2 ] = { str [ m_nCaret ] , 0 };
-			GetTextExtentPoint32 ( m_pFont->GetHDC (), szStr, 1, &size );
-			pRender->D3DBox ( nX, m_rText.pos.GetY (), size.cx - 1, m_rText.size.cy, 0, D3DCOLOR_RGBA ( 20, 20, 20, 200 ), 0, false );
+			GetTextExtentPoint32 ( m_pFont->GetDC (), szStr, 1, &size );
+			//m_pFont->GetTextExtent ( szStr, &size );
+			pRender->D3DBox ( nX, m_rText.m_pos.m_nY, size.cx - 1, m_rText.m_size.cy, 0, D3DCOLOR_RGBA ( 20, 20, 20, 200 ), 0, false );
 		}
 		else
 		{
-			pRender->D3DLine ( nX - 1, m_rText.pos.GetY (), nX - 1, m_rText.pos.GetY () + m_rText.size.cy, 0xFF000000, true );
+			pRender->D3DLine ( nX , m_rText.m_pos.m_nY, nX , m_rText.m_pos.m_nY + m_rText.m_size.cy, 0xFF000000, true );
 		}
 	}
 }
 
 void CEditBox::OnClickLeave ( void )
 {
-	CControl::OnClickLeave ();
+	CWidget::OnClickLeave ();
 	m_bMouseDrag  = false;
 }
 
@@ -762,33 +778,40 @@ bool CEditBox::OnMouseButtonDown ( sMouseEvents e )
 
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		// Determine the character corresponding to the coordinates.
-		int nCP, nTrail, nX1st;
-		m_Buffer.CPtoX ( m_nFirstVisible, FALSE, &nX1st );  // X offset of the 1st visible char
-		if ( SUCCEEDED ( m_Buffer.XtoCP ( e.pos.GetX () - m_rText.pos.GetX () + nX1st, &nCP, &nTrail ) ) )
+		if ( m_pDialog->GetMouse ()->GetLeftButton () == 2 )
 		{
-			// Cap at the NULL character.
-			if ( nTrail && nCP < m_Buffer.GetTextSize () )
-			{
-				PlaceCaret ( nCP + 1 );
-			}
-			else
-			{
-				PlaceCaret ( nCP );
-			}
+			m_nSelStart = CTextUtils::getWordStartIdx ( m_Buffer.GetBuffer (),
+				( m_nCaret == m_Buffer.GetBufferSize () ) ? m_nCaret : m_nCaret + 1 );
 
-			m_nSelStart = m_nCaret;
+			PlaceCaret ( CTextUtils::getNextWordStartIdx ( m_Buffer.GetBuffer (), m_nCaret ));
+		}
+		else
+		{
+			// Determine the character corresponding to the coordinates.
+			int nCP, nTrail, nX1st;
+			m_Buffer.CPtoX ( m_nFirstVisible, FALSE, &nX1st );  // X offset of the 1st visible char
+			if ( SUCCEEDED ( m_Buffer.XtoCP ( e.pos.m_nX - m_rText.m_pos.m_nX + nX1st, &nCP, &nTrail ) ) )
+			{
+				// Cap at the NULL character.
+				if ( nTrail && nCP < m_Buffer.GetTextSize () )
+				{
+					PlaceCaret ( nCP + 1 );
+				}
+				else
+				{
+					PlaceCaret ( nCP );
+				}
+
+				m_nSelStart = m_nCaret;
+			}
 		}
 
-		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		if ( m_rBoundingBox.ContainsPoint ( e.pos ) )
 		{
 			// Pressed while inside the control
 			m_bPressed = m_bMouseDrag = true;
 
-			if ( m_pParent  )
-			{
-				m_pParent->SetFocussedControl ( this );
-			}
+			_SetFocus ();
 			return true;
 		}
 	}
@@ -802,14 +825,14 @@ bool CEditBox::OnMouseButtonUp ( sMouseEvents e )
 	return false;
 }
 
-bool CEditBox::OnMouseMove ( CPos pos )
+bool CEditBox::OnMouseMove ( Pos pos )
 {
 	if ( m_bMouseDrag )
 	{
 		// Determine the character corresponding to the coordinates.
 		int nCP, nTrail, nX1st;
 		m_Buffer.CPtoX ( m_nFirstVisible, FALSE, &nX1st );  // X offset of the 1st visible char
-		if ( SUCCEEDED ( m_Buffer.XtoCP ( pos.GetX () - m_rText.pos.GetX () + nX1st, &nCP, &nTrail ) ) )
+		if ( SUCCEEDED ( m_Buffer.XtoCP ( pos.m_nX - m_rText.m_pos.m_nX + nX1st, &nCP, &nTrail ) ) )
 		{
 			// Cap at the NULL character.
 			if ( nTrail && nCP < m_Buffer.GetTextSize () )
@@ -853,6 +876,7 @@ bool CEditBox::OnKeyDown ( WPARAM wParam )
 			}
 
 			bHandled = true;
+			ResetCaretBlink ();
 			break;
 		}
 
@@ -868,6 +892,7 @@ bool CEditBox::OnKeyDown ( WPARAM wParam )
 			}
 
 			bHandled = true;
+			ResetCaretBlink ();
 			break;
 		}
 
@@ -892,7 +917,8 @@ bool CEditBox::OnKeyDown ( WPARAM wParam )
 		}
 
 		case VK_DELETE:
-		{// Check if there is a text selection.
+		{
+			// Check if there is a text selection.
 			if ( m_nCaret != m_nSelStart )
 			{
 				DeleteSelectionText ();
@@ -908,6 +934,7 @@ bool CEditBox::OnKeyDown ( WPARAM wParam )
 			}
 
 			bHandled = true;
+			ResetCaretBlink ();
 			break;
 		}
 
@@ -933,6 +960,7 @@ bool CEditBox::OnKeyDown ( WPARAM wParam )
 			}
 
 			bHandled = true;
+			ResetCaretBlink ();
 			break;
 		}
 
@@ -958,6 +986,7 @@ bool CEditBox::OnKeyDown ( WPARAM wParam )
 			}
 
 			bHandled = true;
+			ResetCaretBlink ();
 			break;
 		}
 
@@ -1005,6 +1034,7 @@ bool CEditBox::OnKeyCharacter ( WPARAM wParam )
 			}
 
 			bHandled = true;
+			ResetCaretBlink ();
 			break;
 		}
 
@@ -1110,6 +1140,7 @@ bool CEditBox::OnKeyCharacter ( WPARAM wParam )
 
 			SendEvent ( EVENT_CONTROL_CHANGE, true );
 			bHandled = true;
+			ResetCaretBlink ();
 		}
 	}
 
@@ -1118,20 +1149,21 @@ bool CEditBox::OnKeyCharacter ( WPARAM wParam )
 
 void CEditBox::UpdateRects ( void )
 {
-	CControl::UpdateRects ();
+	CWidget::UpdateRects ();
 
 	m_rText = m_rBoundingBox;
-	m_rText.pos.SetX ( m_rText.pos.GetX () + 4 );
-	m_rText.pos.SetY ( m_rText.pos.GetY () + 2 );
-	m_rText.size.cx -= 6;
-	m_rText.size.cy -= 3;
+	m_rText.m_pos.m_nX += 4;
+	m_rText.m_pos.m_nY += 2;
+	
+	m_rText.m_size.cx -= 6;
+	m_rText.m_size.cy -= 3;
 }
 
-bool CEditBox::ContainsRect ( CPos pos )
+bool CEditBox::ContainsPoint ( Pos pos )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
-	return ( m_rBoundingBox.InControlArea ( pos ) || 
-			 m_rText.InControlArea ( pos ) );
+	return ( m_rBoundingBox.ContainsPoint ( pos ) || 
+			 m_rText.ContainsPoint ( pos ) );
 }

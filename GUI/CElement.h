@@ -4,6 +4,9 @@
 
 class CDialog;
 
+typedef CVector Pos;
+typedef CVector Size;
+
 enum eEVentControl
 {
 	EVENT_CONTROL_KEY_DOWN,
@@ -18,58 +21,89 @@ enum eEVentControl
 	EVENT_CONTROL_DBCLICK
 };
 
-typedef void ( __cdecl *tAction )( CControl*, eEVentControl, int );
+typedef void ( __cdecl *tAction )( CWidget*, eEVentControl, int );
 
 struct SControlRect
 {
-	CPos pos;
-	SIZE size;
+	Pos m_pos;
+	SIZE m_size;
 
 	SControlRect ( void )
 	{}
 
-	SControlRect ( CPos pos )
+	SControlRect (Pos pos )
 	{
-		this->pos = pos;
+		m_pos = pos;
 	}
 
-	SControlRect ( int iX, int iY )
+	SControlRect(int iX, int iY)
 	{
-		this->pos.SetX ( iX );
-		this->pos.SetY ( iY );
+		m_pos.m_nX = iX;
+		m_pos.m_nY = iY;
 	}
 
 	SControlRect ( SIZE size )
 	{
-		this->size = size;
+		m_size = size;
 	}
 
-	SControlRect ( CPos pos, SIZE size )
+	SControlRect (Pos pos, SIZE size )
 	{
-		this->pos = pos;
-		this->size = size;
+		m_pos = pos;
+		m_size = size;
 	}
 
-	SControlRect ( RECT rect )
+	SControlRect ( int nX, int nY, int nWidth, int nHeight )
 	{
-		this->pos.SetX ( rect.left );
-		this->pos.SetY ( rect.top );
-		this->size.cx =  rect.right- rect.left;
-		this->size.cy =  rect.bottom- rect.top;
+		m_pos.m_nX = nX;
+		m_pos.m_nY = nY;
+		m_size.cx = nWidth;
+		m_size.cy = nHeight;
 	}
 
-	BOOL InControlArea ( CPos pos )
+	SControlRect(RECT rect)
 	{
-		return ( pos.GetX () >= this->pos.GetX () &&
-				 pos.GetX () <= this->pos.GetX () + size.cx &&
-				 pos.GetY () >= this->pos.GetY () &&
-				 pos.GetY () <= this->pos.GetY () + size.cy );
+		m_pos.m_nX = rect.left;
+		m_pos.m_nY = rect.top;
+		m_size.cx = rect.right - rect.left;
+		m_size.cy = rect.bottom - rect.top;
+	}
+
+	SControlRect GetIntersection ( const SControlRect& rect ) const
+	{
+		if ( m_pos.m_nX + m_size.cx > rect.m_pos.m_nX  &&
+			 m_pos.m_nX < rect.m_pos.m_nX + rect.m_size.cx  &&
+			 m_pos.m_nY + m_size.cy > rect.m_pos.m_nY  &&
+			 m_pos.m_nY < rect.m_pos.m_nY + rect.m_size.cy )
+		{
+			SControlRect ret;
+
+			// fill in ret with the intersection
+			ret.m_pos.m_nX = ( m_pos.m_nX > rect.m_pos.m_nX ) ? m_pos.m_nX : rect.m_pos.m_nX;
+			ret.m_size.cx = ( m_pos.m_nX + m_size.cx < rect.m_pos.m_nX + rect.m_size.cx ) ? m_size.cx : rect.m_size.cx;
+			ret.m_pos.m_nY = ( m_pos.m_nY > rect.m_pos.m_nY ) ? m_pos.m_nY : rect.m_pos.m_nY;
+			ret.m_size.cy = ( m_pos.m_nY + m_size.cy < rect.m_pos.m_nY + rect.m_size.cy ) ? m_size.cy : rect.m_size.cy;
+
+			return ret;
+		}
+		else
+		{
+			return SControlRect ();
+		}
+	}
+
+	BOOL ContainsPoint ( Pos pos )
+	{
+		return ( pos.m_nX >= m_pos.m_nX &&
+				 pos.m_nX <= m_pos.m_nX + m_size.cx &&
+				 pos.m_nY >= m_pos.m_nY &&
+				 pos.m_nY <= m_pos.m_nY + m_size.cy );
 	}
 
 	RECT GetRect ( void )
 	{
 		RECT rect;
-		SetRect ( &rect, pos.GetX (), pos.GetY (), pos.GetX () + size.cx, pos.GetY () + size.cy );
+		SetRect ( &rect, m_pos.m_nX, m_pos.m_nY, m_pos.m_nX + m_size.cx, m_pos.m_nY + m_size.cy);
 		return rect;
 	}
 
@@ -118,16 +152,16 @@ struct sMouseEvents
 	};
 
 	INT				nDelta;
-	CPos			pos;
+	CVector			pos;
 
 	eMouseMessages	eMouseMessages;
 	eMouseButton	eButton;
 
 	/*sMouseEvents(){}
-	sMouseEvents ( eMouseButton eButton, CPos pos, INT nDelta )
+	sMouseEvents ( eMouseButton eButton, CPos m_pos, INT nDelta )
 	{
 		this->eButton = eButton;
-		this->pos = pos;
+		this->m_pos = m_pos;
 		this->nDelta = nDelta;
 	}*/
 };
@@ -151,10 +185,18 @@ struct sControlEvents
 	sMouseEvents mouseEvent;
 
 };
+struct SFontInfo
+{
+	//SIMPLEGUI_CHAR  m_szFontName[128];
+	DWORD			m_dwHeight;
+	bool			m_bBold;
+	SIZE			m_size;
+};
 
-class CControl
+class CWidget
 {
 public:
+
 	enum eRelative
 	{
 		RELATIVE_POS,
@@ -185,8 +227,8 @@ public:
 		TYPE_WINDOW
 	};
 
-	virtual void SetScissorRect ( SControlRect rRect );
-	void EnterScissorRect ( SControlRect rRect );
+	void EnterScissorRect ( void );
+	void EnterScissorRect ( SControlRect rRect);
 	void LeaveScissorRect ( void );
 
 	SControlRect GetRect ( void );
@@ -196,11 +238,11 @@ public:
 
 	void SetControl ( CDialog *pGui, EControlType eType );
 
-	virtual void ClearControlFocus ( void );
-	virtual void SetFocussedControl ( CControl *pControl );
+	void SetParent ( CWidget *pParent );
+	CWidget *GetParent ( void );
 
-	void SetParent ( CControl *pParent );
-	CControl *GetParent ( void );
+	void _SetFocus ( void );
+	void _ClearFocus ( void );
 
 	virtual SIZE GetRealSize ( void );
 
@@ -208,13 +250,13 @@ public:
 	tAction GetAction ( void );
 
 	void SetPos ( int nX, int nY );
-	void SetPos ( CPos pos );
+	void SetPos ( Pos pos );
 
 	void SetPosX ( int nX );
 	void SetPosY ( int nY );
 
-	CPos *GetPos ( void );
-	CPos *GetUpdatedPos ( void );
+	CVector *GetPos ( void );
+	CVector *GetUpdatedPos ( void );
 
 	virtual void SetWidth ( int iWidth );
 	int GetWidth ( void );
@@ -252,10 +294,13 @@ public:
 
 	virtual bool MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam );
 	virtual bool HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam );
-	virtual bool HandleMouse ( UINT uMsg, CPos pos, WPARAM wParam, LPARAM lParam );
+	virtual bool HandleMouse ( UINT uMsg, CVector pos, WPARAM wParam, LPARAM lParam );
 
+	SFontInfo GetFontInfo(void);
+	void SetFont(SFontInfo sInfo);
 	void SetFont ( const SIMPLEGUI_CHAR *szFontName, DWORD dwHeight, bool bBold = false );
 	void SetFont ( CD3DFont *pFont );
+
 	CD3DFont *GetFont ( void );
 
 	virtual CScrollablePane *GetScrollbar ( void ) { return NULL; }
@@ -275,7 +320,7 @@ public:
 
 	virtual bool OnMouseButtonDown ( sMouseEvents e );
 	virtual bool OnMouseButtonUp ( sMouseEvents e );
-	virtual bool OnMouseMove ( CPos pos );
+	virtual bool OnMouseMove ( CVector pos );
 	virtual bool OnMouseWheel ( int zDelta );
 
 	virtual bool OnKeyDown ( WPARAM wParam );
@@ -289,7 +334,7 @@ public:
 
 
 public:
-	void LinkPos ( CPos pos );
+	void LinkPos ( CVector pos );
 
 public:
 	eRelative GetRelativeX ( void );
@@ -310,16 +355,17 @@ public:
 	EControlType GetType ( void );
 
 	virtual void UpdateRects ( void );
-	virtual bool ContainsRect ( CPos pos );
+	virtual bool ContainsPoint ( CVector pos );
 protected:
-	bool bins ;
+	bool bins;
 	SIZE m_oldParentSize;
-
-	CPos m_oldPos;
+	CScissor sCissor;
+	CVector m_oldPos;
 	SIZE m_size;
 	SIZE m_minSize;
 
 	SIZE m_realSize;
+	SIZE m_oldTextSize;
 
 	SControlRect m_rScissor;
 	SControlRect m_rScissorCpy;
@@ -329,8 +375,10 @@ protected:
 
 	CD3DTexture *m_pTexture;
 	CD3DFont* m_pFont;
-	CControl* m_pParent;
+	CWidget* m_pParent;
 	CDialog *m_pDialog;
+
+	SFontInfo m_sFontInfo;
 
 	SIMPLEGUI_STRING m_sText;
 
@@ -345,8 +393,8 @@ protected:
 	eRelative m_eRelativeY;
 
 	CRITICAL_SECTION cs;
-	CPos m_pos;
-	CPos m_nonUpdatedPos;
+	CVector m_pos;
+	CVector m_nonUpdatedPos;
 	
 	bool m_bRelativePosX;
 	bool m_bRelativePosY;
@@ -364,5 +412,5 @@ protected:
 	bool m_bVisible;
 
 	bool m_bEnabledStateColor;
+	bool m_bUpdatedFont;
 };
-

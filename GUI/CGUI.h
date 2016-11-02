@@ -2,11 +2,11 @@
 
 class CTexture;
 class CTimer;
-class CPos;
+class CVector;
 class CColor;
 class CMouse;
 class CKeyboard;
-class CControl;
+class CWidget;
 class CWindow;
 class CButton;
 class CCheckBox;
@@ -45,6 +45,7 @@ class CScrollbar;
 #include <usp10.h>
 #include <dimm.h>
 
+#include "TextUtils.h"
 #include "LogFile.h"
 #include "CTexture.h"
 #include "CFont.h"
@@ -86,6 +87,17 @@ public:
 	CDialog ( IDirect3DDevice9 *pDevice );
 	~CDialog ();
 
+	template<class T>
+	T* CreateWidget(Pos pos, int nWidth, int nHeight, TCHAR *pszText)
+	{
+		CWidget* pWidget = new T(this);
+		pWidget->SetPos(pos);
+		pWidget->SetSize(nWidth, nHeight);
+		pWidget->SetText(pszText);
+
+		return static_cast<T*>(pWidget);
+	}
+
 	CProgressBarHorizontal *AddProgressBarHorizontal ( CWindow *pWindow, int X, int Y, int Width, int iHeight, float fMax, float fValue, tAction Callback = NULL );
 	CProgressBarVertical *AddProgressBarVertical ( CWindow *pWindow, int X, int Y, int Width, int iHeight, float fMax, float fValue, tAction Callback = NULL );
 
@@ -121,23 +133,24 @@ public:
 	void DrawTriangle ( SControlRect &rect, float fAngle, D3DCOLOR d3dColor, D3DCOLOR d3dColorOutline, bool bAntAlias = true );
 	void DrawCircle ( SControlRect &rect, D3DCOLOR d3dColor, D3DCOLOR d3dColorOutline, bool bAntAlias = true );
 
-	void SetFocussedWindow ( CWindow *pWindow );
-	void ClearFocussedWindow ( void );
-	CWindow *GetFocussedWindow ( void );
-	void BringWindowToTop ( CWindow *pWindow );
+	void SetFocussedWidget (CWidget *pWindow );
+	void ClearFocussedWidget ( void );
+	CWidget *GetFocussedWidget ( void );
+	void BringWidgetToTop (CWidget *pWindow );
 
-	CWindow *GetWindowByText ( const SIMPLEGUI_CHAR *pszText );
-	CWindow *GetWindowAtPos ( CPos pos );
+	CWidget *GetWindowByText ( const SIMPLEGUI_CHAR *pszText );
+	CWidget *GetWidgetAtPos ( Pos pos );
 
-	void AddWindow ( CWindow *pWindow );
-	void RemoveWindow ( CWindow *pWindow );
-	void RemoveAllWindows ( void );
+	void AddWidget (CWidget *pWindow );
+	void RemoveWidget (CWidget *pWindow );
+	void RemoveAllWidgets ( void );
+
+	bool IsWidgetInList ( CWidget *pWindow );
 
 	void Draw ( void );
 
 	void OnLostDevice ( void );
 	void OnResetDevice ( void );
-
 
 	void MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam );
 
@@ -166,10 +179,10 @@ private:
 
 	std::vector<CD3DFont*>m_vFont;
 	std::vector<CD3DTexture*>m_vTexture;
-	std::vector<CWindow*> m_vWindows;
+	std::vector<CWidget*> m_vWidgets;
 
-	CWindow *m_pFocussedWindow; 
-	CWindow *m_pMouseOverWindow; 
+	CWidget *m_pFocussedWidget;
+	CWidget *m_pMouseOverWidget;
 
 	CRITICAL_SECTION cs;   
 }; 

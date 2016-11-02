@@ -2,7 +2,7 @@
 
 #include "CGUI.h"
 
-class CTabPanel : public CControl
+class CTabPanel : public CWidget
 {
 public:
 	CTabPanel ( CDialog *pDialog );
@@ -14,32 +14,32 @@ public:
 	void RemoveTab ( UINT nTabID );
 	void RemoveAllTabs ( void );
 
-	void AddControl ( UINT nTabID, CControl *pControl );
-	void RemoveControl ( UINT nTabID, CControl *pControl );
+	void AddControl ( UINT nTabID, CWidget *pControl );
+	void RemoveControl ( UINT nTabID, CWidget *pControl );
 	
 	void RemoveAllControlsFromTab ( UINT nTabID );
 	void RemoveAllControls ( void );
 
-	bool IsControlInList ( CControl *pControl );
+	bool IsControlInList ( CWidget *pControl );
 
-	void SetFocussedControl ( CControl *pControl );
-	void BringControlToTop ( UINT nTabID, CControl *pControl );
+	void SetFocussedControl ( CWidget *pControl );
+	void BringControlToTop ( UINT nTabID, CWidget *pControl );
 
-	CControl *GetFocussedControl ( void );
+	CWidget *GetFocussedControl ( void );
 
 	int GetAllColumnsWidth ( void );
 	UINT GetNumOfTabsVisible ( void );
 
 	void ClearControlFocus ( void );
 
-	void MoveControl ( CControl *pControl, UINT nTabPosition );
+	void MoveControl ( CWidget *pControl, UINT nTabPosition );
 
 	void SetSelectedTab ( UINT nTabID );
 	int GetSelectedTab ( void );
 
-	int GetTabIdAtArea ( CPos pos );
+	int GetTabIdAtArea ( CVector pos );
 
-	CControl *GetControlAtArea ( UINT nTabID, CPos pos );
+	CWidget *GetControlAtArea ( UINT nTabID, CVector pos );
 
 	int GetTabSizeY ( void );
 	SIZE GetSize ( void );
@@ -49,13 +49,13 @@ public:
 	bool OnMouseButtonDown ( sMouseEvents e );
 	bool OnMouseButtonUp ( sMouseEvents e );
 
-	bool OnMouseMove ( CPos pos );
+	bool OnMouseMove ( CVector pos );
 	bool OnMouseWheel ( int zDelta );
 
 	bool ControlMessages ( sControlEvents e );
 
 	void UpdateRects ( void );
-	bool ContainsRect ( CPos pos );
+	bool ContainsPoint ( CVector pos );
 
 	void OnClickLeave ( void );
 	bool OnClickEvent ( void );
@@ -72,11 +72,15 @@ private:
 
 	struct STabList
 	{
-		CControl *pFocussedControl;
-		CControl *pMouseOverControl;
+		CWidget *pFocussedControl;
+		CWidget *pMouseOverControl;
 
-		std::vector<CControl*> vControls;
+		std::vector<CWidget*> vControls;
 		SIMPLEGUI_STRING sTabName;
+
+		int nTrackX;
+		int nTrackY;
+
 		int nWidth;
 	};
 
@@ -88,17 +92,17 @@ private:
 		bool bOverButton;
 		bool bVisible;
 
-		bool InArea ( CPos pos )
+		bool InArea ( CVector pos )
 		{
-			return ( bVisible && m_rButton.InControlArea ( pos ) );
+			return ( bVisible && m_rButton.ContainsPoint ( pos ) );
 		}
 
-		bool OnMouseOver ( CPos pos )
+		bool OnMouseOver ( CVector pos )
 		{
 			return ( bOverButton && InArea ( pos ) );
 		}
 
-		bool OnClickEvent ( CPos pos )
+		bool OnClickEvent ( CVector pos )
 		{
 			return ( bClickedButton && InArea ( pos ) );
 		}

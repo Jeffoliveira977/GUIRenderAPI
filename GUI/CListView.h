@@ -2,7 +2,7 @@
 
 #include "CGUI.h"
 
-class CListView : public CControl
+class CListView : public CWidget
 {
 public:
 	CListView											( CDialog *pDialog );
@@ -37,8 +37,8 @@ public:
 
 	const SEntryItem*		GetSelectedItem				( UINT nColumnId );
 
-	int						GetColumnIdAtArea			( CPos pos );
-	int						GetColumnIdAtAreaBorder		( CPos pos );
+	int						GetColumnIdAtArea			( CVector pos );
+	int						GetColumnIdAtAreaBorder		( CVector pos );
 	int						GetColumnOffset				( UINT nColumnId );
 
 	void					SetSortable					( bool bSortable );
@@ -66,13 +66,13 @@ public:
 	bool					OnMouseButtonDown			( sMouseEvents e );
 	bool					OnMouseButtonUp				( sMouseEvents e );
 
-	bool					OnMouseMove					( CPos pos );
+	bool					OnMouseMove					( CVector pos );
 	bool					OnMouseWheel				 ( int zDelta );
 
 	bool					HandleKeyboard				( UINT uMsg, WPARAM wParam, LPARAM lParam );
 
 	void					UpdateRects					( void );
-	bool					ContainsRect				( CPos pos );
+	bool					ContainsPoint				( CVector pos );
 
 private:
 

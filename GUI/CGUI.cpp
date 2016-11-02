@@ -12,7 +12,7 @@ CDialog::CDialog ( IDirect3DDevice9 *pDevice )
 		MessageBox ( 0, _UI ( "pDevice invalid." ), 0, 0 );
 
 	m_pDevice = pDevice;
-	m_pFocussedWindow = m_pMouseOverWindow = NULL;
+	m_pFocussedWidget = m_pMouseOverWidget = NULL;
 
 	m_pRender = new CD3DRender ( 128 );
 	if ( m_pRender )
@@ -41,10 +41,10 @@ CDialog::~CDialog ( void )
 		SAFE_DELETE ( m_vTexture[i]  );
 
 	SAFE_DELETE ( m_pMouse );
-	SAFE_DELETE ( m_pFocussedWindow );
-	SAFE_DELETE ( m_pMouseOverWindow );
+	SAFE_DELETE ( m_pFocussedWidget );
+	SAFE_DELETE ( m_pMouseOverWidget );
 
-	RemoveAllWindows ();
+	RemoveAllWidgets ();
 
 	SAFE_DELETE ( m_pState );
 
@@ -121,8 +121,8 @@ void CDialog::DrawFont ( SControlRect &rect, DWORD dwColor, const SIMPLEGUI_CHAR
 	if ( !pFont && !m_vFont.empty () )
 		pFont = m_vFont [ 0 ];
 
-	CPos pos = rect.pos;
-	pFont->Print ( pos.GetX (), pos.GetY (), dwColor, szText, dwFlags );
+	CVector pos = rect.m_pos;
+	pFont->Print ( pos.m_nX, pos.m_nY, dwColor, szText, dwFlags );
 }
 
 //--------------------------------------------------------------------------------------
@@ -131,10 +131,10 @@ void CDialog::DrawBox ( SControlRect &rect, D3DCOLOR d3dColor, D3DCOLOR d3dColor
 	if ( !m_pRender )
 		return;
 
-	CPos pos = rect.pos;
-	SIZE size = rect.size;
+	CVector pos = rect.m_pos;
+	SIZE size = rect.m_size;
 
-	m_pRender->D3DBox ( pos.GetX (), pos.GetY (), size.cx, size.cy, 0.f, d3dColor, d3dColorOutline, bAntAlias );
+	m_pRender->D3DBox ( pos.m_nX, pos.m_nY, size.cx, size.cy, 0.f, d3dColor, d3dColorOutline, bAntAlias );
 }
 
 //--------------------------------------------------------------------------------------
@@ -143,11 +143,11 @@ void CDialog::DrawTriangle ( SControlRect &rect, float fAngle, D3DCOLOR d3dColor
 	if ( !m_pRender )
 		return;
 
-	CPos pos = rect.pos;
-	SIZE size = rect.size;
+	CVector pos = rect.m_pos;
+	SIZE size = rect.m_size;
 
 	int nMax = max ( size.cx, size.cy );
-	m_pRender->D3DTriangle ( pos.GetX (), pos.GetY (), size.cx - size.cy + nMax, fAngle, d3dColor, d3dColorOutline, bAntAlias );
+	m_pRender->D3DTriangle ( pos.m_nX, pos.m_nY, size.cx - size.cy + nMax, fAngle, d3dColor, d3dColorOutline, bAntAlias );
 }
 
 //--------------------------------------------------------------------------------------
@@ -156,11 +156,11 @@ void CDialog::DrawCircle ( SControlRect &rect, D3DCOLOR d3dColor, D3DCOLOR d3dCo
 	if ( !m_pRender )
 		return;
 
-	CPos pos = rect.pos;
-	SIZE size = rect.size;
+	CVector pos = rect.m_pos;
+	SIZE size = rect.m_size;
 
 	int nMax = max ( size.cx, size.cy );
-	m_pRender->D3DCircle ( pos.GetX (), pos.GetY (), size.cx - size.cy + nMax, d3dColor, d3dColorOutline, bAntAlias );
+	m_pRender->D3DCircle ( pos.m_nX, pos.m_nY, size.cx - size.cy + nMax, d3dColor, d3dColorOutline, bAntAlias );
 }
 
 CProgressBarHorizontal *CDialog::AddProgressBarHorizontal ( CWindow *pWindow, int iX, int iY, int iWidth, int iHeight, float fMax, float fValue, tAction Callback )
@@ -169,7 +169,7 @@ CProgressBarHorizontal *CDialog::AddProgressBarHorizontal ( CWindow *pWindow, in
 
 	if ( pProgressBar )
 	{
-		pProgressBar->SetPos ( CPos ( iX, iY ) );
+		pProgressBar->SetPos ( CVector ( iX, iY ) );
 		pProgressBar->SetSize ( iWidth, iHeight );
 		pProgressBar->SetMaxValue ( fMax );
 		pProgressBar->SetValue ( fValue );
@@ -188,7 +188,7 @@ CProgressBarVertical *CDialog::AddProgressBarVertical ( CWindow *pWindow, int iX
 
 	if ( pProgressBar )
 	{
-		pProgressBar->SetPos ( CPos ( iX, iY ) );
+		pProgressBar->SetPos ( CVector ( iX, iY ) );
 		pProgressBar->SetSize ( iWidth, iHeight );
 		pProgressBar->SetMaxValue ( fMax );
 		pProgressBar->SetValue ( fValue );
@@ -208,13 +208,13 @@ CWindow *CDialog::AddWindow ( int X, int Y, int Width, int Height, const SIMPLEG
 
 	if ( pWindow )
 	{
-		pWindow->SetPos ( CPos ( X, Y ) );
+		pWindow->SetPos ( CVector ( X, Y ) );
 		pWindow->SetSize ( Width, Height );
 		pWindow->SetText ( szString );
 		pWindow->SetAction ( Callback );
 		pWindow->SetAlwaysOnTop ( bAlwaysOnTop );
 
-		this->AddWindow ( pWindow );
+		this->AddWidget ( pWindow );
 	}
 
 	return pWindow;
@@ -227,7 +227,7 @@ CButton *CDialog::AddButton ( CWindow *pWindow, int X, int Y, int Width, int Hei
 
 	if ( pButton )
 	{
-		pButton->SetPos ( CPos ( X, Y ) );
+		pButton->SetPos ( CVector ( X, Y ) );
 		pButton->SetSize ( Width, Height );
 		pButton->SetText ( szString );
 		pButton->SetAction ( Callback );
@@ -246,14 +246,14 @@ CCheckBox *CDialog::AddCheckBox ( CWindow *pWindow, int X, int Y, int Width, boo
 
 	if ( pCheckBox )
 	{
-		pCheckBox->SetPos ( CPos ( X, Y ) );
-		pCheckBox->SetSize ( Width, 20 );
+		if (pWindow)
+			pWindow->AddControl(pCheckBox);
+
+		pCheckBox->SetPos ( CVector ( X, Y ) );
 		pCheckBox->SetText ( szString );
+		pCheckBox->SetWidth(Width);
 		pCheckBox->SetAction ( Callback );
 		pCheckBox->SetChecked ( bChecked );
-
-		if ( pWindow )
-			pWindow->AddControl ( pCheckBox );
 	}
 
 	return pCheckBox;
@@ -266,7 +266,7 @@ CListBox *CDialog::AddListBox ( CWindow *pWindow, int X, int Y, int Width, int H
 
 	if ( pListBox )
 	{
-		pListBox->SetPos ( CPos ( X, Y ) );
+		pListBox->SetPos ( CVector ( X, Y ) );
 		pListBox->SetSize ( Width, Height );
 		pListBox->SetAction ( Callback );
 
@@ -283,14 +283,11 @@ CListView *CDialog::AddListView ( CWindow *pWindow, int X, int Y, int Width, int
 
 	if ( pListView )
 	{
-		pListView->SetPos ( CPos ( X, Y ) );
+		pListView->SetPos ( CVector ( X, Y ) );
 		if ( pWindow )
 			pWindow->AddControl ( pListView );
 		pListView->SetSize ( Width, Height );
 		pListView->SetAction ( Callback );
-
-		if ( pWindow )
-			pWindow->AddControl ( pListView );
 	}
 
 	return pListView;
@@ -303,7 +300,7 @@ CLogBox *CDialog::AddTextBox ( CWindow *pWindow, int X, int Y, int Width, int He
 
 	if ( pTextBox )
 	{
-		pTextBox->SetPos ( CPos ( X, Y ) );
+		pTextBox->SetPos ( CVector ( X, Y ) );
 		pTextBox->SetSize ( Width, Height );
 		pTextBox->SetAction ( Callback );
 
@@ -321,13 +318,13 @@ CLabel *CDialog::AddLabel ( CWindow *pWindow, int X, int Y, int Width, int Heigh
 
 	if ( pLabel )
 	{
-		pLabel->SetPos ( CPos ( X, Y ) );
+		pLabel->SetPos ( CVector ( X, Y ) );
 		pLabel->SetText ( szString );
+
+		if (pWindow)
+			pWindow->AddControl(pLabel);
 		pLabel->SetSize ( Width, Height );
 		pLabel->SetAction ( Callback );
-
-		if ( pWindow )
-			pWindow->AddControl ( pLabel );
 	}
 
 	return pLabel;
@@ -341,7 +338,7 @@ CEditBox *CDialog::AddEditBox ( CWindow *pWindow, int X, int Y, int Width, int H
 	if ( pEditBox )
 	{
 		
-		pEditBox->SetPos ( CPos ( X, Y ) );
+		pEditBox->SetPos ( CVector ( X, Y ) );
 		if ( pWindow )
 			pWindow->AddControl ( pEditBox );
 		pEditBox->SetSize ( Width, Height );
@@ -361,7 +358,7 @@ CDropDown *CDialog::AddDropDown ( CWindow *pWindow, int X, int Y, int Width, int
 
 	if ( pDropDown )
 	{
-		pDropDown->SetPos ( CPos ( X, Y ) );
+		pDropDown->SetPos ( CVector ( X, Y ) );
 		pDropDown->SetSize ( Width, Height );
 		pDropDown->SetText ( szString );
 		pDropDown->SetAction ( Callback );
@@ -380,14 +377,13 @@ CRadioButton *CDialog::AddRadioButton ( CWindow *pWindow, int iGroup, int X, int
 
 	if ( pRadioButton )
 	{
+		if (pWindow)
+			pWindow->AddControl(pRadioButton);
 		pRadioButton->SetGroup ( iGroup );
-		pRadioButton->SetPos ( CPos ( X, Y ) );
-		pRadioButton->SetSize ( Width, 20 );
-		pRadioButton->SetText ( szString );
+		pRadioButton->SetPos ( CVector ( X, Y ) );
+		pRadioButton->SetText(szString);
+		pRadioButton->SetWidth ( Width );
 		pRadioButton->SetAction ( Callback );
-
-		if ( pWindow )
-			pWindow->AddControl ( pRadioButton );
 	}
 
 	return pRadioButton;
@@ -400,7 +396,7 @@ CTabPanel *CDialog::AddTabPanel ( CWindow *pWindow, int X, int Y, int Width, int
 	if ( pTabPanel )
 	{
 		
-		pTabPanel->SetPos ( CPos ( X, Y ) );
+		pTabPanel->SetPos ( CVector ( X, Y ) );
 		if ( pWindow )
 			pWindow->AddControl ( pTabPanel );
 		pTabPanel->SetSize ( Width, Height );
@@ -419,7 +415,7 @@ CPictureBox *CDialog::AddImage ( CWindow *pWindow, const TCHAR * szPath, int X, 
 
 	if ( pImage )
 	{
-		pImage->SetPos ( CPos ( X, Y ) );
+		pImage->SetPos ( CVector ( X, Y ) );
 
 		if ( pWindow )
 			pWindow->AddControl ( pImage );
@@ -440,7 +436,7 @@ CTrackBarHorizontal *CDialog::AddTrackBar ( CWindow * pWindow, int X, int Y, int
 
 	if ( pTrackBar )
 	{
-		pTrackBar->SetPos ( CPos ( X, Y ) );
+		pTrackBar->SetPos ( CVector ( X, Y ) );
 		pTrackBar->SetSize ( Width, Height );
 		pTrackBar->SetAction ( Callback );
 		pTrackBar->SetRange ( nMin, nMax );
@@ -459,7 +455,7 @@ CTrackBarVertical *CDialog::AddTrackBarVertical ( CWindow * pWindow, int X, int 
 
 	if ( pTrackBar )
 	{
-		pTrackBar->SetPos ( CPos ( X, Y ) );
+		pTrackBar->SetPos ( CVector ( X, Y ) );
 		pTrackBar->SetSize ( Width, Height );
 		pTrackBar->SetAction ( Callback );
 		pTrackBar->SetRange ( nMin, nMax );
@@ -479,7 +475,7 @@ CScrollBarVertical *CDialog::AddScrollBar ( CWindow *pWindow, int X, int Y, int 
 
 	if ( pScrollBar )
 	{
-		pScrollBar->SetPos ( CPos ( X, Y ) );
+		pScrollBar->SetPos ( CVector ( X, Y ) );
 		pScrollBar->SetSize ( Width, Height );
 		pScrollBar->SetAction ( Callback );
 		pScrollBar->SetTrackRange ( nMin, nMax );
@@ -500,7 +496,7 @@ CScrollBarHorizontal *CDialog::AddScrollBarHorizontal ( CWindow *pWindow, int X,
 
 	if ( pScrollBar )
 	{
-		pScrollBar->SetPos ( CPos ( X, Y ) );
+		pScrollBar->SetPos ( CVector ( X, Y ) );
 		pScrollBar->SetSize ( Width, Height );
 		pScrollBar->SetAction ( Callback );
 		pScrollBar->SetTrackRange ( nMin, nMax );
@@ -526,25 +522,23 @@ void CDialog::Draw ( void )
 
 	m_pState->SetRenderStates ();
 
-	if ( !m_vWindows.empty () )
+	for ( auto widget : m_vWidgets )
 	{
-		for ( size_t i = 0; i < m_vWindows.size (); i++ )
-		{
-			if ( !m_vWindows [ i ] )
-				continue;
+		if ( !widget )
+			continue;
 
-			if ( !m_vWindows [ i ]->IsVisible () )
-				continue;
+		if ( !widget->IsVisible () )
+			continue;
 
-			m_vWindows [ i ]->UpdateRects ();
-			m_vWindows [ i ]->Draw ();
-		}
+		widget->UpdateRects ();
+		widget->EnterScissorRect ();
+		widget->Draw ();
+		widget->LeaveScissorRect ();
 	}
 
+
 	m_pMouse->Draw ();
-
 	m_pState->EndState ();
-
 	LeaveCriticalSection ( &cs );
 }
 
@@ -558,10 +552,10 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 	m_pMouse->HandleMessage ( uMsg, wParam, lParam );
 
-	if ( m_vWindows.empty () )
+	if ( m_vWidgets.empty () )
 		return;
 
-	CPos pos = m_pMouse->GetPos ();
+	Pos pos = m_pMouse->GetPos ();
 
 	sControlEvents e;
 	e.keyEvent;
@@ -618,185 +612,388 @@ void CDialog::MsgProc ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 	}
 
 	// See if the mouse is over any windows
-	CWindow* pWindow = GetWindowAtPos ( pos );
-	if ( m_pFocussedWindow )
+	CWidget* pWindow = GetWidgetAtPos ( pos );
+
+	if ( !pWindow
+		 && e.mouseEvent.eMouseMessages == sMouseEvents::ButtonDown &&
+		 e.mouseEvent.eButton == sMouseEvents::LeftButton &&
+		 m_pFocussedWidget && m_pFocussedWidget->GetType () != CWidget::TYPE_WINDOW )
 	{
-		CControl *pControl = m_pFocussedWindow->GetFocussedControl ();
+		ClearFocussedWidget ();
+	}
+
+	if ( m_pFocussedWidget&& m_pFocussedWidget->GetType () == CWidget::TYPE_TABPANEL )
+	{
+		if ( static_cast< CTabPanel* >( m_pFocussedWidget )->ControlMessages ( e ) )
+			return;
+	}
+
+	if ( m_pFocussedWidget &&m_pFocussedWidget->GetType () == CWidget::TYPE_WINDOW&& m_pFocussedWidget->InjectKeyboard ( e.keyEvent ) )
+		return;
+
+	if ( pWindow && 
+		 pWindow->GetType () == CWidget::TYPE_TABPANEL )
+	{
+		if ( static_cast< CTabPanel* >( pWindow )->ControlMessages ( e ) )
+			return;
+	}
+
+	// it the first chance at handling the message.
+	if ( m_pFocussedWidget &&
+		 m_pFocussedWidget->GetType () != CWidget::TYPE_WINDOW &&
+		 ( pWindow &&pWindow->GetType () != CWidget::TYPE_WINDOW ) )
+	{
+		if ( m_pFocussedWidget->InjectMouse ( e.mouseEvent ) )
+			return;
+	}
+
+	if ( pWindow &&
+		 pWindow->GetType () != CWidget::TYPE_WINDOW &&
+		 pWindow->InjectMouse ( e.mouseEvent ) )
+		return;
+
+	if ( m_pFocussedWidget &&
+		 m_pFocussedWidget->IsEnabled () )
+	{
+		if ( m_pFocussedWidget->InjectKeyboard ( e.keyEvent ) )
+			return;
+	}
+
+	if ( m_pFocussedWidget &&
+		 m_pFocussedWidget->IsEnabled () &&
+		 m_pFocussedWidget->GetType () == CWidget::TYPE_WINDOW )
+	{
+		CWindow *pFocussedWindow = reinterpret_cast< CWindow* >( m_pFocussedWidget );
+		CWidget *pControl = pFocussedWindow->GetFocussedControl ();
 
 		bool bOnDrag = false;
 
-		if( e.keyEvent.uMsg == uMsg )
+		if ( e.keyEvent.uMsg == uMsg )
 			bOnDrag = true;
 
-		if ( (pControl && pWindow == m_pFocussedWindow && uMsg != WM_LBUTTONDOWN )||
-			 ( GetAsyncKeyState ( VK_LBUTTON ) && uMsg == WM_MOUSEMOVE ) )
+		if ( ( pControl && pWindow == pFocussedWindow && uMsg != WM_LBUTTONDOWN ) ||
+			( GetAsyncKeyState ( VK_LBUTTON ) && uMsg == WM_MOUSEMOVE ) )
 		{
 			bOnDrag = true;
 		}
 
-		if ( bOnDrag && m_pFocussedWindow->ControlMessages ( e ) )
+		if ( bOnDrag && pFocussedWindow->ControlMessages ( e ) )
 			return;
 	}
 
-	if ( pWindow && pWindow->ControlMessages ( e ) )
-		return;
+	if ( pWindow &&
+		 pWindow->IsEnabled () &&
+		 pWindow->GetType () == CWidget::TYPE_WINDOW )
+	{
+		if ( reinterpret_cast< CWindow* >( pWindow )->ControlMessages ( e ) )
+			return;
+	}
 
 	// If a window is in focus, and it's enabled, then give
 	// it the first chance at handling the message.
-	if ( m_pFocussedWindow &&
-		 m_pFocussedWindow->IsEnabled () )
+	if ( m_pFocussedWidget &&
+		 m_pFocussedWidget->IsEnabled () )
 	{
-		if ( m_pFocussedWindow && m_pFocussedWindow->InjectKeyboard ( e.keyEvent ) )
+		if ( m_pFocussedWidget && m_pFocussedWidget->InjectKeyboard ( e.keyEvent ) )
 			return;
 	}
 
 	if ( pWindow )
 	{
-		if ( pWindow->InjectMouse ( e.mouseEvent ) )return ;
+		if ( pWindow->InjectMouse ( e.mouseEvent ) )return;
 	}
 	else
 	{
 		if ( uMsg == WM_LBUTTONDOWN )
 		{
-			ClearFocussedWindow ();
+			ClearFocussedWidget ();
 		}
 	}
 
-	if ( m_pFocussedWindow )
+	if ( m_pFocussedWidget )
 	{
 		// If the control is in focus, and if the mouse is outside the window, then leave 
 		// the click event
 		if ( uMsg == WM_LBUTTONUP )
 		{
-			m_pFocussedWindow->OnClickLeave ();
+			m_pFocussedWidget->OnClickLeave ();
 		}
 	}
 
-	if ( m_pFocussedWindow && m_pFocussedWindow->InjectMouse ( e.mouseEvent ) )
+	if ( m_pFocussedWidget && m_pFocussedWidget->InjectMouse ( e.mouseEvent ) )
 		return;
 
-	if ( !( GetAsyncKeyState ( VK_LBUTTON )))
+	if ( !( GetAsyncKeyState ( VK_LBUTTON ) ) )
 	{
 		// If the mouse is still over the same window, nothing needs to be done
-		if ( pWindow == m_pMouseOverWindow )
+		if ( pWindow == m_pMouseOverWidget )
 			return;
 
 		// Handle mouse leaving the old window
-		if ( m_pMouseOverWindow )
+		if ( m_pMouseOverWidget )
 		{
-			m_pMouseOverWindow->OnMouseLeave ();
+			m_pMouseOverWidget->OnMouseLeave ();
 		}
 
 		// Handle mouse entering the new window
-		m_pMouseOverWindow = pWindow;
-		if ( m_pMouseOverWindow )
-			m_pMouseOverWindow->OnMouseEnter ();
+		m_pMouseOverWidget = pWindow;
+		if ( m_pMouseOverWidget )
+			m_pMouseOverWidget->OnMouseEnter ();
 	}
+
+	//// See if the mouse is over any widgets
+	//CWidget* pWidget = GetWidgetAtPos ( pos );
+
+	//if ( m_pFocussedWidget &&
+	//	 m_pFocussedWidget->IsEnabled () &&
+	//	 m_pFocussedWidget->GetType () == CWidget::TYPE_WINDOW )
+	//{
+	//	CWindow *pFocussedWindow = reinterpret_cast< CWindow* >( m_pFocussedWidget );
+	//	CWidget *pControl = pFocussedWindow->GetFocussedControl ();
+
+	//	bool bOnDrag = false;
+
+	//	if ( e.keyEvent.uMsg == uMsg )
+	//		bOnDrag = true;
+
+	//	if ( ( pControl && ( pWidget == pFocussedWindow ) && uMsg != WM_LBUTTONDOWN ) ||
+	//		( GetAsyncKeyState ( VK_LBUTTON ) && uMsg == WM_MOUSEMOVE ) )
+	//	{
+	//		bOnDrag = true;
+	//	}
+
+	//	if ( bOnDrag &&pFocussedWindow->ControlMessages ( e ) )
+	//		return;
+	//}
+
+	//if ( pWidget &&
+	//	 pWidget->IsEnabled () &&
+	//	 pWidget->GetType () == CWidget::TYPE_WINDOW )
+	//{
+	//	if ( reinterpret_cast< CWindow* >( pWidget )->ControlMessages ( e ) )
+	//		return;
+	//}
+
+	//CTabPanel *pTabPanel = NULL;
+
+	//if ( m_pFocussedWidget &&
+	//	 m_pFocussedWidget->GetType () == CWidget::TYPE_TABPANEL )
+	//{
+	//	pTabPanel = reinterpret_cast< CTabPanel* >( m_pFocussedWidget );
+	//}
+	//else if ( pWidget &&
+	//		  pWidget->GetType () == CWidget::TYPE_TABPANEL )
+	//{
+	//	pTabPanel = reinterpret_cast< CTabPanel* >( pWidget );
+	//}
+
+	//if ( pTabPanel &&
+	//	 pTabPanel->IsEnabled () )
+	//{
+	//	if ( pTabPanel->ControlMessages ( e ) )
+	//		return;
+	//}
+
+	//if ( m_pFocussedWidget &&
+	//	 m_pFocussedWidget->IsEnabled () &&
+	//	 ( pWidget && pWidget->GetType () != CWidget::TYPE_WINDOW ) )
+	//{
+	//	if ( m_pFocussedWidget->InjectMouse ( e.mouseEvent ) )
+	//		return;
+	//}
+
+	//if ( pWidget &&
+	//	 pWidget->IsEnabled () )
+	//{
+	//	if ( pWidget->InjectMouse ( e.mouseEvent ) )
+	//		return;
+	//}
+	//else
+	//{
+	//	if ( uMsg == WM_LBUTTONDOWN )
+	//	{
+	//		ClearFocussedWidget ();
+	//	}
+	//}
+
+	////if ( m_pFocussedWidget )
+	////{
+	////	// If the control is in focus, and if the mouse is outside the window, then leave 
+	////	// the click event
+	////	if ( uMsg == WM_LBUTTONUP )
+	////	{
+	////		m_pFocussedWidget->OnClickLeave ();
+	////	}
+	////}
+
+	//if ( m_pFocussedWidget &&
+	//	 m_pFocussedWidget->IsEnabled () )
+	//{
+	//	if ( m_pFocussedWidget->InjectMouse ( e.mouseEvent ) )
+	//		return;
+	//}
+
+	//if ( !( GetAsyncKeyState ( VK_LBUTTON ) ) )
+	//{
+	//	// If the mouse is still over the same window, nothing needs to be done
+	//	if ( pWidget == m_pMouseOverWidget )
+	//		return;
+
+	//	// Handle mouse leaving the old window
+	//	if ( m_pMouseOverWidget )
+	//	{
+	//		m_pMouseOverWidget->OnMouseLeave ();
+	//	}
+
+	//	// Handle mouse entering the new window
+	//	m_pMouseOverWidget = pWidget;
+	//	if ( m_pMouseOverWidget )
+	//	{
+	//		m_pMouseOverWidget->OnMouseEnter ();
+	//	}
+	//}
 
 	LeaveCriticalSection ( &cs );
 }
 
 //--------------------------------------------------------------------------------------
-void CDialog::AddWindow ( CWindow *pWindow )
+void CDialog::AddWidget ( CWidget *pWidget )
 {
-	if ( !pWindow )
+	if ( !pWidget )
 		return;
 
-	m_vWindows.push_back ( pWindow );
-	SetFocussedWindow ( pWindow );
+	m_vWidgets.push_back ( pWidget );
+	SetFocussedWidget ( pWidget );
 }
 
 //--------------------------------------------------------------------------------------
-void CDialog::RemoveWindow ( CWindow *pWindow )
+void CDialog::RemoveWidget ( CWidget *pWidget )
 {
-	if ( !pWindow )
+	if ( !pWidget )
 		return;
 
-	std::vector<CWindow*>::iterator iter = std::find ( m_vWindows.begin (), m_vWindows.end (), pWindow );
-	if ( iter == m_vWindows.end () )
+	std::vector<CWidget*>::iterator iter = std::find ( m_vWidgets.begin (), m_vWidgets.end (), pWidget );
+	if ( iter == m_vWidgets.end () )
 		return;
 
-	m_vWindows.erase ( iter );
-	SAFE_DELETE ( pWindow );
+	m_vWidgets.erase ( iter );
+	SAFE_DELETE ( pWidget );
 }
 
 //--------------------------------------------------------------------------------------
-void CDialog::RemoveAllWindows ( void )
+void CDialog::RemoveAllWidgets ( void )
 {
-	for ( auto &window : m_vWindows )
+	for ( auto &window : m_vWidgets )
 		SAFE_DELETE ( window );
 
-	m_vWindows.clear ();
+	m_vWidgets.clear ();
 }
 
 //--------------------------------------------------------------------------------------
-void CDialog::SetFocussedWindow ( CWindow *pWindow )
+bool CDialog::IsWidgetInList ( CWidget *pWidget )
 {
-	if ( m_pFocussedWindow == pWindow )
+	std::vector<CWidget*>::iterator iter = std::find ( m_vWidgets.begin (), m_vWidgets.end (), pWidget );
+	if ( iter != m_vWidgets.end () )
+		return true;
+
+	return false;
+}
+
+//--------------------------------------------------------------------------------------
+void CDialog::SetFocussedWidget ( CWidget *pWidget )
+{
+	if ( !IsWidgetInList ( pWidget ) )
+		return;
+
+	if ( m_pFocussedWidget == pWidget )
 		return;
 
 	EnterCriticalSection ( &cs );
 
-	if ( m_pFocussedWindow )
-		m_pFocussedWindow->OnFocusOut ();
+	if ( m_pFocussedWidget )
+		m_pFocussedWidget->OnFocusOut ();
 
-	if ( pWindow )
-		pWindow->OnFocusIn ();
+	if ( pWidget )
+		pWidget->OnFocusIn ();
 
-	if ( pWindow )
-		BringWindowToTop ( pWindow );
+	if ( pWidget )
+		BringWidgetToTop ( pWidget );
 
-	m_pFocussedWindow = pWindow;
+	m_pFocussedWidget = pWidget;
 
 	LeaveCriticalSection ( &cs );
 }
 
 //--------------------------------------------------------------------------------------
-void CDialog::ClearFocussedWindow ( void )
+void CDialog::ClearFocussedWidget ( void )
 {
-	if ( m_pFocussedWindow )
+	if ( m_pFocussedWidget )
 	{
-		m_pFocussedWindow->ClearControlFocus ();
-		m_pFocussedWindow->OnClickLeave ();
-		m_pFocussedWindow->OnFocusOut ();
-		m_pFocussedWindow = NULL;
-	}
-}
-
-//--------------------------------------------------------------------------------------
-CWindow *CDialog::GetFocussedWindow ( void )
-{
-	return m_pFocussedWindow;
-}
-
-//--------------------------------------------------------------------------------------
-void CDialog::BringWindowToTop ( CWindow *pWindow )
-{
-	std::vector<CWindow*>::iterator iter = std::find ( m_vWindows.begin (), m_vWindows.end (), pWindow );
-	if ( iter == m_vWindows.end () )
-		return;
-
-	if ( !pWindow->GetAlwaysOnTop () )
-
-	{	// Get amount of windows on top
-		int nCount = 0;
-		for ( auto &window : m_vWindows )
+		if ( m_pFocussedWidget->GetType () == CWidget::TYPE_WINDOW )
 		{
-			if ( window->GetAlwaysOnTop () )
-				nCount++;
+			reinterpret_cast< CWindow* >( m_pFocussedWidget )->ClearControlFocus ();
 		}
 
-		m_vWindows.erase ( iter );
-		m_vWindows.insert ( m_vWindows.end () - nCount, pWindow );
+		m_pFocussedWidget->OnClickLeave ();
+		m_pFocussedWidget->OnFocusOut ();
+		m_pFocussedWidget = NULL;
 	}
 }
 
 //--------------------------------------------------------------------------------------
-CWindow *CDialog::GetWindowAtPos ( CPos pos )
+CWidget *CDialog::GetFocussedWidget ( void )
 {
-	for ( std::vector<CWindow*>::reverse_iterator iter = m_vWindows.rbegin (); iter != m_vWindows.rend (); iter++ )
+	return m_pFocussedWidget;
+}
+
+//--------------------------------------------------------------------------------------
+void CDialog::BringWidgetToTop (CWidget *pWidget )
+{
+	std::vector<CWidget*>::iterator iter = std::find ( m_vWidgets.begin (), m_vWidgets.end (), pWidget );
+	if ( iter == m_vWidgets.end () )
+		return;
+
+	if ( pWidget->GetType () == CWidget::TYPE_WINDOW )
 	{
-		if ( ( *iter )->ContainsRect ( pos ) )
+		CWindow *pWindow = static_cast< CWindow* >( pWidget );
+		if ( !pWindow->GetAlwaysOnTop () )
+
+		{	// Get amount of windows on top
+			int nCount = 0;
+			for ( auto widget : m_vWidgets )
+			{
+				if ( widget->GetType () == CWidget::TYPE_WINDOW )
+				{
+					if ( static_cast< CWindow* >( widget )->GetAlwaysOnTop () )
+						nCount++;
+				}
+			}
+
+			m_vWidgets.erase ( iter );
+			m_vWidgets.insert ( m_vWidgets.end () - nCount, pWindow );
+		}
+	}
+	else
+	{
+		// Get amount of windows to skip it
+		int nWindowsCount = 0;
+		for ( auto widget : m_vWidgets )
+		{
+			if ( widget->GetType () == CWidget::TYPE_WINDOW )
+				nWindowsCount++;
+		}
+
+		m_vWidgets.erase ( iter );
+		m_vWidgets.insert ( m_vWidgets.end () - nWindowsCount, pWidget );
+	}
+}
+
+//--------------------------------------------------------------------------------------
+CWidget *CDialog::GetWidgetAtPos ( Pos pos )
+{
+	for ( std::vector<CWidget*>::reverse_iterator iter = m_vWidgets.rbegin (); iter != m_vWidgets.rend (); iter++ )
+	{
+		if ( ( *iter )->ContainsPoint ( pos ) )
 			return ( *iter );
 	}
 
@@ -804,9 +1001,9 @@ CWindow *CDialog::GetWindowAtPos ( CPos pos )
 }
 
 //--------------------------------------------------------------------------------------
-CWindow* CDialog::GetWindowByText ( const SIMPLEGUI_CHAR *pszText )
+CWidget* CDialog::GetWindowByText ( const SIMPLEGUI_CHAR *pszText )
 {
-	for ( auto &window : m_vWindows )
+	for ( auto &window : m_vWidgets )
 	{
 		if ( window )
 		{
@@ -863,23 +1060,24 @@ void CDialog::OnResetDevice ( void )
 		if ( vp.Width < m_oldvp.Width && m_oldvp.Width > 0 ||
 			 vp.Height < m_oldvp.Height && m_oldvp.Height > 0 )
 		{
-			for ( auto &window : m_vWindows )
+			for ( auto &widget : m_vWidgets )
 			{
-				if ( !window )
+				if ( !widget )
 					continue;
 
-				CPos pos = *window->GetPos ();
-				SIZE size = window->GetSize ();
+				CVector pos = *widget->GetPos ();
+				SIZE size = widget->GetSize ();
 
-				if ( pos.GetX () + size.cx >= vp.Width )
+				if ( pos.m_nX + size.cx >= vp.Width || 
+					pos.m_nY + size.cy >= vp.Height)
 				{
 					int nX = vp.Width - size.cx;
 					int nY = vp.Height - size.cy;
 
-					window->SetPos ( nX <= 1 ? 1 : nX, nY <= 1 ? 1 : nY );
+					widget->SetPos ( nX <= 1 ? 1 : nX, nY <= 1 ? 1 : nY );
 				}
 
-				window->SetSize ( size.cx >= vp.Width ? vp.Width : size.cx,
+				widget->SetSize ( size.cx >= vp.Width ? vp.Width : size.cx,
 								  size.cy >= vp.Height ? vp.Height : size.cy );
 			}
 		}

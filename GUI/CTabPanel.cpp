@@ -14,7 +14,7 @@ CTabPanel::CTabPanel ( CDialog *pDialog )
 	if ( !m_pScrollbar )
 		MessageBox ( 0, _UI ( "CWindow::CWindow: Error for creating CScrollBarHorizontal" ), _UI ( "GUIAPI.asi" ), 0 );
 
-	m_pScrollbar->AddControl ( this );
+	m_pScrollbar->SetControl ( this );
 }
 
 CTabPanel::~CTabPanel ( void )
@@ -33,12 +33,17 @@ void CTabPanel::AddTab ( const SIMPLEGUI_CHAR *szTabName, int nWidth )
 	STabList sTab;
 	sTab.sTabName = szTabName;
 	sTab.nWidth = nWidth;
+
 	sTab.pFocussedControl = NULL;
 	sTab.pMouseOverControl = NULL;
+
+	sTab.nTrackX = 0;
+	sTab.nTrackY = 0;
 
 	m_TabList.push_back ( sTab );
 
 	m_nSelectedTab = m_TabList.size () - 1;
+	SetHeight ( m_rBoundingBox.m_size.cy );
 }
 
 void CTabPanel::RemoveTab ( const SIMPLEGUI_CHAR *szTabName )
@@ -70,36 +75,34 @@ void CTabPanel::RemoveAllTabs ( void )
 	m_TabList.clear ();
 }
 
-void CTabPanel::AddControl ( UINT nTabID, CControl *pControl )
+void CTabPanel::AddControl ( UINT nTabID, CWidget *pControl )
 {
 	if ( nTabID >= m_TabList.size () ||
 		 !pControl ||
-		 pControl->GetType () == CControl::EControlType::TYPE_TABPANEL ||
-		 pControl->GetType () == CControl::EControlType::TYPE_WINDOW )
+		 pControl->GetType () == CWidget::EControlType::TYPE_TABPANEL ||
+		 pControl->GetType () == CWidget::EControlType::TYPE_WINDOW )
 	{
 		return;
 	}
-
-	SIZE size;
-	m_pTitleFont->GetTextExtent ( _UI ( "Y" ), &size );
-
-	pControl->SetPos ( *pControl->GetPos ()+ CPos ( 0, GetTabSizeY() ));
+	
+	pControl->SetPos ( *pControl->GetPos ());
 	pControl->SetParent ( this );
-
+	pControl->UpdateRects ();
 	m_TabList [ nTabID ].vControls.push_back ( pControl );
 }
 
-void CTabPanel::RemoveControl ( UINT nTabID, CControl *pControl )
+void CTabPanel::RemoveControl ( UINT nTabID, CWidget *pControl )
 {
 	if ( nTabID >= m_TabList.size () || 
 		 !pControl )
 		return;
 
-	std::vector<CControl*>::iterator iter = std::find ( m_TabList [ nTabID ].vControls.begin (), m_TabList [ nTabID ].vControls.end (), pControl );
-	if ( iter == m_TabList [ nTabID ].vControls.end () )
+	std::vector<CWidget*> &vWidgets = m_TabList [ nTabID ].vControls;
+	std::vector<CWidget*>::iterator iter = std::find ( vWidgets.begin (), vWidgets.end (), pControl );
+	if ( iter == vWidgets.end () )
 		return;
 
-	m_TabList [ nTabID ].vControls.erase ( iter );
+	vWidgets.erase ( iter );
 	SAFE_DELETE ( pControl );
 }
 
@@ -107,13 +110,14 @@ void CTabPanel::RemoveAllControlsFromTab ( UINT nTabID )
 {
 	if ( nTabID >= m_TabList.size () ) 
 		return;
-
-	for ( size_t i = 0; i < m_TabList [ nTabID ].vControls.size (); i++ )
+	
+	std::vector<CWidget*> &vWidgets = m_TabList [ nTabID ].vControls;
+	for ( size_t i = 0; i <vWidgets.size (); i++ )
 	{
-		SAFE_DELETE ( m_TabList [ nTabID ].vControls [ i ] );
+		SAFE_DELETE ( vWidgets [ i ] );
 	}
 
-	m_TabList [ nTabID ].vControls.clear ();
+	vWidgets.clear ();
 }
 
 void CTabPanel::RemoveAllControls ( void )
@@ -124,12 +128,13 @@ void CTabPanel::RemoveAllControls ( void )
 	}
 }
 
-bool CTabPanel::IsControlInList ( CControl *pControl )
+bool CTabPanel::IsControlInList ( CWidget *pControl )
 {
 	for ( size_t i = 0; i < m_TabList.size (); i++ )
 	{
-		std::vector<CControl*>::iterator iter = std::find ( m_TabList [ i ].vControls.begin (), m_TabList [ i ].vControls.end (), pControl );
-		if ( iter == m_TabList [ i ].vControls.end () )
+		std::vector<CWidget*> vWidgets = m_TabList [ i ].vControls;
+		std::vector<CWidget*>::iterator iter = std::find ( vWidgets.begin (), vWidgets.end (), pControl );
+		if ( iter == vWidgets.end () )
 			continue;
 
 		return true;
@@ -138,65 +143,106 @@ bool CTabPanel::IsControlInList ( CControl *pControl )
 	return false;
 }
 
-void CTabPanel::SetFocussedControl ( CControl *pControl )
+void CTabPanel::SetFocussedControl ( CWidget *pControl )
 {
 	if ( !IsControlInList ( pControl ) )
 		return;
 
-	if ( m_TabList [ m_nSelectedTab ].pFocussedControl != pControl )
+	CWidget *&pFocussedWidget = m_TabList [ m_nSelectedTab ].pFocussedControl;
+
+	if ( pFocussedWidget != pControl )
 	{
 		if ( !pControl->CanHaveFocus () )
 			return;
 
-		if ( m_TabList [ m_nSelectedTab ].pFocussedControl )
-			m_TabList [ m_nSelectedTab ].pFocussedControl->OnFocusOut ();
+		if ( pFocussedWidget )
+			pFocussedWidget->OnFocusOut ();
 
 		if ( pControl )
 			pControl->OnFocusIn ();
 
-		m_TabList [ m_nSelectedTab ].pFocussedControl = pControl;
+		pFocussedWidget = pControl;
 	}
 
 	BringControlToTop ( m_nSelectedTab, pControl );
 }
 
-void CTabPanel::BringControlToTop ( UINT nTabID, CControl *pControl )
+void CTabPanel::BringControlToTop ( UINT nTabID, CWidget *pControl )
 {
 	if ( nTabID >= m_TabList.size () || 
 		 !pControl )
 		return;
 
-	std::vector<CControl*>::iterator iter = std::find ( m_TabList [ nTabID ].vControls.begin (), m_TabList [ nTabID ].vControls.end (), pControl );
-	if ( iter == m_TabList [ nTabID ].vControls.end () )
+	std::vector<CWidget*> &vWidgets = m_TabList [ nTabID ].vControls;
+	std::vector<CWidget*>::iterator iter = std::find ( vWidgets.begin (), vWidgets.end (), pControl );
+	if ( iter == vWidgets.end () )
 		return;
 
-	m_TabList [ nTabID ].vControls.erase ( iter );
-	m_TabList [ nTabID ].vControls.insert ( m_TabList [ nTabID ].vControls.end (), pControl );
+	vWidgets.erase ( iter );
+	vWidgets.insert ( vWidgets.end (), pControl );
 
-	// Make sure the control has focus, otherwise give it focus.
-	if ( m_pParent && !m_bHasFocus )
-		m_pParent->SetFocussedControl ( this );
+	// give it focus
+	_SetFocus ();
 }
 
-CControl *CTabPanel::GetFocussedControl ( )
+void CTabPanel::MoveControl ( CWidget *pControl, UINT nTabPosition )
+{
+	if ( nTabPosition >= m_TabList.size () )
+		nTabPosition = m_TabList.size () - 1;
+
+	for ( size_t i = 0; i < m_TabList.size (); i++ )
+	{
+		std::vector<CWidget*> &vWidgets = m_TabList [ i ].vControls;
+		std::vector<CWidget*>::iterator iter = std::find ( vWidgets.begin (), vWidgets.end (), pControl );
+		if ( iter == vWidgets.end () )
+			continue;
+
+		if ( i != nTabPosition )
+		{
+			vWidgets.erase ( iter );
+			m_TabList [ nTabPosition ].vControls.insert ( m_TabList [ nTabPosition ].vControls.end (), pControl );
+			return;
+		}
+	}
+}
+
+CWidget *CTabPanel::GetControlAtArea ( UINT nTabID, CVector pos )
+{
+	if ( nTabID >= m_TabList.size () )
+		return NULL;
+
+	std::vector<CWidget*> vWidgets = m_TabList [ nTabID ].vControls;
+	for ( std::vector<CWidget*>::reverse_iterator iter = vWidgets.rbegin (); iter != vWidgets.rend (); iter++ )
+	{
+		if ( ( *iter )->ContainsPoint ( pos ) )
+			return ( *iter );
+	}
+
+	return NULL;
+}
+
+CWidget *CTabPanel::GetFocussedControl ( void )
 {
 	return m_TabList [ m_nSelectedTab ].pFocussedControl;
 }
 
 void CTabPanel::ClearControlFocus ( void )
 {
-	if ( m_TabList [ m_nSelectedTab ].pFocussedControl )
+	CWidget *&pFocussedWidget = m_TabList [ m_nSelectedTab ].pFocussedControl;
+	CWidget *&pMouseOverWidget = m_TabList [ m_nSelectedTab ].pMouseOverControl;
+
+	if ( pFocussedWidget )
 	{
-		m_TabList [ m_nSelectedTab ].pFocussedControl->OnClickLeave ();
-		m_TabList [ m_nSelectedTab ].pFocussedControl->OnMouseLeave ();
-		m_TabList [ m_nSelectedTab ].pFocussedControl->OnFocusOut ();
-		m_TabList [ m_nSelectedTab ].pFocussedControl = NULL;
+		pFocussedWidget->OnClickLeave ();
+		pFocussedWidget->OnMouseLeave ();
+		pFocussedWidget->OnFocusOut ();
+		pFocussedWidget = NULL;
 	}
 
-	if ( m_TabList [ m_nSelectedTab ].pMouseOverControl )
+	if ( pMouseOverWidget )
 	{
-		m_TabList [ m_nSelectedTab ].pMouseOverControl->OnMouseLeave ();
-		m_TabList [ m_nSelectedTab ].pMouseOverControl = NULL;
+		pMouseOverWidget->OnMouseLeave ();
+		pMouseOverWidget = NULL;
 	}
 }
 
@@ -219,14 +265,14 @@ UINT CTabPanel::GetNumOfTabsVisible ( void )
 	for ( size_t i = m_nNextTab; i < m_TabList.size (); i++ )
 	{
 		nWidth += m_TabList [ i ].nWidth;
-		if ( nWidth < m_rPanelArea.size.cx )
+		if ( nWidth < m_rPanelArea.m_size.cx )
 			nTabs++;
 	}
 
 	return nTabs;
 }
 
-int CTabPanel::GetTabIdAtArea ( CPos pos )
+int CTabPanel::GetTabIdAtArea ( CVector pos )
 {
 	int nColumnWidth = 0;
 	SControlRect rTabBox = m_rTabArea;
@@ -234,11 +280,11 @@ int CTabPanel::GetTabIdAtArea ( CPos pos )
 
 	for ( size_t i = m_nNextTab; i < size + m_nNextTab; i++ )
 	{
-		rTabBox.pos.SetX ( rTabBox.pos.GetX () + nColumnWidth );
+		rTabBox.m_pos.m_nX += nColumnWidth;
 		nColumnWidth = m_TabList [ i ].nWidth;
-		rTabBox.size.cx = nColumnWidth;
+		rTabBox.m_size.cx = nColumnWidth;
 
-		if ( rTabBox.InControlArea ( pos ) )
+		if ( rTabBox.ContainsPoint ( pos ) )
 		{
 			return i;
 		}
@@ -260,50 +306,16 @@ int CTabPanel::GetSelectedTab ( void )
 	return m_nSelectedTab;
 }
 
-void CTabPanel::MoveControl ( CControl *pControl, UINT nTabPosition )
-{
-	if ( nTabPosition >= m_TabList.size () )
-		nTabPosition = m_TabList.size () - 1;
-
-	for ( size_t i = 0; i < m_TabList.size (); i++ )
-	{
-		std::vector<CControl*>::iterator iter = std::find ( m_TabList [ i ].vControls.begin (), m_TabList [ i ].vControls.end (), pControl );
-		if ( iter == m_TabList [ i ].vControls.end () )
-			continue;
-
-		if ( i != nTabPosition )
-		{
-			m_TabList [ i ].vControls.erase ( iter );
-			m_TabList [ nTabPosition ].vControls.insert ( m_TabList [ nTabPosition ].vControls.end (), pControl );
-			return;
-		}
-	}
-}
-
-CControl *CTabPanel::GetControlAtArea ( UINT nTabID, CPos pos )
-{
-	if ( nTabID >= m_TabList.size () )
-		return NULL;
-
-	for ( std::vector<CControl*>::reverse_iterator iter = m_TabList [ nTabID ].vControls.rbegin (); iter != m_TabList [ nTabID ].vControls.rend (); iter++ )
-	{
-		if ( ( *iter )->ContainsRect ( pos ) )
-			return ( *iter );
-	}
-
-	return NULL;
-}
-
 int CTabPanel::GetTabSizeY ( void )
 {
-	return m_rTabArea.size.cy;
+	return m_rTabArea.m_size.cy;
 }
 
 SIZE CTabPanel::GetSize ( void )
 {
 	SIZE size;
-	size.cx = m_rBoundingBox.size.cx;
-	size.cy = m_rBoundingBox.size.cy;
+	size.cx = m_rBoundingBox.m_size.cx;
+	size.cy = m_rBoundingBox.m_size.cy;
 
 	return size;
 }
@@ -311,23 +323,27 @@ SIZE CTabPanel::GetSize ( void )
 void CTabPanel::Draw ( void )
 {
 	int nWidth = 0;
-	size_t size = min ( GetNumOfTabsVisible () + m_nNextTab, m_TabList.size () );
+
+	UINT nNumTabsVisible = GetNumOfTabsVisible ();
+	size_t tabSize = m_TabList.size ();
+	size_t size = min ( nNumTabsVisible + m_nNextTab, tabSize );
 
 	for ( size_t i = m_nNextTab ? m_nNextTab - 1 : 0; i < size; i++ )
 	{
 		nWidth += m_TabList [ i ].nWidth;
 	}
 
-	if ( m_rPanelArea.size.cx != m_nOldAreaX )
+	if ( m_rPanelArea.m_size.cx != m_nOldAreaX )
 	{
-		if ( m_rPanelArea.size.cx > m_nOldAreaX )
+		if ( m_rPanelArea.m_size.cx > m_nOldAreaX )
 		{
-			if ( m_rPanelArea.size.cx > nWidth && m_nNextTab > 0 )
+			if ( m_rPanelArea.m_size.cx > nWidth &&
+				 m_nNextTab > 0 )
 			{
 				m_nNextTab--;
 			}
 		}
-		m_nOldAreaX = m_rPanelArea.size.cx;
+		m_nOldAreaX = m_rPanelArea.m_size.cx;
 	}
 
 	m_pDialog->DrawBox ( m_rPanelArea, m_sControlColor.d3dColorBoxBack, m_sControlColor.d3dColorOutline );
@@ -335,14 +351,16 @@ void CTabPanel::Draw ( void )
 	SControlRect rTabBox = m_rTabArea;
 
 	int nColumnWidth = 0;
+	int nAllColumnsWidth = GetAllColumnsWidth ();
 	for ( size_t i = m_nNextTab; i < size; i++ )
 	{
-		rTabBox.pos.SetX ( rTabBox.pos.GetX () + nColumnWidth );
+		rTabBox.m_pos.m_nX += nColumnWidth;
 		nColumnWidth = m_TabList [ i ].nWidth;
-		rTabBox.size.cx = nColumnWidth;
+		rTabBox.m_size.cx = nColumnWidth;
 
 		D3DCOLOR d3dColorColumn = m_sControlColor.d3dColorBox [ SControlColor::STATE_NORMAL ];
-		if ( i == m_nSelectedTab || m_nOverTabId == i )
+		if ( i == m_nSelectedTab ||
+			 i == m_nOverTabId )
 		{
 			if ( i == m_nSelectedTab )
 			{
@@ -358,12 +376,12 @@ void CTabPanel::Draw ( void )
 
 		SIMPLEGUI_STRING strTabName = m_TabList [ i ].sTabName;
 		m_pTitleFont->CutString ( nColumnWidth - 4, strTabName );
-		m_pDialog->DrawFont ( SControlRect ( rTabBox.pos.GetX () + nColumnWidth / 2, rTabBox.pos.GetY () + rTabBox.size.cy / 2 ),
+		m_pDialog->DrawFont ( SControlRect ( rTabBox.m_pos.m_nX + nColumnWidth / 2, rTabBox.m_pos.m_nY + rTabBox.m_size.cy / 2 ),
 							  m_sControlColor.d3dColorFont, strTabName.c_str (), D3DFONT_COLORTABLE | D3DFONT_CENTERED_X | D3DFONT_CENTERED_Y,
 							  m_pTitleFont );
 	}
 
-	if ( GetAllColumnsWidth () >= m_rPanelArea.size.cx )
+	if ( nAllColumnsWidth >= m_rPanelArea.m_size.cx )
 	{
 		D3DCOLOR d3dButtonLeftColor = m_sControlColor.d3dColorBox [ SControlColor::STATE_NORMAL ];
 		D3DCOLOR d3dButtonRightColor = m_sControlColor.d3dColorBox [ SControlColor::STATE_NORMAL ];
@@ -386,101 +404,114 @@ void CTabPanel::Draw ( void )
 		}
 
 		m_sLeftButton.bVisible = ( m_nNextTab > 0 );
-		m_sRightButton.bVisible = ( m_nNextTab < m_TabList.size () - GetNumOfTabsVisible () );
+		m_sRightButton.bVisible = ( m_nNextTab < tabSize - nNumTabsVisible );
 
 		SControlRect rShape = m_sLeftButton.m_rButton;
-		rShape.size.cx = m_sLeftButton.m_rButton.size.cx / 2 - 5;
+		rShape.m_size.cx = m_sLeftButton.m_rButton.m_size.cx / 2 - 5;
 
 		if ( m_sLeftButton.bVisible )
 		{
 			m_pDialog->DrawBox ( m_sLeftButton.m_rButton, d3dButtonLeftColor, m_sControlColor.d3dColorOutline );
 
-			rShape.pos.SetX ( rShape.pos.GetX () + m_sLeftButton.m_rButton.size.cx / 2 + 2 );
-			rShape.pos.SetY ( rShape.pos.GetY () + m_sLeftButton.m_rButton.size.cx / 2 - 2 );
+			rShape.m_pos.m_nX += m_sLeftButton.m_rButton.m_size.cx / 2 + 2;
+			rShape.m_pos.m_nY += m_sLeftButton.m_rButton.m_size.cx / 2 - 2;
 			m_pDialog->DrawTriangle ( rShape, 90.f, m_sControlColor.d3dColorShape, 0 );
 		}
 		if ( m_sRightButton.bVisible )
 		{
 			m_pDialog->DrawBox ( m_sRightButton.m_rButton, d3dButtonRightColor, m_sControlColor.d3dColorOutline );
 
-			rShape.pos.SetX ( m_sRightButton.m_rButton.pos.GetX () + m_sRightButton.m_rButton.size.cx / 2 - 1 );
-			rShape.pos.SetY ( m_sRightButton.m_rButton.pos.GetY () + m_sRightButton.m_rButton.size.cx / 2 - 2 );
-			m_pDialog->DrawTriangle ( SControlRect ( rShape.pos, rShape.size ), 270.f, m_sControlColor.d3dColorShape, 0 );
+			rShape.m_pos.m_nX = m_sRightButton.m_rButton.m_pos.m_nX + m_sRightButton.m_rButton.m_size.cx / 2 - 1;
+			rShape.m_pos.m_nY = m_sRightButton.m_rButton.m_pos.m_nY + m_sRightButton.m_rButton.m_size.cx / 2 - 2;
+			m_pDialog->DrawTriangle ( SControlRect ( rShape.m_pos, rShape.m_size ), 270.f, m_sControlColor.d3dColorShape, 0 );
 		}
 	}
+
+	/*ZeroMemory ( &m_maxControlSize, sizeof ( SIZE ) );
+*/
+	SControlRect rScissor = m_rScissor;
+	rScissor.m_pos.m_nY -= 1;
+	rScissor.m_size.cy += 1;
+	CScissor sCissor;
+	sCissor.SetScissor ( m_pDialog->GetDevice (), rScissor.GetRect () );
 
 	CScrollBarVertical *pScrollbarVer = m_pScrollbar->GetVerScrollbar ();
 	CScrollBarHorizontal *pScrollbarHor = m_pScrollbar->GetHorScrollbar ();
 
-	m_nTrackX [ m_nSelectedTab ] = pScrollbarHor->GetTrackPos ();
-	m_nTrackY [ m_nSelectedTab ] = pScrollbarVer->GetTrackPos ();
+	STabList &sTab = m_TabList [ m_nSelectedTab ];
 
-	ZeroMemory ( &m_maxControlSize, sizeof ( SIZE ) );
+	if ( sTab.vControls.size () )
+	{
+		sTab.nTrackX = pScrollbarHor->GetTrackPos ();
+		sTab.nTrackY = pScrollbarVer->GetTrackPos ();
+	}
+	else
+	{
+		m_maxControlSize .cx = 0;
+		m_maxControlSize .cy = 0;
+	}
 
-	SControlRect rScissor = m_rScissor;
-	rScissor.pos.SetY ( rScissor.pos.GetY () - 1 );
-	rScissor.size.cy += 1;
-
-	for ( auto control : m_TabList [ m_nSelectedTab ].vControls )
+	for ( auto control : sTab.vControls )
 	{
 		if ( control )
 		{
-			control->LinkPos ( m_rBoundingBox.pos +CPos ( 0, m_rTabArea.size.cy ) - ( CPos ( m_nTrackX [ m_nSelectedTab ], m_nTrackY [ m_nSelectedTab ] ) ) );
-
-			CPos *pos = control->GetPos ();
+			Pos *pos = control->GetPos ();
 			SIZE size = control->GetSize ();
+			if ( pos->m_nY <= GetTabSizeY () )
+				control->SetPosY ( 0 );
+			control->LinkPos ( m_rBoundingBox.m_pos + Pos ( 0, m_rTabArea.m_size.cy ) - Pos ( sTab.nTrackX, sTab.nTrackY ) );
+		
+	
+			CWidget::eRelative relativeX = control->GetRelativeX ();
+			CWidget::eRelative relativeY = control->GetRelativeY ();
 
-			if ( !( control->GetRelativeX () == CControl::RELATIVE_SIZE || control->GetRelativeX () == CControl::RELATIVE_POS ) ||
-				 ( control->GetRelativeX () == CControl::RELATIVE_POS && pos->GetX () <= 0 ) ||
-				 ( control->GetMinSize ().cx == size.cx && pos->GetX () > 0 ) )
+			if ( !( relativeX == CWidget::RELATIVE_SIZE || relativeX == CWidget::RELATIVE_POS ) ||
+				( relativeX == CWidget::RELATIVE_POS &&  pos->m_nX <= 0 ) || ( control->GetMinSize ().cx == size.cx &&pos->m_nX > 0 ) )
 			{
-				m_maxControlSize.cx = max ( m_maxControlSize.cx, pos->GetX () + size.cx );
+				m_maxControlSize.cx = max ( m_maxControlSize.cx, pos->m_nX + size.cx );
 			}
 
-			if ( !( control->GetRelativeY () == CControl::RELATIVE_SIZE || control->GetRelativeY () == CControl::RELATIVE_POS ) ||
-				 ( control->GetRelativeY () == CControl::RELATIVE_POS && pos->GetY () <= GetTabSizeY () ) ||
-				 ( control->GetRelativeY () == CControl::RELATIVE_SIZE && control->GetMinSize ().cy == size.cy && pos->GetY () > GetTabSizeY () ) )
+			if ( !( relativeY == CWidget::RELATIVE_SIZE || relativeY == CWidget::RELATIVE_POS ) ||
+				( relativeY == CWidget::RELATIVE_POS && pos->m_nY <= GetTabSizeY() ) ||
+				 /*( control->GetRelativeY () == CWidget::RELATIVE_SIZE &&*/( control->GetMinSize ().cy == size.cy && pos->m_nY >= GetTabSizeY () ) )
 			{
-				m_maxControlSize.cy = max ( m_maxControlSize.cy, pos->GetY () + size.cy );
+
+			m_maxControlSize.cy = max ( m_maxControlSize.cy, pos->m_nY + size.cy );
 			}
 
 			pos = control->GetUpdatedPos ();
 
-			if ( pos->GetX () + size.cx > m_rPanelArea.pos.GetX () &&
-				 pos->GetY () + size.cy > m_rPanelArea.pos.GetY () &&
-				 pos->GetX () < m_rPanelArea.pos.GetX () + m_rPanelArea.size.cx &&
-				 pos->GetY () < m_rPanelArea.pos.GetY () + m_rPanelArea.size.cy )
+			if ( pos->m_nX + size.cx > m_rPanelArea.m_pos.m_nX &&
+				 pos->m_nY + size.cy > m_rPanelArea.m_pos.m_nY &&
+				 pos->m_nX < m_rPanelArea.m_pos.m_nX + m_rPanelArea.m_size.cx &&
+				 pos->m_nY < m_rPanelArea.m_pos.m_nY + m_rPanelArea.m_size.cy )
 			{
-				SControlRect rParentArea = GetRect ();
-				rParentArea.pos.SetY ( rParentArea.pos.GetY () + static_cast< CWindow* >( m_pParent )->GetTitleBarHeight () );
-				rParentArea.size = m_pParent->GetSize ();
-
 				m_rScissor = m_rPanelArea;
-
-				int nDragOffSet;
-				if ( rScissor.pos.GetY () + rScissor.size.cy < m_rPanelArea.pos.GetY () + m_rPanelArea.size.cy  )
+	
+			/*	int nDragOffSet;
+				if ( rScissor.m_pos.m_nY + rScissor.m_size.cy < m_rPanelArea.m_pos.m_nY + m_rPanelArea.m_size.cy )
 				{
-					m_rScissor.size.cy = rScissor.pos.GetY () + rScissor.size.cy - m_rPanelArea.pos.GetY () ;
+					m_rScissor.m_size.cy = rScissor.m_pos.m_nY + rScissor.m_size.cy - m_rPanelArea.m_pos.m_nY;
 				}
 
-				if ( m_rPanelArea.pos.GetY () < rScissor.pos.GetY ()  )
+				if ( m_rPanelArea.m_pos.m_nY < rScissor.m_pos.m_nY )
 				{
-					nDragOffSet = rScissor.pos.GetY () - m_rPanelArea.pos.GetY ();
-					m_rScissor.pos.SetY ( m_rScissor.pos.GetY () + nDragOffSet );
-					m_rScissor.size.cy = m_rScissor.size.cy - nDragOffSet;
+					nDragOffSet = rScissor.m_pos.m_nY - m_rPanelArea.m_pos.m_nY;
+					m_rScissor.m_pos.m_nY += nDragOffSet;
+					m_rScissor.m_size.cy = m_rScissor.m_size.cy - nDragOffSet;
 				}
 
-				if ( rScissor.pos.GetX () + rScissor.size.cx < m_rPanelArea.pos.GetX () + m_rPanelArea.size.cx  )
+				if ( rScissor.m_pos.m_nX + rScissor.m_size.cx < m_rPanelArea.m_pos.m_nX + m_rPanelArea.m_size.cx )
 				{
-					m_rScissor.size.cx = rScissor.pos.GetX () + rScissor.size.cx - m_rPanelArea.pos.GetX ();
+					m_rScissor.m_size.cx = rScissor.m_pos.m_nX + rScissor.m_size.cx - m_rPanelArea.m_pos.m_nX + 1;
 				}
 
-				if ( m_rPanelArea.pos.GetX () < rScissor.pos.GetX ()  )
+				if ( m_rPanelArea.m_pos.m_nX < rScissor.m_pos.m_nX )
 				{
-					nDragOffSet = rScissor.pos.GetX () - m_rPanelArea.pos.GetX () ;
-					m_rScissor.pos.SetX ( m_rScissor.pos.GetX () + nDragOffSet );
-					m_rScissor.size.cx = m_rScissor.size.cx - nDragOffSet;
-				}
+					nDragOffSet = rScissor.m_pos.m_nX - m_rPanelArea.m_pos.m_nX;
+					m_rScissor.m_pos.m_nX += nDragOffSet;
+					m_rScissor.m_size.cx = m_rScissor.m_size.cx - nDragOffSet + 1;
+				}*/
 
 				control->EnterScissorRect ( m_rScissor );
 				control->Draw ();
@@ -490,7 +521,7 @@ void CTabPanel::Draw ( void )
 	}
 
 	m_rScissor = rScissor;
-	EnterScissorRect ( m_rScissor );
+	sCissor.SetScissor ( m_pDialog->GetDevice (), m_rScissor.GetRect () );
 	UpdateScrollbars ();
 	m_pScrollbar->OnDraw ();
 }
@@ -500,8 +531,10 @@ bool CTabPanel::OnMouseButtonDown ( sMouseEvents e )
 	if ( !CanHaveFocus () )
 		return false;
 
+	CWidget *pFocussedWidget = m_TabList [ m_nSelectedTab ].pFocussedControl;
+
 	// Check if mouse is over window boundaries
-	if ( !HAS_CONTROL_TYPE ( m_TabList [ m_nSelectedTab ].pFocussedControl, CControl::TYPE_DROPDOWN ) )
+	if ( !HAS_CONTROL_TYPE ( pFocussedWidget, CWidget::TYPE_DROPDOWN ) )
 	{
 		// Let the scroll bar handle it first.
 		if ( m_pScrollbar->OnMouseButtonDown ( e ) )
@@ -511,12 +544,9 @@ bool CTabPanel::OnMouseButtonDown ( sMouseEvents e )
 		}
 	}	
 	
-	CScrollBarVertical *pScrollbarVer = m_pScrollbar->GetVerScrollbar ();
-	CScrollBarHorizontal *pScrollbarHor = m_pScrollbar->GetHorScrollbar ();
-
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		m_pParent->SetFocussedControl ( this );
+		_SetFocus ();
 
 		if ( m_sLeftButton.InArea ( e.pos ) )
 		{
@@ -536,12 +566,12 @@ bool CTabPanel::OnMouseButtonDown ( sMouseEvents e )
 			m_nSelectedTab = nId;
 			m_bPressed = true;
 
-			pScrollbarHor->SetTrackPos ( m_nTrackX [ nId ] );
-			pScrollbarVer->SetTrackPos ( m_nTrackY [ nId ] ); 
+			m_pScrollbar->GetHorScrollbar ()->SetTrackPos ( m_TabList [ nId ].nTrackX );
+			m_pScrollbar->GetVerScrollbar ()->SetTrackPos ( m_TabList [ nId ].nTrackY );
 			return true;
 		}
 
-		if ( m_rPanelArea.InControlArea ( e.pos ) )
+		if ( m_rPanelArea.ContainsPoint ( e.pos ) )
 		{
 			// Pressed while inside the control
 			m_bPressed = true;
@@ -556,7 +586,10 @@ bool CTabPanel::OnMouseButtonUp ( sMouseEvents e )
 {
 	m_bPressed = false;
 
-	if ( !HAS_CONTROL_TYPE ( m_TabList [ m_nSelectedTab ].pFocussedControl, CControl::TYPE_DROPDOWN ) )
+	CWidget *pFocussedWidget = m_TabList [ m_nSelectedTab ].pFocussedControl;
+	CWidget *&pMouseOverWidget = m_TabList [ m_nSelectedTab ].pMouseOverControl;
+
+	if ( !HAS_CONTROL_TYPE ( pFocussedWidget, CWidget::TYPE_DROPDOWN ) )
 	{
 		// Let the scroll bar handle it first.
 		if ( m_pScrollbar->OnMouseButtonUp ( e ) )
@@ -565,10 +598,10 @@ bool CTabPanel::OnMouseButtonUp ( sMouseEvents e )
 
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		if ( m_TabList [ m_nSelectedTab ].pMouseOverControl )
+		if ( pMouseOverWidget )
 		{
-			m_TabList [ m_nSelectedTab ].pMouseOverControl->OnMouseLeave ();
-			m_TabList [ m_nSelectedTab ].pMouseOverControl = NULL;
+			pMouseOverWidget->OnMouseLeave ();
+			pMouseOverWidget = NULL;
 		}
 	}
 
@@ -595,7 +628,7 @@ bool CTabPanel::OnMouseButtonUp ( sMouseEvents e )
 	return false;
 }
 
-bool CTabPanel::OnMouseMove ( CPos pos )
+bool CTabPanel::OnMouseMove ( CVector pos )
 {
 	if ( !CanHaveFocus () )
 		return false;
@@ -642,33 +675,33 @@ bool CTabPanel::OnMouseWheel ( int zDelta )
 
 bool CTabPanel::ControlMessages ( sControlEvents e )
 {
-	CControl *pMouseOverControl = m_TabList [ m_nSelectedTab ].pMouseOverControl;
-	CControl *pFocussedControl = m_TabList [ m_nSelectedTab ].pFocussedControl;
+	CWidget *&pMouseOverWidget = m_TabList [ m_nSelectedTab ].pMouseOverControl;
+	CWidget *pFocussedWidget = m_TabList [ m_nSelectedTab ].pFocussedControl;
 
-	bool bHasDropDown = HAS_CONTROL_TYPE ( pFocussedControl, CControl::TYPE_DROPDOWN );
+	bool bHasDropDown = HAS_CONTROL_TYPE ( pFocussedWidget, CWidget::TYPE_DROPDOWN );
 
 	if ( !CanHaveFocus () ||
-		 ( m_pScrollbar->ContainsRect ( e.mouseEvent.pos ) && !bHasDropDown ) ||
-		 !m_rBoundingBox.InControlArea ( e.mouseEvent.pos ) && 
-		 !( bHasDropDown || HAS_CONTROL_TYPE ( pFocussedControl, CControl::TYPE_EDITBOX || pFocussedControl && pFocussedControl->OnClickEvent () ) ) )
+		( m_pScrollbar->ContainsPoint ( e.mouseEvent.pos ) && !bHasDropDown ) ||
+		 !m_rBoundingBox.ContainsPoint ( e.mouseEvent.pos ) &&
+		 !( bHasDropDown || HAS_CONTROL_TYPE ( pFocussedWidget, CWidget::TYPE_EDITBOX  || pFocussedWidget && pFocussedWidget->OnClickEvent () )) )
 	{
 		return false;
 	}
 
-	if ( pFocussedControl && pFocussedControl->InjectKeyboard ( e.keyEvent ) )
+	if ( pFocussedWidget && pFocussedWidget->InjectKeyboard ( e.keyEvent ) )
 		return true;
 
-	CControl* pControl = GetControlAtArea ( m_nSelectedTab, e.mouseEvent.pos );
+	CWidget* pControl = GetControlAtArea ( m_nSelectedTab, e.mouseEvent.pos );
 	if ( !pControl &&
 		 e.mouseEvent.eMouseMessages == sMouseEvents::ButtonDown &&
 		 e.mouseEvent.eButton == sMouseEvents::LeftButton &&
-		 pFocussedControl )
+		 pFocussedWidget )
 	{
 		ClearControlFocus ();
 	}
 
 	// it the first chance at handling the message.
-	if ( pFocussedControl && pFocussedControl->InjectMouse ( e.mouseEvent ) )
+	if ( pFocussedWidget && pFocussedWidget->InjectMouse ( e.mouseEvent ) )
 		return true;
 
 	if ( pControl && pControl->InjectMouse ( e.mouseEvent ) )
@@ -677,15 +710,15 @@ bool CTabPanel::ControlMessages ( sControlEvents e )
 	if ( !GetAsyncKeyState ( VK_LBUTTON ) )
 	{
 		// If the mouse is still over the same control, nothing needs to be done
-		if ( pControl == pMouseOverControl )
+		if ( pControl == pMouseOverWidget )
 			return false;
 
 		// Handle mouse leaving the old control
-		if ( pMouseOverControl )
-			pMouseOverControl->OnMouseLeave ();
+		if ( pMouseOverWidget )
+			pMouseOverWidget->OnMouseLeave ();
 
 		// Handle mouse entering the new control
-		m_TabList [ m_nSelectedTab ].pMouseOverControl = pControl;
+		pMouseOverWidget = pControl;
 		if ( pControl )
 			pControl->OnMouseEnter ();
 	}
@@ -696,28 +729,32 @@ bool CTabPanel::ControlMessages ( sControlEvents e )
 //--------------------------------------------------------------------------------------
 void CTabPanel::OnClickLeave ( void )
 {
-	CControl::OnClickLeave ();
+	CWidget::OnClickLeave ();
 	m_pScrollbar->OnClickLeave ();
 
 	m_nOverTabId = -1;
 	m_sLeftButton.bClickedButton = m_sRightButton.bClickedButton = false;
 
-	if ( m_TabList [ m_nSelectedTab ].pFocussedControl )
-		m_TabList [ m_nSelectedTab ].pFocussedControl->OnClickLeave ();
+	CWidget *&pFocussedWidget = m_TabList [ m_nSelectedTab ].pFocussedControl;
+
+	if ( pFocussedWidget )
+		pFocussedWidget->OnClickLeave ();
 }
 
 //--------------------------------------------------------------------------------------
 bool CTabPanel::OnClickEvent ( void )
 {
+	CWidget *pFocussedWidget = m_TabList [ m_nSelectedTab ].pFocussedControl;
+
 	return ( ( m_bPressed || m_sLeftButton.bClickedButton || m_sRightButton.bClickedButton ) ||
-			 ( m_TabList [ m_nSelectedTab ].pFocussedControl && m_TabList [ m_nSelectedTab ].pFocussedControl->OnClickEvent () ) ||
+			 ( pFocussedWidget && pFocussedWidget->OnClickEvent () ) ||
 			 m_pScrollbar->OnClickEvent () );
 }
 
 //--------------------------------------------------------------------------------------
 void CTabPanel::OnFocusIn ( void )
 {
-	CControl::OnFocusIn ();
+	CWidget::OnFocusIn ();
 
 	m_pScrollbar->OnFocusIn ();
 }
@@ -725,7 +762,7 @@ void CTabPanel::OnFocusIn ( void )
 //--------------------------------------------------------------------------------------
 void CTabPanel::OnFocusOut ( void )
 {
-	CControl::OnFocusOut ();
+	CWidget::OnFocusOut ();
 
 	m_pScrollbar->OnFocusOut ();
 
@@ -735,9 +772,11 @@ void CTabPanel::OnFocusOut ( void )
 //--------------------------------------------------------------------------------------
 void CTabPanel::OnMouseEnter ( void )
 {
-	CControl::OnMouseEnter ();
+	CWidget::OnMouseEnter ();
 
-	bool bHasDropDown = HAS_CONTROL_TYPE ( m_TabList [ m_nSelectedTab ].pFocussedControl, CControl::TYPE_DROPDOWN );
+	CWidget *pFocussedWidget = m_TabList [ m_nSelectedTab ].pFocussedControl;
+
+	bool bHasDropDown = HAS_CONTROL_TYPE ( pFocussedWidget, CWidget::TYPE_DROPDOWN );
 
 	if ( m_bMouseOver && !bHasDropDown )
 		m_pScrollbar->OnMouseEnter ();
@@ -746,60 +785,66 @@ void CTabPanel::OnMouseEnter ( void )
 //--------------------------------------------------------------------------------------
 void CTabPanel::OnMouseLeave ( void )
 {
-	CControl::OnMouseLeave ();
+	CWidget::OnMouseLeave ();
 
 	m_pScrollbar->OnMouseLeave ();
 
 	m_sLeftButton.bOverButton = m_sRightButton.bOverButton = false;
 	m_nOverTabId = -1;
 
-	if ( m_TabList [ m_nSelectedTab ].pMouseOverControl )
+	CWidget *&pMouseOverWidget = m_TabList [ m_nSelectedTab ].pMouseOverControl;
+
+	if ( pMouseOverWidget )
 	{
-		m_TabList [ m_nSelectedTab ].pMouseOverControl->OnMouseLeave ();
-		m_TabList [ m_nSelectedTab ].pMouseOverControl = NULL;
+		pMouseOverWidget->OnMouseLeave ();
+		pMouseOverWidget = NULL;
 	}
 }
 
 void CTabPanel::UpdateScrollbars ( void )
 {
 	SControlRect rRect = m_rBoundingBox;
-	rRect.size.cy -= GetTabSizeY ();
-	rRect.pos.SetX ( rRect.pos.GetX () );
-	rRect.pos.SetY ( rRect.pos.GetY () + GetTabSizeY () );
+	rRect.m_size.cy -= m_rTabArea.m_size.cy;
+	rRect.m_pos.m_nY += m_rTabArea.m_size.cy;
 
 	m_pScrollbar->SetTrackRange ( m_maxControlSize.cx, m_maxControlSize.cy );
-	m_pScrollbar->SetPageSize ( m_rBoundingBox.size.cx - ( m_pScrollbar->IsVerScrollbarNeeded () ? 18 : 0 ), m_rBoundingBox.size.cy - ( m_pScrollbar->IsHorScrollbarNeeded () ? 18 : 0 ) );
+	m_pScrollbar->GetHorScrollbar ()->SetStepSize ( m_rBoundingBox.m_size.cx / 10 );
+	m_pScrollbar->GetVerScrollbar ()->SetStepSize ( m_rBoundingBox.m_size.cy / 10 );
 	m_pScrollbar->UpdateScrollbars ( rRect );
+
+	//m_pScrollbar->SetTrackRange ( m_maxControlSize.cx, m_maxControlSize.cy );
+	//m_pScrollbar->SetPageSize ( m_rBoundingBox.m_size.cx - ( m_pScrollbar->IsVerScrollbarNeeded () ? 18 : 0 ), m_rBoundingBox.m_size.cy - ( m_pScrollbar->IsHorScrollbarNeeded () ? 18 : 0 ) );
+	//m_pScrollbar->UpdateScrollbars ( rRect );
 }
 
 #define BUTTONSIZEY 15
 void CTabPanel::UpdateRects ( void )
 {
-	CControl::UpdateRects ();
+	CWidget::UpdateRects ();
 
 	SIZE size;
 	m_pTitleFont->GetTextExtent ( _UI ( "Y" ), &size );
 
 	m_rTabArea = m_rBoundingBox;
-	m_rTabArea.size.cy = size.cy + 8;
+	m_rTabArea.m_size.cy = size.cy + 8;
 
 	m_rPanelArea = m_rBoundingBox;
-	m_rPanelArea.pos.SetY ( m_rPanelArea.pos.GetY () + m_rTabArea.size.cy );
-	m_rPanelArea.size.cy -= m_rTabArea.size.cy;
+	m_rPanelArea.m_pos.m_nY += m_rTabArea.m_size.cy;
+	m_rPanelArea.m_size.cy -= m_rTabArea.m_size.cy;
 
-	m_sLeftButton.m_rButton.pos.SetX ( m_rTabArea.pos.GetX () );
-	m_sLeftButton.m_rButton.pos.SetY ( m_rTabArea.pos.GetY () + m_rTabArea.size.cy / 2 - BUTTONSIZEY / 2 );
-	m_sLeftButton.m_rButton.size.cx = 21;
-	m_sLeftButton.m_rButton.size.cy = BUTTONSIZEY;
+	m_sLeftButton.m_rButton.m_pos.m_nX = m_rTabArea.m_pos.m_nX;
+	m_sLeftButton.m_rButton.m_pos.m_nY = m_rTabArea.m_pos.m_nY + (m_rTabArea.m_size.cy / 2) - (BUTTONSIZEY / 2);
+	m_sLeftButton.m_rButton.m_size.cx = 21;
+	m_sLeftButton.m_rButton.m_size.cy = BUTTONSIZEY;
 
-	m_sRightButton.m_rButton.pos.SetX ( m_rTabArea.pos.GetX () + m_rPanelArea.size.cx - 21 );
-	m_sRightButton.m_rButton.pos.SetY ( m_rTabArea.pos.GetY () + m_rTabArea.size.cy / 2 - BUTTONSIZEY / 2 );
-	m_sRightButton.m_rButton.size.cx = 21;
-	m_sRightButton.m_rButton.size.cy = BUTTONSIZEY;
+	m_sRightButton.m_rButton.m_pos.m_nX = m_rTabArea.m_pos.m_nX + m_rPanelArea.m_size.cx - 21;
+	m_sRightButton.m_rButton.m_pos.m_nY = m_rTabArea.m_pos.m_nY + (m_rTabArea.m_size.cy / 2) - (BUTTONSIZEY / 2);
+	m_sRightButton.m_rButton.m_size.cx = 21;
+	m_sRightButton.m_rButton.m_size.cy = BUTTONSIZEY;
 
 }
 
-bool CTabPanel::ContainsRect ( CPos pos )
+bool CTabPanel::ContainsPoint ( CVector pos )
 {
 	int nWidth = 0;
 	size_t size = GetNumOfTabsVisible ();
@@ -807,16 +852,17 @@ bool CTabPanel::ContainsRect ( CPos pos )
 	for ( size_t i = m_nNextTab; i < size + m_nNextTab; i++ )
 	{
 		nWidth += m_TabList [ i ].nWidth;
-		if ( nWidth > m_rPanelArea.size.cx )
+		if ( nWidth > m_rPanelArea.m_size.cx )
 			break;
 	}
 
-	m_rTabArea.size.cx = nWidth;
-	CControl *pFocussedControl = m_TabList [ m_nSelectedTab ].pFocussedControl;
+	m_rTabArea.m_size.cx = nWidth;
 
-	return ( m_rPanelArea.InControlArea ( pos ) ||
+	CWidget *pFocussedWidget = m_TabList [ m_nSelectedTab ].pFocussedControl;
+
+	return ( m_rPanelArea.ContainsPoint ( pos ) ||
 			 m_sLeftButton.InArea ( pos ) ||
 			 m_sRightButton.InArea ( pos ) ||
-			 m_rTabArea.InControlArea ( pos ) ||
-			 ( HAS_CONTROL_TYPE ( pFocussedControl, CControl::TYPE_DROPDOWN ) && pFocussedControl->ContainsRect ( pos ) ) );
+			 m_rTabArea.ContainsPoint ( pos ) ||
+			 ( HAS_CONTROL_TYPE ( pFocussedWidget, CWidget::TYPE_DROPDOWN ) && pFocussedWidget && pFocussedWidget->ContainsPoint ( pos ) ) );
 }

@@ -2,7 +2,7 @@
 
 #include "CGUI.h"
 
-class CPictureBox : public CControl
+class CPictureBox : public CWidget
 {
 public:
 	CPictureBox ( CDialog *pDialog );

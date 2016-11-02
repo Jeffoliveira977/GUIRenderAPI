@@ -336,7 +336,7 @@ typedef struct _D3DCAPS9
 #define D3DPTEXTURECAPS_POW2                0x00000002L /* Power-of-2 texture dimensions are required - applies to non-Cube/Volume textures only. */
 #define D3DPTEXTURECAPS_ALPHA               0x00000004L /* Alpha in texture pixels is supported */
 #define D3DPTEXTURECAPS_SQUAREONLY          0x00000020L /* Only square textures are supported */
-#define D3DPTEXTURECAPS_TEXREPEATNOTSCALEDBYSIZE 0x00000040L /* Texture indices are not scaled by the texture size prior to interpolation */
+#define D3DPTEXTURECAPS_TEXREPEATNOTSCALEDBYSIZE 0x00000040L /* Texture indices are not scaled by the texture m_size prior to interpolation */
 #define D3DPTEXTURECAPS_ALPHAPALETTE        0x00000080L /* Device can draw alpha from texture palettes */
 // Device can use non-POW2 textures if:
 //  1) D3DTEXTURE_ADDRESS is set to CLAMP for this texture's stage
@@ -428,7 +428,7 @@ typedef struct _D3DCAPS9
 //
 #define D3DFVFCAPS_TEXCOORDCOUNTMASK    0x0000ffffL /* mask for texture coordinate count field */
 #define D3DFVFCAPS_DONOTSTRIPELEMENTS   0x00080000L /* Device prefers that vertex elements not be stripped */
-#define D3DFVFCAPS_PSIZE                0x00100000L /* Device can receive point size */
+#define D3DFVFCAPS_PSIZE                0x00100000L /* Device can receive point m_size */
 
 //
 // VertexProcessingCaps

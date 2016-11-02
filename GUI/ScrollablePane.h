@@ -12,7 +12,7 @@ public:
 
 	bool OnMouseButtonDown ( sMouseEvents e );
 	bool OnMouseButtonUp ( sMouseEvents e );
-	bool OnMouseMove ( CPos pos );
+	bool OnMouseMove ( CVector pos );
 
 	void OnClickLeave ( void );
 
@@ -40,13 +40,13 @@ public:
 
 	void UpdateScrollbars ( SControlRect rRect );
 
-	void AddControl ( CControl *pControl );
-	CControl *GetControl ( void );
+	void SetControl ( CWidget *pControl );
+	CWidget *GetControl ( void );
 
 	void RemoveControl ( void );
 	void SetFocussedControl ( void );
 
-	bool ContainsRect ( CPos pos );
+	bool ContainsPoint ( CVector pos );
 
 	CScrollBarHorizontal *GetHorScrollbar ( void );
 	CScrollBarVertical *GetVerScrollbar ( void );
@@ -54,7 +54,7 @@ private:
 	bool m_bScrollHorShow;
 	bool m_bScrollVerShow;
 
-	CPos m_pos;
+	CVector pos;
 	SIZE m_pageSize;
 
 	SControlRect m_rRect;
@@ -63,6 +63,6 @@ private:
 	CScrollBarHorizontal *m_pScrollbarHor;
 	CScrollBarVertical *m_pScrollbarVer;
 
-	CControl *m_pControl;
+	CWidget *m_pControl;
 };
 

@@ -23,15 +23,15 @@ void CProgressBarHorizontal::Draw ( void )
 
 	if ( pMouse &&
 		 m_bPressed &&
-		 m_rBoundingBox.InControlArea ( pMouse->GetPos () ) && 
+		 m_rBoundingBox.ContainsPoint ( pMouse->GetPos () ) && 
 		 !m_timer.Running() )
 	{
-		if ( pMouse->GetPos ().GetX () > m_rProgress.pos.GetX () + m_rProgress.size.cx )
+		if ( pMouse->GetPos ().m_nX > m_rProgress.m_pos.m_nX + m_rProgress.m_size.cx )
 		{
 			m_timer.Start ( PROGRESSBAR_ARROWCLICK_REPEAT );
 			SetValue ( m_fValue + m_fStep );
 		}
-		else if ( pMouse->GetPos ().GetX () < m_rProgress.pos.GetX () + m_rProgress.size.cx )
+		else if ( pMouse->GetPos ().m_nX < m_rProgress.m_pos.m_nX + m_rProgress.m_size.cx )
 		{
 			m_timer.Start ( PROGRESSBAR_ARROWCLICK_REPEAT );
 			SetValue ( m_fValue - m_fStep );
@@ -43,11 +43,11 @@ void CProgressBarHorizontal::Draw ( void )
 }
 
 //--------------------------------------------------------------------------------------
-bool CProgressBarHorizontal::OnMouseMove ( CPos pos )
+bool CProgressBarHorizontal::OnMouseMove ( CVector pos )
 {
 	if ( m_bPressed )
 	{
-		SetValue ( ValueFromPos ( pos.GetX () - m_rProgress.pos.GetX () ) );
+		SetValue ( ValueFromPos ( pos.m_nX - m_rProgress.m_pos.m_nX) );
 		return true;
 	}
 	return false;
@@ -61,22 +61,21 @@ bool CProgressBarHorizontal::OnMouseButtonDown ( sMouseEvents e )
 
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		if ( m_rBoundingBox.ContainsPoint ( e.pos ) )
 		{
 			// Pressed while inside the control
 			m_bPressed = true;
 
-			if ( m_pParent )
-				m_pParent->SetFocussedControl ( this );
+			_SetFocus ();
 
 			m_timer.Start ( PROGRESSBAR_ARROWCLICK_START );
 
-			if ( e.pos.GetX () > m_rProgress.pos.GetX () + m_rProgress.size.cx )
+			if ( e.pos.m_nX > m_rProgress.m_pos.m_nX + m_rProgress.m_size.cx )
 			{
 				SetValue ( m_fValue + m_fStep );
 				return true;
 			}
-			else if ( e.pos.GetX () < m_rProgress.pos.GetX () + m_rProgress.size.cx )
+			else if ( e.pos.m_nX < m_rProgress.m_pos.m_nX + m_rProgress.m_size.cx )
 			{
 				SetValue ( m_fValue - m_fStep );
 				return true;
@@ -96,8 +95,7 @@ bool CProgressBarHorizontal::OnMouseButtonUp ( sMouseEvents e )
 	{
 		m_bPressed = false;
 
-		if ( m_pParent )
-			m_pParent->ClearControlFocus ();
+		_ClearFocus ();
 
 		return true;
 	}
@@ -107,7 +105,7 @@ bool CProgressBarHorizontal::OnMouseButtonUp ( sMouseEvents e )
 //--------------------------------------------------------------------------------------
 float CProgressBarHorizontal::ValueFromPos ( int iX )
 {
-	float fValuePerPixel = ( float ) ( m_fMax / m_rBoundingBox.size.cx );
+	float fValuePerPixel = ( float ) ( m_fMax / m_rBoundingBox.m_size.cx );
 	return  ( 0.5 + fValuePerPixel * iX );
 }
 
@@ -154,18 +152,18 @@ float CProgressBarHorizontal::GetStep ( void )
 //--------------------------------------------------------------------------------------
 void CProgressBarHorizontal::UpdateRects ( void )
 {
-	CControl::UpdateRects ();
+	CWidget::UpdateRects ();
 
 	m_rProgress = m_rBoundingBox;
-	m_rProgress.size.cx = ( m_fValue * ( float ) ( m_rBoundingBox.size.cx ) / m_fMax );
+	m_rProgress.m_size.cx = ( m_fValue * ( float ) ( m_rBoundingBox.m_size.cx ) / m_fMax );
 }
 
 //--------------------------------------------------------------------------------------
-bool CProgressBarHorizontal::ContainsRect ( CPos pos )
+bool CProgressBarHorizontal::ContainsPoint ( CVector pos )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
-	return ( m_rBoundingBox.InControlArea ( pos ) ||
-			 m_rProgress.InControlArea ( pos ) );
+	return ( m_rBoundingBox.ContainsPoint ( pos ) ||
+			 m_rProgress.ContainsPoint ( pos ) );
 }

@@ -10,14 +10,14 @@ CLogBox::CLogBox ( CDialog *pDialog )
 	m_sControlColor.d3dColorSelectedFont = D3DCOLOR_RGBA ( 255, 255, 255, 255 );
 	*/
 
-	m_bSet = false;
+	m_bGenerateLog = false;
 
 	m_pEntryList = new CEntryList ( pDialog );
 
 	if ( !m_pEntryList )
 		MessageBox ( 0, _UI ( "CLogBox::CLogBox: Error for creating CEntryList" ), _UI ( "GUIAPI.asi" ), 0 );
 
-	m_pEntryList->GetScrollbar ()->AddControl ( this );
+	m_pEntryList->GetScrollbar ()->SetControl ( this );
 
 	m_pLogFile = new CLogFile ( _UI ( "Log.txt" ) );
 }
@@ -63,7 +63,7 @@ void CLogBox::AddText ( E_LOGTYPE eType, const SIMPLEGUI_CHAR *szText, ... )
 
 	m_pEntryList->AddEntry ( new SEntryItem ( szStr ) );
 
-	if ( m_pLogFile && m_bSet )
+	if ( m_pLogFile && m_bGenerateLog )
 		m_pLogFile->Log ( GetModeType ( eType ), szText, arglist );
 
 	va_end ( arglist );
@@ -74,17 +74,13 @@ void CLogBox::RemoveText ( UINT uIndex )
 	m_pEntryList->RemoveEntry ( m_pEntryList->GetEntryByIndex ( uIndex ) );
 }
 
-const SIMPLEGUI_CHAR *CLogBox::GetText ( UINT uIndex )
+const SIMPLEGUI_CHAR *CLogBox::GetText(UINT uIndex)
 {
-	SEntryItem *pEntry = m_pEntryList->GetEntryByIndex ( uIndex );
+	SEntryItem *pEntry = m_pEntryList->GetEntryByIndex(uIndex);
 
-	// Check for a valid 'pEntry' pointer
-	if ( pEntry )
-	{
-		return pEntry->m_sText.c_str ();
-	}
-	else
-		return NULL;
+	return pEntry ? 
+		pEntry->m_sText.c_str() :
+		NULL;
 }
 
 void CLogBox::ResetList ( void )
@@ -135,9 +131,9 @@ bool CLogBox::OnMouseButtonDown ( sMouseEvents e )
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
 		// First acquire focus
-		m_pParent->SetFocussedControl ( this ); 
+		_SetFocus ();
 		
-		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		if ( m_rBoundingBox.ContainsPoint ( e.pos ) )
 		{
 			// Pressed while inside the control
 			m_bPressed = true;
@@ -165,11 +161,12 @@ bool CLogBox::OnMouseButtonUp ( sMouseEvents e )
 bool CLogBox::OnMouseWheel ( int zDelta )
 {
 	CScrollBarVertical *pScrollbarVer = m_pEntryList->GetScrollbar ()->GetVerScrollbar ();
+
 	pScrollbarVer->Scroll ( -zDelta * pScrollbarVer->GetStepSize () );
 	return true;
 }
 
-bool CLogBox::OnMouseMove ( CPos pos )
+bool CLogBox::OnMouseMove ( CVector pos )
 {
 	if ( m_pEntryList->GetScrollbar ()->OnMouseMove ( pos ) )
 		return true;
@@ -179,78 +176,63 @@ bool CLogBox::OnMouseMove ( CPos pos )
 
 void CLogBox::OnClickLeave ( void )
 {
-	CControl::OnClickLeave ();
+	CWidget::OnClickLeave ();
 
-	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
-
-	if ( pScrollbar )
-		pScrollbar->OnClickLeave ();
+	m_pEntryList->GetScrollbar ()->OnClickLeave ();
 }
 
 bool CLogBox::OnClickEvent ( void )
 {
 	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
 
-	return ( CControl::OnClickEvent () ||
+	return ( CWidget::OnClickEvent () ||
 			 pScrollbar->OnClickEvent () );
 }
 
 void CLogBox::OnFocusIn ( void )
 {
-	CControl::OnFocusIn ();
+	CWidget::OnFocusIn ();
 
-	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
-
-	if ( pScrollbar )
-		pScrollbar->OnFocusIn ();
+	m_pEntryList->GetScrollbar ()->OnFocusIn ();
 }
 
 void CLogBox::OnFocusOut ( void )
 {
-	CControl::OnFocusOut ();
+	CWidget::OnFocusOut ();
 
-	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
-
-	if ( pScrollbar )
-		pScrollbar->OnFocusOut ();
+	m_pEntryList->GetScrollbar ()->OnFocusOut ();
 }
 
 void CLogBox::OnMouseEnter ( void )
 {
-	CControl::OnMouseEnter ();
+	CWidget::OnMouseEnter ();
 
-	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
-
-	if ( pScrollbar )
-		pScrollbar->OnMouseEnter ();
+	 m_pEntryList->GetScrollbar ()->OnMouseEnter ();
 }
 
 void CLogBox::OnMouseLeave ( void )
 {
-	CControl::OnMouseLeave ();
+	CWidget::OnMouseLeave ();
 
-	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
-
-	if ( pScrollbar )
-		pScrollbar->OnMouseLeave ();
+	m_pEntryList->GetScrollbar ()->OnMouseLeave ();
 }
 
 bool CLogBox::CanHaveFocus ( void )
 {
 	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
 
-	return ( CControl::CanHaveFocus () ||
+	return ( CWidget::CanHaveFocus () ||
 			 pScrollbar->CanHaveFocus () );
 }
 
 void CLogBox::UpdateRects ( void )
 {
-	CControl::UpdateRects ();
+	CWidget::UpdateRects ();
 
 	m_pEntryList->UpdateScrollbars ( m_rBoundingBox );
 }
 
-bool CLogBox::ContainsRect ( CPos pos )
+bool CLogBox::ContainsPoint ( CVector pos )
 {
 	if ( !CanHaveFocus () )
 		return false;
@@ -258,9 +240,9 @@ bool CLogBox::ContainsRect ( CPos pos )
 	return m_pEntryList->ContainsRects ( m_rBoundingBox, pos );
 }
 
-void CLogBox::GenerateLogFile ( bool bSet )
+void CLogBox::GenerateLogFile ( bool bGenerateLog )
 {
-	m_bSet = bSet;
+	m_bGenerateLog = bGenerateLog;
 }
 
 const SIMPLEGUI_CHAR *CLogBox::GetModeType ( E_LOGTYPE eType )

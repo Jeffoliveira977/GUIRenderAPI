@@ -1,18 +1,16 @@
 #include "CGUI.h"
 
-std::map<CControl*, std::map<UINT, CControl*>> CRadioButton::mADD;
+std::map<CWidget*, std::map<UINT, CWidget*>> CRadioButton::mADD;
 
 CRadioButton::CRadioButton ( CDialog *pDialog )
 {
 	SetControl ( pDialog, TYPE_RADIOBUTTON );
 
 	m_uGroup = 0;
-
 }
 
 CRadioButton::~CRadioButton ( void )
 {
-
 }
 
 void CRadioButton::Draw ( void )
@@ -20,24 +18,42 @@ void CRadioButton::Draw ( void )
 	if ( !m_bVisible )
 		return;
 
-	CControl::Draw ();
+	CWidget::Draw ();
 
-	CPos pos = m_rBoundingBox.pos;
-	SIZE size = m_rText.size;
-	size.cx = size.cy;
+	m_pDialog->DrawFont(SControlRect(m_rText.m_pos.m_nX, m_rText.m_pos.m_nY),
+		m_sControlColor.d3dColorFont, GetText(), 0, m_pFont);
 
-	m_pDialog->DrawCircle ( SControlRect ( pos, size ), m_sControlColor.d3dColorBox [ m_eState ], m_sControlColor.d3dColorOutline, m_bAntAlias );
+	Pos pos = m_rBox.m_pos;
+	SIZE size = m_rBox.m_size;
 
-	SIMPLEGUI_STRING str ( GetText () );
-	m_pFont->CutString ( m_rText.size.cx, str );
-	m_pDialog->DrawFont ( SControlRect ( m_rText.pos.GetX (), m_rText.pos.GetY () + ( m_rBoundingBox.size.cy / 2 ) ),
-						  m_sControlColor.d3dColorFont, str.c_str (), D3DFONT_CENTERED_Y, m_pFont );
+	m_pDialog->DrawCircle(SControlRect(pos, size), m_sControlColor.d3dColorBox[m_eState], m_sControlColor.d3dColorOutline, m_bAntAlias);
 
 	if ( mADD [ m_pParent ] [ m_uGroup ] == this )
 	{
 		size.cx = size.cy -= 4;
-		m_pDialog->DrawCircle ( SControlRect ( pos + 2, size ), m_sControlColor.d3dColorShape, 0, m_bAntAlias );
+		m_pDialog->DrawCircle ( SControlRect ( pos + 2, size ), m_sControlColor.d3dColorShape, m_sControlColor.d3dColorOutline, m_bAntAlias );
 	}
+}
+
+void CRadioButton::SetGroup(UINT uGroup)
+{
+	m_uGroup = uGroup;
+}
+
+UINT CRadioButton::GetGroup(void)
+{
+	return m_uGroup;
+}
+
+bool CRadioButton::IsChecked(void)
+{
+	return (mADD[m_pParent][m_uGroup] == this);
+}
+
+void CRadioButton::SetChecked(bool bChecked)
+{
+	mADD[m_pParent][m_uGroup] = bChecked ? this : NULL;
+	SendEvent(EVENT_CONTROL_SELECT, bChecked);
 }
 
 bool CRadioButton::OnMouseButtonDown ( sMouseEvents e )
@@ -47,13 +63,12 @@ bool CRadioButton::OnMouseButtonDown ( sMouseEvents e )
 
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		if ( ContainsRect ( e.pos ) )
+		if ( ContainsPoint ( e.pos ) )
 		{
 			// Pressed while inside the control
 			m_bPressed = true;
 
-			if ( m_pParent )
-				m_pParent->SetFocussedControl ( this );
+			_SetFocus ();
 
 			return true;
 		}
@@ -69,11 +84,10 @@ bool CRadioButton::OnMouseButtonUp ( sMouseEvents e )
 		m_bPressed = false;
 
 		// Button click
-		if ( ContainsRect ( e.pos ) )
+		if ( ContainsPoint ( e.pos ) )
 			SetChecked ( true );
 
-		if ( m_pParent )
-			m_pParent->ClearControlFocus ();
+		_ClearFocus ();
 
 		return true;
 	}
@@ -81,31 +95,62 @@ bool CRadioButton::OnMouseButtonUp ( sMouseEvents e )
 	return false;
 }
 
-//--------------------------------------------------------------------------------------
-void CRadioButton::UpdateRects ( void )
+void CRadioButton::SetText(SIMPLEGUI_STRING sText, bool)
 {
-	CControl::UpdateRects ();
-
-	if ( m_pFont )
+	if (m_sText != sText || sText.empty())
 	{
 		SIZE size;
-		m_pFont->GetTextExtent ( GetText (), &size );
+		if (m_pFont)
+		{
+			m_pFont->GetTextExtent(sText.empty() ? _UI("Y") : sText.c_str(), &size);
+		}
 
-		if ( m_rBoundingBox.size.cx > size.cx )
-			m_size.cx = size.cx + 20;
+		m_sFontInfo.m_size.cx = sText.empty() ? 0 : size.cx;
+		m_sFontInfo.m_size.cy = size.cy;
+
+		SetWidth(m_realSize.cx);
+		SetHeight(0);
+
+		m_sText = sText;
 	}
+}
 
-	m_rText = m_rBoundingBox;
-	m_rText.pos.SetX ( m_rText.pos.GetX () + 20 );
-	m_rText.size.cx -= 20; m_rText.size.cy = 15;
+void CRadioButton::SetWidth(int nWidth)
+{
+	SIZE size = m_sFontInfo.m_size;
+
+	m_realSize.cx = m_rBoundingBox.m_size.cx = m_size.cx = size.cy + 4 +
+		min(size.cx, max(size.cy, nWidth));
+}
+
+void CRadioButton::SetHeight(int nHeight)
+{
+	m_realSize.cy = m_rBoundingBox.m_size.cy = m_size.cy = m_sFontInfo.m_size.cy;
 }
 
 //--------------------------------------------------------------------------------------
-bool CRadioButton::ContainsRect ( CPos pos )
+void CRadioButton::UpdateRects(void)
 {
-	if ( !CanHaveFocus () )
+	SIZE size;
+	if (m_pFont)
+	{
+		m_pFont->GetTextExtent(_UI("Y"), &size);
+	}
+
+	m_rBox = m_rBoundingBox;
+	m_rBox.m_size.cx = m_rBox.m_size.cy = size.cy;
+	m_rBox.m_pos.m_nY += (m_sFontInfo.m_size.cy / 2) - (size.cy / 2);
+
+	m_rText = m_rBoundingBox;
+	m_rText.m_size.cx -= m_sFontInfo.m_size.cy + 4;
+	m_rText.m_pos.m_nX += size.cy + 4;
+}
+
+//--------------------------------------------------------------------------------------
+bool CRadioButton::ContainsPoint(Pos pos)
+{
+	if (!CanHaveFocus())
 		return false;
 
-	return ( m_rBoundingBox.InControlArea ( pos ) ||
-			 m_rText.InControlArea ( pos ) );
+	return (m_rBox.ContainsPoint(pos) || m_rText.ContainsPoint(pos));
 }

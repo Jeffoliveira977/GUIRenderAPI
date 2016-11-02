@@ -1,0 +1,9 @@
+﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(368,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
+  CElement.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\celement.cpp(80): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
+c:\users\boss\source\repos\guirenderapi2\gui\celement.cpp(81): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
+c:\users\boss\source\repos\guirenderapi2\gui\celement.cpp(82): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
+c:\users\boss\source\repos\guirenderapi2\gui\celement.cpp(910): warning C4800: 'BOOL': forcing value to bool 'true' or 'false' (performance warning)
+LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/FORCE' specification
+dllmain.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:ICF' specification
+  GUIRenderAPI.vcxproj -> C:\Users\Boss\Source\Repos\GUIRenderAPI2\..\..\..\Documents\GTA San Andreas\GUIRenderAPI.asi

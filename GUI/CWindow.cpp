@@ -16,7 +16,7 @@ CWindow::CWindow ( CDialog *pDialog ) :
 	m_eWindowArea = OutArea;
 	m_nDragX = m_nDragY = 0;
 	SetControl ( pDialog, TYPE_WINDOW );
-
+	m_bOnTop = false;
 	m_sControlColor.d3dColorWindowTitle = D3DCOLOR_RGBA ( 21, 75, 138, 255 );
 	m_sControlColor.d3dCOlorWindowBack = D3DCOLOR_RGBA ( 30, 30, 30, 255 );
 	m_sControlColor.d3dColorBoxSel = D3DCOLOR_RGBA ( 40, 40, 40, 255 );
@@ -32,7 +32,7 @@ CWindow::CWindow ( CDialog *pDialog ) :
 	if ( !m_pScrollbar )
 		MessageBox ( 0, _UI ( "CWindow::CWindow: Error for creating CScrollBarHorizontal" ), _UI ( "GUIAPI.asi" ), 0 );
 
-	m_pScrollbar->AddControl ( this );
+	m_pScrollbar->SetControl ( this );
 }
 
 //--------------------------------------------------------------------------------------
@@ -65,15 +65,11 @@ void CWindow::Draw ( void )
 
 	IDirect3DDevice9 *pDevice = m_pDialog->GetDevice ();
 
-	RECT rOldScissor;
-	pDevice->GetScissorRect ( &rOldScissor );
-
 	SControlRect rScissor = m_rBoundingBox;
-	rScissor.pos.SetX ( rScissor.pos.GetX () - 2 );
-	rScissor.pos.SetY ( rScissor.pos.GetY () - 2 );
-	rScissor.size.cx = rScissor.size.cx + 4;
-	rScissor.size.cy = rScissor.size.cy + 4;
-	SetScissor ( pDevice, rScissor.GetRect () );
+	rScissor.m_pos - 2;
+	rScissor.m_size.cx = rScissor.m_size.cx + 4;
+	rScissor.m_size.cy = rScissor.m_size.cy + 4;
+	sCissor.SetScissor ( pDevice, rScissor.GetRect () );
 
 	if ( !m_bMaximized )
 	{
@@ -89,14 +85,14 @@ void CWindow::Draw ( void )
 	m_pDialog->DrawBox ( m_rTitle, m_sControlColor.d3dColorWindowTitle, m_sControlColor.d3dColorOutline, m_bAntAlias );
 
 	SIMPLEGUI_STRING str = GetText ();
-	m_pFont->CutString ( m_rBoundingBox.size.cx - m_rButton.size.cx - 5, str );
-	m_pFont->Print ( m_pos.GetX () + 3, m_pos.GetY () + m_iTitleBarSize / 2, m_sControlColor.d3dColorFont, str.c_str (), D3DFONT_CENTERED_Y );
+	m_pFont->CutString ( m_rBoundingBox.m_size.cx - m_rButton.m_size.cx - 5, str );
+	m_pFont->Print ( m_pos.m_nX + 3, m_pos.m_nY + m_iTitleBarSize / 2, m_sControlColor.d3dColorFont, str.c_str (), D3DFONT_CENTERED_Y );
 
 	// Draw button close
 	if ( m_bCloseButtonEnabled )
 	{
 		D3DCOLOR d3dColorButton = m_sControlColor.d3dColorBox [ m_bPressed ? SControlColor::STATE_PRESSED : SControlColor::STATE_NORMAL ];
-		if ( m_rButton.InControlArea ( m_pDialog->GetMouse ()->GetPos () ) && !( m_pFocussedControl && m_pFocussedControl->OnClickEvent () ) )
+		if ( m_rButton.ContainsPoint ( m_pDialog->GetMouse ()->GetPos () ) && !( m_pFocussedControl && m_pFocussedControl->OnClickEvent () ) )
 			d3dColorButton = m_sControlColor.d3dColorBox [ m_eState ];
 
 		m_pDialog->DrawBox ( m_rButton, d3dColorButton, m_sControlColor.d3dColorOutline, m_bAntAlias );
@@ -105,8 +101,8 @@ void CWindow::Draw ( void )
 		if ( pRender )
 		{
 			static const int nSpace = 1;
-			pRender->D3DLine ( m_pos.GetX () + m_rBoundingBox.size.cx - 20 - nSpace, m_pos.GetY () + 4, m_pos.GetX () + m_rBoundingBox.size.cx - 11.2 - nSpace, m_pos.GetY () + 12.2, 0xFFFFFFFF, true );
-			pRender->D3DLine ( m_pos.GetX () + m_rBoundingBox.size.cx - 12 - nSpace, m_pos.GetY () + 4, m_pos.GetX () + m_rBoundingBox.size.cx - 20 - nSpace, m_pos.GetY () + 12, 0xFFFFFFFF, true );
+			pRender->D3DLine ( m_pos.m_nX + m_rBoundingBox.m_size.cx - 20 - nSpace, m_pos.m_nY + 4, m_pos.m_nX + m_rBoundingBox.m_size.cx - 11.2 - nSpace, m_pos.m_nY + 12.2, 0xFFFFFFFF, true );
+			pRender->D3DLine ( m_pos.m_nX + m_rBoundingBox.m_size.cx - 12 - nSpace, m_pos.m_nY + 4, m_pos.m_nX + m_rBoundingBox.m_size.cx - 20 - nSpace, m_pos.m_nY + 12, 0xFFFFFFFF, true );
 		}
 	}
 
@@ -120,49 +116,48 @@ void CWindow::Draw ( void )
 		{
 			if ( control )
 			{
-				CPos *pos = control->GetPos ();
+				Pos *pos = control->GetPos ();
 				SIZE size = control->GetSize ();
-							
-				if ( pos->GetY () <= m_iTitleBarSize )
+
+				if ( pos->m_nY <= m_iTitleBarSize )
 					control->SetPosY ( 0 );
 
-				control->LinkPos ( m_pos+CPos(0, m_iTitleBarSize ) - ( m_bShowScrollbar ?
-								   CPos ( pScrollbarHor->GetTrackPos (), pScrollbarVer->GetTrackPos () ) :
-								   CPos () ) );
+				control->LinkPos ( m_pos + Pos ( 0, m_iTitleBarSize ) - ( m_bShowScrollbar ?
+																		  Pos ( pScrollbarHor->GetTrackPos (), pScrollbarVer->GetTrackPos () ) :
+																		  Pos () ) );
 
-				
-
-
-				if ( !( control->GetRelativeX () == CControl::RELATIVE_SIZE || 
-					 control->GetRelativeX () == CControl::RELATIVE_POS ) ||
-					 ( control->GetRelativeX () == CControl::RELATIVE_POS && 
-					 pos->GetX () <= 0 ) || 
-					 ( control->GetMinSize ().cx == size.cx &&
-					 pos->GetX () > 0 ) )
+				CWidget::eRelative relativeX = control->GetRelativeX ();
+				CWidget::eRelative relativeY = control->GetRelativeY ();
+				/*bool bRelativePosX = control->GetRelativeX () == CWidget::RELATIVE_POS;
+				bool bRelativeSizeX = control->GetRelativeX () == CWidget::RELATIVE_SIZE;
+				bool bRelativePosX = control->GetRelativeY () == CWidget::RELATIVE_POS;
+				bool bRelativeSizeX = control->GetRelativeY () == CWidget::RELATIVE_SIZE;
+*/
+				if ( !( relativeX == CWidget::RELATIVE_SIZE || relativeX == CWidget::RELATIVE_POS ) ||
+					 ( relativeX == CWidget::RELATIVE_POS &&  pos->m_nX <= 0 ) ||  ( control->GetMinSize ().cx == size.cx &&pos->m_nX > 0 ))
 				{
-					m_maxControlSize.cx = max ( m_maxControlSize.cx, pos->GetX () + size.cx );
+					m_maxControlSize.cx = max ( m_maxControlSize.cx, pos->m_nX + size.cx );
 				}
 
-
-				if ( !( control->GetRelativeY () == CControl::RELATIVE_SIZE || control->GetRelativeY () == CControl::RELATIVE_POS ) ||
-					 ( control->GetRelativeY () == CControl::RELATIVE_POS&&pos->GetY ()  <= m_iTitleBarSize ) ||
-					 ( control->GetRelativeY () == CControl::RELATIVE_SIZE && control->GetMinSize ().cy == size.cy /*&& pos->GetY () >= m_iTitleBarSize*/ ) )
+				if ( !( relativeY == CWidget::RELATIVE_SIZE || relativeY == CWidget::RELATIVE_POS ) ||
+					 ( relativeY == CWidget::RELATIVE_POS && pos->m_nY <= m_iTitleBarSize ) ||
+					 /*( control->GetRelativeY () == CWidget::RELATIVE_SIZE &&*/( control->GetMinSize ().cy == size.cy && pos->m_nY >= m_iTitleBarSize) )
 				{
 
-					m_maxControlSize.cy = max ( m_maxControlSize.cy, pos->GetY () + size.cy );
+					m_maxControlSize.cy = max ( m_maxControlSize.cy, pos->m_nY + size.cy );
 				}
 
 				pos = control->GetUpdatedPos ();
 
-				if ( pos->GetX () + size.cx > m_rBoundingBox.pos.GetX () &&
-					 pos->GetY () + size.cy > m_rBoundingBox.pos.GetY () + m_iTitleBarSize &&
-					 pos->GetX () < m_rBoundingBox.pos.GetX () + m_rBoundingBox.size.cx &&
-					 pos->GetY () < m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cy )
+				if ( pos->m_nX + size.cx > m_rBoundingBox.m_pos.m_nX &&
+					 pos->m_nY + size.cy > m_rBoundingBox.m_pos.m_nY + m_iTitleBarSize &&
+					 pos->m_nX < m_rBoundingBox.m_pos.m_nX + m_rBoundingBox.m_size.cx &&
+					 pos->m_nY < m_rBoundingBox.m_pos.m_nY + m_rBoundingBox.m_size.cy )
 				{
 					rScissor = m_rBoundingBox;
-					rScissor.pos.SetY ( rScissor.pos.GetY () + m_iTitleBarSize );
-					rScissor.size.cx = rScissor.size.cx - ( m_pScrollbar->IsVerScrollbarNeeded () ? pScrollbarVer->GetWidth () : 0 );
-					rScissor.size.cy = rScissor.size.cy - ( m_pScrollbar->IsHorScrollbarNeeded () ? pScrollbarHor->GetHeight () : 0 ) - m_iTitleBarSize;
+					rScissor.m_pos.m_nY += m_iTitleBarSize;
+					rScissor.m_size.cx = rScissor.m_size.cx - ( m_pScrollbar->IsVerScrollbarNeeded () ? pScrollbarVer->GetWidth () : 0 );
+					rScissor.m_size.cy = rScissor.m_size.cy - ( m_pScrollbar->IsHorScrollbarNeeded () ? pScrollbarHor->GetHeight () : 0 ) - m_iTitleBarSize;
 
 					control->EnterScissorRect ( rScissor );
 					control->Draw ();
@@ -173,28 +168,29 @@ void CWindow::Draw ( void )
 		}
 	}
 
-	SetScissor ( pDevice, rOldScissor );
+	sCissor.RestoreScissor ();
+	//SetScissor ( pDevice, rOldScissor );
 }
 
 //--------------------------------------------------------------------------------------
-void CWindow::AddControl ( CControl *pControl )
+void CWindow::AddControl ( CWidget *pControl )
 {
-	if ( !pControl || HAS_CONTROL_TYPE ( pControl, CControl::TYPE_WINDOW ) )
+	if ( !pControl || HAS_CONTROL_TYPE ( pControl, CWidget::TYPE_WINDOW ) )
 		return;
 
-	pControl->SetPos ( *pControl->GetPos () /*+ CPos ( 0, m_iTitleBarSize )*/ );
+	pControl->SetPos ( *pControl->GetPos () );
 	pControl->SetParent ( this );
 
 	m_vControls.push_back ( pControl );
 }
 
 //--------------------------------------------------------------------------------------
-void CWindow::RemoveControl ( CControl *pControl )
+void CWindow::RemoveControl ( CWidget *pControl )
 {
 	if ( !pControl )
 		return;
 
-	std::vector<CControl*>::iterator iter = std::find ( m_vControls.begin (), m_vControls.end (), pControl );
+	std::vector<CWidget*>::iterator iter = std::find ( m_vControls.begin (), m_vControls.end (), pControl );
 	if ( iter == m_vControls.end () )
 		return;
 
@@ -212,7 +208,7 @@ void CWindow::RemoveAllControls ( void )
 }
 
 //--------------------------------------------------------------------------------------
-void CWindow::SetFocussedControl ( CControl *pControl )
+void CWindow::SetFocussedWidget ( CWidget *pControl )
 {
 	if ( m_pFocussedControl != pControl )
 	{
@@ -233,7 +229,7 @@ void CWindow::SetFocussedControl ( CControl *pControl )
 }
 
 //--------------------------------------------------------------------------------------
-CControl *CWindow::GetFocussedControl ( void )
+CWidget *CWindow::GetFocussedControl ( void )
 {
 	return m_pFocussedControl;
 }
@@ -257,9 +253,9 @@ void CWindow::ClearControlFocus ( void )
 }
 
 //--------------------------------------------------------------------------------------
-void CWindow::BringControlToTop ( CControl *pControl )
+void CWindow::BringControlToTop ( CWidget *pControl )
 {
-	std::vector<CControl*>::iterator iter = std::find ( m_vControls.begin (), m_vControls.end (), pControl );
+	std::vector<CWidget*>::iterator iter = std::find ( m_vControls.begin (), m_vControls.end (), pControl );
 	if ( iter == m_vControls.end () )
 		return;
 
@@ -268,11 +264,11 @@ void CWindow::BringControlToTop ( CControl *pControl )
 
 	// Make sure the window has focus, otherwise give it focus.
 	if ( !m_bHasFocus )
-		m_pDialog->SetFocussedWindow ( this );
+		m_pDialog->SetFocussedWidget ( this );
 }
 
 //--------------------------------------------------------------------------------------
-CControl *CWindow::GetNextControl ( CControl *pControl )
+CWidget *CWindow::GetNextControl ( CWidget *pControl )
 {
 	size_t size = m_vControls.size ();
 	for ( size_t i = 0; i < size; i++ )
@@ -288,7 +284,7 @@ CControl *CWindow::GetNextControl ( CControl *pControl )
 }
 
 //--------------------------------------------------------------------------------------
-CControl *CWindow::GetPrevControl ( CControl *pControl )
+CWidget *CWindow::GetPrevControl ( CWidget *pControl )
 {
 	for ( size_t i = 0; i < m_vControls.size (); i++ )
 	{
@@ -303,7 +299,7 @@ CControl *CWindow::GetPrevControl ( CControl *pControl )
 }
 
 //--------------------------------------------------------------------------------------
-CControl *CWindow::GetControlByText ( const SIMPLEGUI_CHAR *pszText )
+CWidget *CWindow::GetControlByText ( const SIMPLEGUI_CHAR *pszText )
 {
 	for ( auto &control : m_vControls )
 	{
@@ -319,18 +315,18 @@ CControl *CWindow::GetControlByText ( const SIMPLEGUI_CHAR *pszText )
 }
 
 //--------------------------------------------------------------------------------------
-CControl *CWindow::GetControlAtArea ( CPos pos )
+CWidget *CWindow::GetControlAtArea ( Pos pos )
 {
-	for ( std::vector<CControl*>::reverse_iterator iter = m_vControls.rbegin (); iter != m_vControls.rend (); iter++ )
+	for ( std::vector<CWidget*>::reverse_iterator iter = m_vControls.rbegin (); iter != m_vControls.rend (); iter++ )
 	{
-		if ( ( *iter )->ContainsRect ( pos ) )
+		if ( ( *iter )->ContainsPoint ( pos ) )
 			return ( *iter );
 	}
 
 	return NULL;
 }
 
-CControl *CWindow::GetControlClicked ( void )
+CWidget *CWindow::GetControlClicked ( void )
 {
 	for ( auto& control : m_vControls )
 	{
@@ -370,7 +366,7 @@ bool CWindow::OnClickEvent ( void )
 //--------------------------------------------------------------------------------------
 void CWindow::OnFocusIn ( void )
 {
-	CControl::OnFocusIn ();
+	CWidget::OnFocusIn ();
 
 	if ( m_pScrollbar )
 		m_pScrollbar->OnFocusIn ();
@@ -379,7 +375,7 @@ void CWindow::OnFocusIn ( void )
 //--------------------------------------------------------------------------------------
 void CWindow::OnFocusOut ( void )
 {
-	CControl::OnFocusOut ();
+	CWidget::OnFocusOut ();
 
 	ClearControlFocus ();
 
@@ -390,13 +386,13 @@ void CWindow::OnFocusOut ( void )
 //--------------------------------------------------------------------------------------
 void CWindow::OnMouseEnter ( void )
 {
-	CControl::OnMouseEnter ();
+	CWidget::OnMouseEnter ();
 }
 
 //--------------------------------------------------------------------------------------
 void CWindow::OnMouseLeave ( void )
 {
-	CControl::OnMouseLeave ();
+	CWidget::OnMouseLeave ();
 
 	if ( m_eWindowArea == OutArea )
 		m_pDialog->GetMouse ()->SetCursorType ( CMouse::DEFAULT );
@@ -414,7 +410,7 @@ void CWindow::OnMouseLeave ( void )
 //--------------------------------------------------------------------------------------
 bool CWindow::CanHaveFocus ( void )
 {
-	return ( CControl::CanHaveFocus () || m_pScrollbar->CanHaveFocus () );
+	return ( CWidget::CanHaveFocus () || m_pScrollbar->CanHaveFocus () );
 }
 
 //--------------------------------------------------------------------------------------
@@ -496,10 +492,10 @@ void CWindow::ScrollPage ( int nDelta )
 	m_pScrollbar->OnMouseWheel ( nDelta );
 }
 
-CControl *CWindow::GetTabPanelFocussedControl ( void )
+CWidget *CWindow::GetTabPanelFocussedControl ( void )
 {
-	CControl *pControl = m_pFocussedControl;
-	if ( HAS_CONTROL_TYPE ( pControl, CControl::TYPE_TABPANEL ) )
+	CWidget *pControl = m_pFocussedControl;
+	if ( HAS_CONTROL_TYPE ( pControl, CWidget::TYPE_TABPANEL ) )
 		pControl = static_cast< CTabPanel* >( pControl )->GetFocussedControl ();
 
 	return pControl;
@@ -527,18 +523,18 @@ void CWindow::ShowScrollbars ( bool bShow )
 //--------------------------------------------------------------------------------------
 bool CWindow::ControlMessages ( sControlEvents e )
 {
-	CControl *pControl = GetTabPanelFocussedControl ();
+	CWidget *pControl = GetTabPanelFocussedControl ();
 
-	if ( !CControl::CanHaveFocus () ||
+	if ( !CWidget::CanHaveFocus () ||
 		 m_eWindowArea != OutArea ||
-		 ( m_pScrollbar->ContainsRect ( e.mouseEvent.pos ) && !HAS_CONTROL_TYPE ( pControl, CControl::TYPE_DROPDOWN ) ) ||
+		 ( m_pScrollbar->ContainsPoint ( e.mouseEvent.pos ) && !HAS_CONTROL_TYPE ( pControl, CWidget::TYPE_DROPDOWN ) ) ||
 		 GetSizingBorderAtArea ( e.mouseEvent.pos ) != OutArea ||
-		 m_rTitle.InControlArea ( e.mouseEvent.pos ) )
+		 m_rTitle.ContainsPoint ( e.mouseEvent.pos ) )
 	{
 		return false;
 	}
 
-	if ( HAS_CONTROL_TYPE ( m_pFocussedControl, CControl::TYPE_TABPANEL ) )
+	if ( HAS_CONTROL_TYPE ( m_pFocussedControl, CWidget::TYPE_TABPANEL ) )
 	{
 		if ( static_cast< CTabPanel* >( m_pFocussedControl )->ControlMessages ( e ) )
 			return true;
@@ -556,7 +552,7 @@ bool CWindow::ControlMessages ( sControlEvents e )
 		ClearControlFocus ();
 	}
 
-	if ( HAS_CONTROL_TYPE ( pControl, CControl::TYPE_TABPANEL ) )
+	if ( HAS_CONTROL_TYPE ( pControl, CWidget::TYPE_TABPANEL ) )
 	{
 		if ( static_cast< CTabPanel* >( pControl )->ControlMessages ( e ) )
 			return true;
@@ -591,10 +587,10 @@ bool CWindow::ControlMessages ( sControlEvents e )
 
 bool CWindow::OnMouseButtonDown ( sMouseEvents e )
 {
-	CControl *pControl = GetTabPanelFocussedControl ();
+	CWidget *pControl = GetTabPanelFocussedControl ();
 
 	// Check if mouse is over window boundaries
-	if ( GetSizingBorderAtArea ( e.pos ) == OutArea && !HAS_CONTROL_TYPE ( pControl, CControl::TYPE_DROPDOWN ) )
+	if ( GetSizingBorderAtArea ( e.pos ) == OutArea && !HAS_CONTROL_TYPE ( pControl, CWidget::TYPE_DROPDOWN ) )
 	{
 		// Let the scroll bar handle it first.
 		if ( m_pScrollbar->OnMouseButtonDown ( e ) )
@@ -606,14 +602,14 @@ bool CWindow::OnMouseButtonDown ( sMouseEvents e )
 
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		if ( m_rButton.InControlArea ( e.pos ) &&
+		if ( m_rButton.ContainsPoint ( e.pos ) &&
 			 m_bCloseButtonEnabled )
 		{
 			// Pressed while inside the control
 			m_bPressed = true;
 
-			if ( m_pDialog && !m_bHasFocus )
-				m_pDialog->SetFocussedWindow ( this );
+			if ( !m_bHasFocus )
+				m_pDialog->SetFocussedWidget ( this );
 
 			return true;
 		}
@@ -629,49 +625,49 @@ bool CWindow::OnMouseButtonDown ( sMouseEvents e )
 					 m_eWindowArea == TopLeft ||
 					 m_eWindowArea == TopRight )
 				{
-					m_nDragY = m_pos.GetY () - e.pos.GetY ();
+					m_nDragY = m_pos.m_nY - e.pos.m_nY;
 					if ( m_eWindowArea == TopLeft )
 					{
-						m_nDragX = m_pos.GetX () - e.pos.GetX ();
+						m_nDragX = m_pos.m_nX - e.pos.m_nX;
 					}
 					else if ( m_eWindowArea == TopRight )
 					{
-						m_nDragX = m_pos.GetX () + m_rBoundingBox.size.cx - e.pos.GetX ();
+						m_nDragX = m_pos.m_nX + m_rBoundingBox.m_size.cx - e.pos.m_nX;
 					}
 				}
 				else if ( m_eWindowArea == Left ||
 						  m_eWindowArea == BottomLeft )
 				{
-					m_nDragX = m_pos.GetX () - e.pos.GetX ();
+					m_nDragX = m_pos.m_nX - e.pos.m_nX;
 
 					if ( m_eWindowArea == BottomLeft )
 					{
-						m_nDragY = m_pos.GetY () + m_rBoundingBox.size.cy - e.pos.GetY ();
+						m_nDragY = m_pos.m_nY + m_rBoundingBox.m_size.cy - e.pos.m_nY;
 					}
 				}
 				else if ( m_eWindowArea == Right ||
 						  m_eWindowArea == BottomRight )
 				{
-					m_nDragX = m_pos.GetX () + m_rBoundingBox.size.cx - e.pos.GetX ();
+					m_nDragX = m_pos.m_nX + m_rBoundingBox.m_size.cx - e.pos.m_nX;
 
 					if ( m_eWindowArea == BottomRight )
 					{
-						m_nDragY = m_pos.GetY () + m_rBoundingBox.size.cy - e.pos.GetY ();
+						m_nDragY = m_pos.m_nY + m_rBoundingBox.m_size.cy - e.pos.m_nY;
 					}
 				}
 				else if ( m_eWindowArea == Bottom )
 				{
-					m_nDragY = m_pos.GetY () + m_rBoundingBox.size.cy - e.pos.GetY ();
+					m_nDragY = m_pos.m_nY + m_rBoundingBox.m_size.cy - e.pos.m_nY;
 				}
 
-				if ( m_pDialog && !m_bHasFocus )
-					m_pDialog->SetFocussedWindow ( this );
+				if ( !m_bHasFocus )
+					m_pDialog->SetFocussedWidget ( this );
 
 				return true;
 			}
 		}
 
-		if ( m_rTitle.InControlArea ( e.pos ) )
+		if ( m_rTitle.ContainsPoint ( e.pos ) )
 		{
 			if ( m_pDialog->GetMouse ()->GetLeftButton () == 2 )
 				m_bMaximized = !m_bMaximized;
@@ -682,16 +678,16 @@ bool CWindow::OnMouseButtonDown ( sMouseEvents e )
 				m_posDif = m_pos - e.pos;
 			}
 
-			if ( m_pDialog )
-				m_pDialog->SetFocussedWindow ( this );
+			if ( !m_bHasFocus )
+				m_pDialog->SetFocussedWidget ( this );
 
 			return true;
 		}
 
-		if ( m_rBoundingBox.InControlArea ( e.pos ) && !m_bMaximized )
+		if ( m_rBoundingBox.ContainsPoint ( e.pos ) && !m_bMaximized )
 		{
-			if ( m_pDialog && !m_bHasFocus )
-				m_pDialog->SetFocussedWindow ( this );
+			if ( !m_bHasFocus )
+				m_pDialog->SetFocussedWidget ( this );
 
 			return true;
 		}
@@ -702,10 +698,10 @@ bool CWindow::OnMouseButtonDown ( sMouseEvents e )
 
 bool CWindow::OnMouseButtonUp ( sMouseEvents e )
 {
-	CControl *pControl = GetTabPanelFocussedControl ();
+	CWidget *pControl = GetTabPanelFocussedControl ();
 
 	// Check if mouse is over window boundaries
-	if ( GetSizingBorderAtArea ( e.pos ) == OutArea && !HAS_CONTROL_TYPE ( pControl, CControl::TYPE_DROPDOWN ) )
+	if ( GetSizingBorderAtArea ( e.pos ) == OutArea && !HAS_CONTROL_TYPE ( pControl, CWidget::TYPE_DROPDOWN ) )
 	{
 		// Let the scroll bar handle it first.
 		if ( m_pScrollbar->OnMouseButtonUp ( e ) )
@@ -720,7 +716,7 @@ bool CWindow::OnMouseButtonUp ( sMouseEvents e )
 		m_pControlMouseOver = NULL;
 		m_bDragging = false;
 		m_eWindowArea = OutArea;
-		m_size = m_rBoundingBox.size;
+		m_size = m_rBoundingBox.m_size;
 	}
 
 	if ( m_bPressed )
@@ -728,13 +724,13 @@ bool CWindow::OnMouseButtonUp ( sMouseEvents e )
 		m_bPressed = false;
 
 		// Button click
-		if ( m_rButton.InControlArea ( e.pos ) )
+		if ( m_rButton.ContainsPoint ( e.pos ) )
 		{
 			SendEvent ( EVENT_CONTROL_CLICKED, true );
 			SetVisible ( false );
 
 			if ( m_pDialog )
-				m_pDialog->ClearFocussedWindow ();
+				m_pDialog->ClearFocussedWidget ();
 
 		}
 
@@ -744,12 +740,12 @@ bool CWindow::OnMouseButtonUp ( sMouseEvents e )
 	return false;
 }
 
-bool CWindow::OnMouseMove ( CPos pos )
+bool CWindow::OnMouseMove ( CVector pos )
 {
-	CControl *pControl = GetTabPanelFocussedControl ();
-	bool bHasDropDown = HAS_CONTROL_TYPE ( pControl, CControl::TYPE_DROPDOWN );
+	CWidget *pControl = GetTabPanelFocussedControl ();
+	bool bHasDropDown = HAS_CONTROL_TYPE ( pControl, CWidget::TYPE_DROPDOWN );
 
-	if ( m_pScrollbar->ContainsRect ( pos ) && !bHasDropDown && m_bMouseOver )
+	if ( m_pScrollbar->ContainsPoint ( pos ) && !bHasDropDown && m_bMouseOver )
 		m_pScrollbar->OnMouseEnter ();
 	else
 		m_pScrollbar->OnMouseLeave ();
@@ -762,7 +758,7 @@ bool CWindow::OnMouseMove ( CPos pos )
 			return true;
 	}
 
-	if ( m_rTitle.InControlArea ( pos ) )
+	if ( m_rTitle.ContainsPoint ( pos ) )
 	{
 		if ( m_pControlMouseOver )
 			m_pControlMouseOver->OnMouseLeave ();
@@ -770,7 +766,7 @@ bool CWindow::OnMouseMove ( CPos pos )
 		m_pControlMouseOver = NULL;
 	}
 
-	if ( !(bHasDropDown && pControl->ContainsRect ( pos )) &&
+	if ( !(bHasDropDown && pControl->ContainsPoint ( pos )) &&
 		 m_bMouseOver &&
 		 m_eWindowArea == OutArea )
 	{
@@ -783,45 +779,45 @@ bool CWindow::OnMouseMove ( CPos pos )
 			 m_eWindowArea == TopLeft ||
 			 m_eWindowArea == TopRight )
 		{
-			m_rBoundingBox.size.cy = m_rBoundingBox.size.cy + ( m_pos.GetY () - pos.GetY () ) - m_nDragY;
-			m_pos.SetY ( pos.GetY () + m_nDragY );
+			m_rBoundingBox.m_size.cy +=  m_pos.m_nY - pos.m_nY  - m_nDragY;
+			m_pos.m_nY = pos.m_nY + m_nDragY;
 
 			if ( m_eWindowArea == TopLeft )
 			{
-				m_rBoundingBox.size.cx = m_rBoundingBox.size.cx + ( m_pos.GetX () - pos.GetX () ) - m_nDragX;
-				m_pos.SetX ( pos.GetX () + m_nDragX );
+				m_rBoundingBox.m_size.cx += (m_pos.m_nX - pos.m_nX) - m_nDragX;
+				m_pos.m_nX = pos.m_nX + m_nDragX;
 			}
 			else if ( m_eWindowArea == TopRight )
-				m_rBoundingBox.size.cx = pos.GetX () - m_pos.GetX () + m_nDragX;
+				m_rBoundingBox.m_size.cx = pos.m_nX - m_pos.m_nX + m_nDragX;
 		}
 		else if ( m_eWindowArea == Left ||
 				  m_eWindowArea == BottomLeft )
 		{
-			m_rBoundingBox.size.cx = m_rBoundingBox.size.cx + ( m_pos.GetX () - pos.GetX () ) - m_nDragX;
-			m_pos.SetX ( pos.GetX () + m_nDragX );
+			m_rBoundingBox.m_size.cx += (m_pos.m_nX - pos.m_nX ) - m_nDragX;
+			m_pos.m_nX = pos.m_nX + m_nDragX;
 
 			if ( m_eWindowArea == BottomLeft )
-				m_rBoundingBox.size.cy = pos.GetY () - m_pos.GetY () + m_nDragY;
+				m_rBoundingBox.m_size.cy = pos.m_nY - m_pos.m_nY + m_nDragY;
 		}
 		else if ( m_eWindowArea == Right ||
 				  m_eWindowArea == BottomRight )
 		{
-			m_rBoundingBox.size.cx = pos.GetX () - m_pos.GetX () + m_nDragX;
+			m_rBoundingBox.m_size.cx = pos.m_nX - m_pos.m_nX + m_nDragX;
 
 			if ( m_eWindowArea == BottomRight )
-				m_rBoundingBox.size.cy = pos.GetY () - m_pos.GetY () + m_nDragY;
+				m_rBoundingBox.m_size.cy = pos.m_nY - m_pos.m_nY + m_nDragY;
 		}
 		else if ( m_eWindowArea == Bottom )
-			m_rBoundingBox.size.cy = pos.GetY () - m_pos.GetY () + m_nDragY;
+			m_rBoundingBox.m_size.cy = pos.m_nY - m_pos.m_nY + m_nDragY;
 
-		if ( m_rBoundingBox.size.cx < m_minSize.cx )
-			m_rBoundingBox.size.cx = m_minSize.cx;
+		if ( m_rBoundingBox.m_size.cx < m_minSize.cx )
+			m_rBoundingBox.m_size.cx = m_minSize.cx;
 
-		if ( m_rBoundingBox.size.cy < m_minSize.cy )
-			m_rBoundingBox.size.cy = m_minSize.cy;
+		if ( m_rBoundingBox.m_size.cy < m_minSize.cy )
+			m_rBoundingBox.m_size.cy = m_minSize.cy;
 
 		// Adjust position
-		m_rBoundingBox.pos = m_pos;
+		m_rBoundingBox.m_pos = m_pos;
 		return true;
 	}
 
@@ -829,7 +825,7 @@ bool CWindow::OnMouseMove ( CPos pos )
 		 m_bMovable )
 	{
 		// Adjust position
-		m_rBoundingBox.pos= m_pos = pos + m_posDif;
+		m_rBoundingBox.m_pos = m_pos = pos + m_posDif;
 		return true;
 	}
 
@@ -838,7 +834,7 @@ bool CWindow::OnMouseMove ( CPos pos )
 
 bool CWindow::OnMouseWheel ( int zDelta )
 {
-	if (  !m_pFocussedControl ||!m_pControlMouseOver&& m_bMouseOver )
+	if (  !m_pFocussedControl || !m_pControlMouseOver && m_bMouseOver )
 	{
 		ScrollPage ( -zDelta );
 		return true;
@@ -849,34 +845,34 @@ bool CWindow::OnMouseWheel ( int zDelta )
 
 bool CWindow::OnKeyDown ( WPARAM wParam )
 {
-	if ( !CControl::CanHaveFocus () )
+	if ( !CWidget::CanHaveFocus () )
 		return false;
 
 	switch ( wParam )
 	{
 		case VK_TAB:
 		{
-			SetFocussedControl ( m_vControls [ 0 ] );
+			SetFocussedWidget ( m_vControls [ 0 ] );
 			break;
 		}
 		case VK_PRIOR:
 		{
-			ScrollPage ( -int ( m_rBoundingBox.size.cy / 10 ) );
+			ScrollPage ( -int ( m_rBoundingBox.m_size.cy / 10 ) );
 			break;
 		}
 		case VK_NEXT:
 		{
-			ScrollPage ( ( m_rBoundingBox.size.cy / 10 ) );
+			ScrollPage ( ( m_rBoundingBox.m_size.cy / 10 ) );
 			break;
 		}
 		case VK_UP:
 		{
-			ScrollPage ( -int ( m_maxControlSize.cy / m_rBoundingBox.size.cy ) );
+			ScrollPage ( -int ( m_maxControlSize.cy / m_rBoundingBox.m_size.cy ) );
 			break;
 		}
 		case VK_DOWN:
 		{
-			ScrollPage ( ( m_maxControlSize.cy / m_rBoundingBox.size.cy ) );
+			ScrollPage ( ( m_maxControlSize.cy / m_rBoundingBox.m_size.cy ) );
 			break;
 		}
 	}
@@ -893,88 +889,87 @@ void CWindow::UpdateRects ( void )
 		return;
 
 	SControlRect rRect = m_rBoundingBox;
-	rRect.size.cy -= m_iTitleBarSize;
-	rRect.pos.SetX ( rRect.pos.GetX () );
-	rRect.pos.SetY ( rRect.pos.GetY () + m_iTitleBarSize );
+	rRect.m_size.cy -= m_iTitleBarSize;
+	rRect.m_pos.m_nY += m_iTitleBarSize;
 
 	m_pScrollbar->SetTrackRange ( m_maxControlSize.cx, m_maxControlSize.cy );
-	m_pScrollbar->GetHorScrollbar ()->SetStepSize ( m_rBoundingBox.size.cx / 10 );
-	m_pScrollbar->GetVerScrollbar ()->SetStepSize ( m_rBoundingBox.size.cy / 10 );
+	m_pScrollbar->GetHorScrollbar ()->SetStepSize ( m_rBoundingBox.m_size.cx / 10 );
+	m_pScrollbar->GetVerScrollbar ()->SetStepSize ( m_rBoundingBox.m_size.cy / 10 );
 	m_pScrollbar->UpdateScrollbars ( rRect );
 
 	m_rTitle = m_rBoundingBox;
-	m_rTitle.size.cy = m_iTitleBarSize;
+	m_rTitle.m_size.cy = m_iTitleBarSize;
 
 	// Window corners
 	m_rWindowTop = m_rBoundingBox;
-	m_rWindowTop.pos.SetY ( m_rBoundingBox.pos.GetY () - WINDOW_SIZE_CORNERS );
-	m_rWindowTop.size.cx = m_rWindowTop.size.cx - 2;
-	m_rWindowTop.size.cy = WINDOW_SIZE_CORNERS;
+	m_rWindowTop.m_pos.m_nY -= WINDOW_SIZE_CORNERS;
+	m_rWindowTop.m_size.cx = m_rWindowTop.m_size.cx - 2;
+	m_rWindowTop.m_size.cy = WINDOW_SIZE_CORNERS;
 
 	m_rWindowLeft = m_rBoundingBox;
-	m_rWindowLeft.pos.SetX ( m_rBoundingBox.pos.GetX () - WINDOW_SIZE_CORNERS );
-	m_rWindowLeft.size.cx = WINDOW_SIZE_CORNERS;
+	m_rWindowLeft.m_pos.m_nX -= WINDOW_SIZE_CORNERS ;
+	m_rWindowLeft.m_size.cx = WINDOW_SIZE_CORNERS;
 
 	m_rWindowRight = m_rBoundingBox;
-	m_rWindowRight.pos.SetX ( m_rBoundingBox.pos.GetX () + m_rBoundingBox.size.cx );
-	m_rWindowRight.size.cx = WINDOW_SIZE_CORNERS;
+	m_rWindowRight.m_pos.m_nX += m_rBoundingBox.m_size.cx ;
+	m_rWindowRight.m_size.cx = WINDOW_SIZE_CORNERS;
 
 	m_rWindowBottom = m_rBoundingBox;
-	m_rWindowBottom.pos.SetY ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cy );
-	m_rWindowBottom.size.cx = m_rWindowBottom.size.cx - 2;
-	m_rWindowBottom.size.cy = WINDOW_SIZE_CORNERS;
+	m_rWindowBottom.m_pos.m_nY += m_rBoundingBox.m_size.cy;
+	m_rWindowBottom.m_size.cx = m_rWindowBottom.m_size.cx - 2;
+	m_rWindowBottom.m_size.cy = WINDOW_SIZE_CORNERS;
 
 	m_rWindowTopLeft = m_rBoundingBox;
-	m_rWindowTopLeft.pos.SetX ( m_rBoundingBox.pos.GetX () - WINDOW_SIZE_CORNERS );
-	m_rWindowTopLeft.pos.SetY ( m_rBoundingBox.pos.GetY () - WINDOW_SIZE_CORNERS );
-	m_rWindowTopLeft.size.cx = WINDOW_SIZE_CORNERS;
-	m_rWindowTopLeft.size.cy = WINDOW_SIZE_CORNERS;
+	m_rWindowTopLeft.m_pos.m_nX -= WINDOW_SIZE_CORNERS;
+	m_rWindowTopLeft.m_pos.m_nY -= WINDOW_SIZE_CORNERS;
+	m_rWindowTopLeft.m_size.cx = WINDOW_SIZE_CORNERS;
+	m_rWindowTopLeft.m_size.cy = WINDOW_SIZE_CORNERS;
 
 	m_rWindowTopRight = m_rBoundingBox;
-	m_rWindowTopRight.pos.SetX ( m_rBoundingBox.pos.GetX () + m_rBoundingBox.size.cx );
-	m_rWindowTopRight.pos.SetY ( m_rWindowTopRight.pos.GetY () - WINDOW_SIZE_CORNERS );
-	m_rWindowTopRight.size.cx = WINDOW_SIZE_CORNERS;
-	m_rWindowTopRight.size.cy = WINDOW_SIZE_CORNERS;
+	m_rWindowTopRight.m_pos.m_nX += m_rBoundingBox.m_size.cx;
+	m_rWindowTopRight.m_pos.m_nY -= WINDOW_SIZE_CORNERS;
+	m_rWindowTopRight.m_size.cx = WINDOW_SIZE_CORNERS;
+	m_rWindowTopRight.m_size.cy = WINDOW_SIZE_CORNERS;
 
 	m_rWindowBottomLeft = m_rBoundingBox;
-	m_rWindowBottomLeft.pos.SetX ( m_rBoundingBox.pos.GetX () - WINDOW_SIZE_CORNERS );
-	m_rWindowBottomLeft.pos.SetY ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cy );
-	m_rWindowBottomLeft.size.cx = WINDOW_SIZE_CORNERS;
-	m_rWindowBottomLeft.size.cy = WINDOW_SIZE_CORNERS;
+	m_rWindowBottomLeft.m_pos.m_nX -= WINDOW_SIZE_CORNERS;
+	m_rWindowBottomLeft.m_pos.m_nY += m_rBoundingBox.m_size.cy;
+	m_rWindowBottomLeft.m_size.cx = WINDOW_SIZE_CORNERS;
+	m_rWindowBottomLeft.m_size.cy = WINDOW_SIZE_CORNERS;
 
 	m_rWindowBottomRight = m_rBoundingBox;
-	m_rWindowBottomRight.pos.SetX ( m_rBoundingBox.pos.GetX () + m_rBoundingBox.size.cx - WINDOW_SIZE_CORNERS );
-	m_rWindowBottomRight.pos.SetY ( m_rBoundingBox.pos.GetY () + m_rBoundingBox.size.cy );
-	m_rWindowBottomRight.size.cx = WINDOW_SIZE_CORNERS;
-	m_rWindowBottomRight.size.cy = WINDOW_SIZE_CORNERS;
+	m_rWindowBottomRight.m_pos.m_nX += m_rBoundingBox.m_size.cx - WINDOW_SIZE_CORNERS;
+	m_rWindowBottomRight.m_pos.m_nY += m_rBoundingBox.m_size.cy;
+	m_rWindowBottomRight.m_size.cx = WINDOW_SIZE_CORNERS;
+	m_rWindowBottomRight.m_size.cy = WINDOW_SIZE_CORNERS;
 
 	// Button 
 	m_rButton = m_rBoundingBox;
-	m_rButton.pos.SetX ( m_rBoundingBox.pos.GetX () + m_rBoundingBox.size.cx - 35 );
-	m_rButton.size.cx = 35.f;
-	m_rButton.size.cy = 16.f;
+	m_rButton.m_pos.m_nX += m_rBoundingBox.m_size.cx - 35;
+	m_rButton.m_size.cx = 35.f;
+	m_rButton.m_size.cy = 16.f;
 }
 
 //--------------------------------------------------------------------------------------
-bool CWindow::ContainsRect ( CPos pos )
+bool CWindow::ContainsPoint ( CVector pos )
 {
-	if ( !CControl::CanHaveFocus () ||
+	if ( !CWidget::CanHaveFocus () ||
 		 !m_pScrollbar )
 		return false;
 
-	CControl *pControl = GetTabPanelFocussedControl ();
+	CWidget *pControl = GetTabPanelFocussedControl ();
 
-	return ( ( m_pScrollbar->ContainsRect ( pos ) && m_eWindowArea == OutArea ) ||
-			 ( m_rBoundingBox.InControlArea ( pos ) && !m_bMaximized ) ||
-			 m_rTitle.InControlArea ( pos ) ||
-			 m_rButton.InControlArea ( pos ) ||
+	return ( ( m_pScrollbar->ContainsPoint ( pos ) && m_eWindowArea == OutArea ) ||
+			 ( m_rBoundingBox.ContainsPoint ( pos ) && !m_bMaximized ) ||
+			 m_rTitle.ContainsPoint ( pos ) ||
+			 m_rButton.ContainsPoint ( pos ) ||
 			 GetSizingBorderAtArea ( pos ) != OutArea ||
-			 ( HAS_CONTROL_TYPE ( pControl, CControl::EControlType::TYPE_DROPDOWN ) && pControl->ContainsRect ( pos ) ) );
+			 ( HAS_CONTROL_TYPE ( pControl, CWidget::EControlType::TYPE_DROPDOWN ) && pControl->ContainsPoint ( pos ) ) );
 }
 
-void CWindow::SetCursorForPoint ( CPos pos )
+void CWindow::SetCursorForPoint ( CVector pos )
 {
-	if ( m_rButton.InControlArea ( pos ) )
+	if ( m_rButton.ContainsPoint ( pos ) )
 	{
 		m_pDialog->GetMouse ()->SetCursorType ( CMouse::DEFAULT );
 		return;
@@ -1011,7 +1006,7 @@ void CWindow::SetCursorForPoint ( CPos pos )
 	}
 }
 
-CWindow::E_WINDOW_AREA CWindow::GetSizingBorderAtArea ( CPos pos )
+CWindow::E_WINDOW_AREA CWindow::GetSizingBorderAtArea ( CVector pos )
 {
 	if ( ( m_pFocussedControl && m_pFocussedControl->OnClickEvent () ) ||
 		( m_bDragging || m_bPressed || m_bMaximized ) ||
@@ -1020,35 +1015,35 @@ CWindow::E_WINDOW_AREA CWindow::GetSizingBorderAtArea ( CPos pos )
 		return OutArea;
 	}
 
-	if ( m_rWindowTopLeft.InControlArea ( pos ) )
+	if ( m_rWindowTopLeft.ContainsPoint ( pos ) )
 	{
 		return TopLeft;
 	}
-	else if ( m_rWindowBottomLeft.InControlArea ( pos ) )
+	else if ( m_rWindowBottomLeft.ContainsPoint ( pos ) )
 	{
 		return BottomLeft;
 	}
-	else if ( m_rWindowTopRight.InControlArea ( pos ) )
+	else if ( m_rWindowTopRight.ContainsPoint ( pos ) )
 	{
 		return TopRight;
 	}
-	else if ( m_rWindowBottomRight.InControlArea ( pos ) )
+	else if ( m_rWindowBottomRight.ContainsPoint ( pos ) )
 	{
 		return BottomRight;
 	}
-	else if ( m_rWindowTop.InControlArea ( pos ) )
+	else if ( m_rWindowTop.ContainsPoint ( pos ) )
 	{
 		return Top;
 	}
-	else if ( m_rWindowLeft.InControlArea ( pos ) )
+	else if ( m_rWindowLeft.ContainsPoint ( pos ) )
 	{
 		return Left;
 	}
-	else if ( m_rWindowRight.InControlArea ( pos ) )
+	else if ( m_rWindowRight.ContainsPoint ( pos ) )
 	{
 		return Right;
 	}
-	else if ( m_rWindowBottom.InControlArea ( pos ) )
+	else if ( m_rWindowBottom.ContainsPoint ( pos ) )
 	{
 		return Bottom;
 	}

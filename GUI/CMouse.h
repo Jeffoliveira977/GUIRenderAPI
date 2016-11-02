@@ -22,13 +22,8 @@ public:
 	bool HandleMessage ( UINT uMsg, WPARAM wParam, LPARAM lParam );
 
 	void SetPos ( int iX, int iY );
-	void SetPos ( CPos cPos );
-	CPos GetPos ( void );
-
-	bool InControlArea ( RECT rc );
-	bool InControlArea ( CPos pos, int iWidth, int iHeight );
-	bool InControlArea ( int iX, int iY, int iWidth, int iHeight );
-	bool InControlArea ( CControl *pControl, int iHeight = 0 );
+	void SetPos ( CVector cPos );
+	CVector GetPos ( void );
 
 	void Draw ( void );
 
@@ -47,7 +42,7 @@ public:
 
 	void SavePos ( void );
 	void LoadPos ( void );
-	CPos GetSavedPos ( void );
+	CVector GetSavedPos ( void );
 
 	void SetCursorType ( E_CURSOR_TYPE  eType ) { m_eCursorType = eType; }
 	E_CURSOR_TYPE GetCursorType ( void ) { return m_eCursorType; }
@@ -61,7 +56,7 @@ private:
 
 	E_CURSOR_TYPE m_eCursorType;
 
-	CPos m_Pos, m_SavedPos;
+	CVector m_Pos, m_SavedPos;
 	int m_iSize;
 
 	int m_iLeftButton, m_iRightButton, m_iMiddleButton, m_iWheel;

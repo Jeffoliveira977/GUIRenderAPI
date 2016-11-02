@@ -16,7 +16,7 @@ CListBox::CListBox ( CDialog *pDialog )
 	if ( !m_pEntryList )
 		MessageBox ( 0, _UI ( "CListBox::CListBox: Error for creating CEntryList" ), _UI ( "GUIAPI.asi" ), 0 );
 
-	m_pEntryList->GetScrollbar ()->AddControl ( this );
+	m_pEntryList->GetScrollbar ()->SetControl ( this );
 }
 
 CListBox::~CListBox ( void )
@@ -36,15 +36,15 @@ void CListBox::Draw ( void )
 		return;
 
 	m_pDialog->DrawBox ( m_rBoundingBox, m_sControlColor.d3dColorBoxBack, m_sControlColor.d3dColorOutline, m_bAntAlias );
-	if (
-		 !m_pEntryList->GetSize() )
+	
+	if ( !m_pEntryList->GetSize() )
 		return;
 
 	CScrollBarVertical *pScrollbarVer = m_pEntryList->GetScrollbar()->GetVerScrollbar ();
 	CScrollBarHorizontal *pScrollbarHor = m_pEntryList->GetScrollbar ()->GetHorScrollbar ();
 
 	SControlRect rRect = m_rText;
-	rRect.pos.SetX ( rRect.pos.GetX () + 4 - pScrollbarHor->GetTrackPos () );
+	rRect.m_pos.m_nX += pScrollbarHor->GetTrackPos() + 4;
 
 	// Draw all contexts
 	for ( int i = pScrollbarVer->GetTrackPos (); i < pScrollbarVer->GetTrackPos () + pScrollbarVer->GetPageSize (); i++ )
@@ -53,7 +53,7 @@ void CListBox::Draw ( void )
 		{
 			SIZE fontSize = m_pEntryList->GetTextSize ();
 			if ( i != pScrollbarVer->GetTrackPos () )
-				rRect.pos.SetY ( rRect.pos.GetY () + fontSize.cy );
+				rRect.m_pos.m_nY += fontSize.cy;
 
 			SEntryItem *pEntry = m_pEntryList-> GetEntryByIndex ( i );
 
@@ -65,10 +65,10 @@ void CListBox::Draw ( void )
 					 m_iIndex == i )
 				{
 					SControlRect rBoxSel = rRect;
-					rBoxSel.pos.SetX ( rRect.pos.GetX () - 17 );
-					rBoxSel.pos.SetY ( rBoxSel.pos.GetY () + 1 );
-					rBoxSel.size.cx = rRect.size.cx + pScrollbarHor->GetTrackPos ();
-					rBoxSel.size.cy = fontSize.cy - 1;
+					rBoxSel.m_pos.m_nX -= 17;
+					rBoxSel.m_pos.m_nY += 1;
+					rBoxSel.m_size.cx = rRect.m_size.cx + pScrollbarHor->GetTrackPos ();
+					rBoxSel.m_size.cy = fontSize.cy - 1;
 					
 					D3DCOLOR d3dColor = m_sControlColor.d3dColorBox [ SControlColor::STATE_PRESSED ];
 					if ( m_pEntryList->IsEntrySelected ( pEntry ) )
@@ -84,9 +84,10 @@ void CListBox::Draw ( void )
 
 				if ( m_bMultiSelection )
 				{
-					CPos pos = rRect.pos;
-					pos.SetX ( pos.GetX () - 16 );
-					pos.SetY ( pos.GetY () + 2 );
+					CVector pos = rRect.m_pos;
+					pos.m_nX -= 16;
+					pos.m_nY += 2;
+
 					SIZE size = fontSize;
 					size.cy -= 4;
 					size.cx = size.cy;
@@ -97,9 +98,8 @@ void CListBox::Draw ( void )
 					if ( m_pEntryList->IsEntrySelected ( pEntry ) )
 					{
 						size.cx = size.cy -= 2;
-						pos.SetX ( pos.GetX () + 2 ); pos.SetY ( pos.GetY () + 2 );
 
-						m_pDialog->DrawBox ( SControlRect ( pos, size ), m_sControlColor.d3dColorShape, 0 );
+						m_pDialog->DrawBox ( SControlRect ( pos+2, size ), m_sControlColor.d3dColorShape, 0 );
 					}
 				}
 			}
@@ -147,7 +147,7 @@ SEntryItem *CListBox::GetSelectedItem ( void )
 
 void CListBox::OnClickLeave ( void )
 {
-	CControl::OnClickLeave ();
+	CWidget::OnClickLeave ();
 
 	m_pEntryList->GetScrollbar ()->OnClickLeave ();
 }
@@ -156,13 +156,13 @@ bool CListBox::OnClickEvent ( void )
 {
 	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
 
-	return ( CControl::OnClickEvent () ||
+	return ( CWidget::OnClickEvent () ||
 			 pScrollbar->OnClickEvent () );
 }
 
 void CListBox::OnFocusIn ( void )
 {
-	CControl::OnFocusIn ();
+	CWidget::OnFocusIn ();
 
 	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
 
@@ -172,7 +172,7 @@ void CListBox::OnFocusIn ( void )
 
 void CListBox::OnFocusOut ( void )
 {
-	CControl::OnFocusOut ();
+	CWidget::OnFocusOut ();
 
 	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
 
@@ -182,7 +182,7 @@ void CListBox::OnFocusOut ( void )
 
 void CListBox::OnMouseEnter ( void )
 {
-	CControl::OnMouseEnter ();
+	CWidget::OnMouseEnter ();
 
 	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
 
@@ -192,7 +192,7 @@ void CListBox::OnMouseEnter ( void )
 
 void CListBox::OnMouseLeave ( void )
 {
-	CControl::OnMouseLeave ();
+	CWidget::OnMouseLeave ();
 	m_iIndex = -1;
 
 	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
@@ -205,7 +205,7 @@ bool CListBox::CanHaveFocus ( void )
 {
 	CScrollablePane *pScrollbar = m_pEntryList->GetScrollbar ();
 
-	return ( CControl::CanHaveFocus () ||
+	return ( CWidget::CanHaveFocus () ||
 			 pScrollbar->CanHaveFocus () );
 }
 
@@ -213,7 +213,6 @@ bool CListBox::OnKeyDown ( WPARAM wParam )
 {
 	CScrollBarVertical *pScrollbarVer = m_pEntryList->GetScrollbar ()->GetVerScrollbar ();
 
-	static int oldrow = -1;
 	bool bHandled = false;
 	switch ( wParam )
 	{
@@ -276,9 +275,9 @@ bool CListBox::OnKeyDown ( WPARAM wParam )
 		pScrollbarVer->ShowItem ( m_nSelected );
 
 		SControlRect rText = m_rText;
-		rText.pos.SetX ( rText.pos.GetX () - ( m_bMultiSelection ? 18 : 0 ) );
-		rText.size.cx = rText.size.cx + ( m_bMultiSelection ? 0 : -20 );
-		rText.size.cy = TEXTBOX_TEXTSPACE - 2;
+		rText.m_pos.m_nX -= (m_bMultiSelection ? 18 : 0);
+		rText.m_size.cx = rText.m_size.cx + (m_bMultiSelection ? 0 : -20);
+		rText.m_size.cy = TEXTBOX_TEXTSPACE - 2;
 
 		m_iIndex = m_pEntryList->GetItemAtPos ( rText, m_pDialog->GetMouse ()->GetPos () );
 		return true;
@@ -299,9 +298,9 @@ bool CListBox::OnMouseButtonDown ( sMouseEvents e )
 	// First acquire focus
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
-		m_pParent->SetFocussedControl ( this ); 
+		_SetFocus ();
 		
-		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		if ( m_rBoundingBox.ContainsPoint ( e.pos ) )
 		{
 			// Pressed while inside the control
 			m_bPressed = true;
@@ -322,7 +321,7 @@ bool CListBox::OnMouseButtonUp ( sMouseEvents e )
 	{
 		m_bPressed = false;
 
-		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		if ( m_rBoundingBox.ContainsPoint ( e.pos ) )
 		{
 			if ( m_iIndex != -1 )
 			{
@@ -338,7 +337,7 @@ bool CListBox::OnMouseButtonUp ( sMouseEvents e )
 	return false;
 }
 
-bool CListBox::OnMouseMove ( CPos pos )
+bool CListBox::OnMouseMove ( CVector pos )
 {
 	// Let the scroll bar handle it first.
 	if ( m_pEntryList->GetScrollbar ()->OnMouseMove ( pos ) )
@@ -350,9 +349,9 @@ bool CListBox::OnMouseMove ( CPos pos )
 		return false;
 
 	SControlRect rText = m_rText;
-	rText.pos.SetX ( rText.pos.GetX () - ( m_bMultiSelection ? 18 : 0 ) );
-	rText.size.cx = rText.size.cx + ( m_bMultiSelection ? 0 : -20 );
-	rText.size.cy = TEXTBOX_TEXTSPACE - 2;
+	rText.m_pos.m_nX -= (m_bMultiSelection ? 18 : 0);
+	rText.m_size.cx = rText.m_size.cx + ( m_bMultiSelection ? 0 : -20 );
+	rText.m_size.cy = TEXTBOX_TEXTSPACE - 2;
 
 	m_iIndex = m_pEntryList->GetItemAtPos ( rText, pos );
 	if ( m_iIndex != -1 )
@@ -367,21 +366,22 @@ bool CListBox::OnMouseWheel ( int zDelta )
 	SystemParametersInfo ( SPI_GETWHEELSCROLLLINES, 0, &uLines, 0 );
 	m_pEntryList->GetScrollbar ()->GetVerScrollbar ()->Scroll ( -zDelta * uLines );
 	m_iIndex += -zDelta * uLines;
+
 	return true;
 }
 
 void CListBox::UpdateRects ( void )
 {
-	CControl::UpdateRects ();
+	CWidget::UpdateRects ();
 
 	m_rText = m_rBoundingBox;
-	m_rText.pos.SetX ( m_rText.pos.GetX () +( m_bMultiSelection ? 14:0) );
-	m_rText.size.cx -= (m_bMultiSelection?14:0);
+	m_rText.m_pos.m_nX += (m_bMultiSelection ? 14 : 0);
+	m_rText.m_size.cx -= (m_bMultiSelection ? 14 : 0);
 
 	m_pEntryList->UpdateScrollbars ( m_rText );
 }
 
-bool CListBox::ContainsRect ( CPos pos )
+bool CListBox::ContainsPoint ( CVector pos )
 {
 	if ( !CanHaveFocus () )
 		return false;

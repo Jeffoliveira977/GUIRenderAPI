@@ -236,64 +236,38 @@ bool CMouse::HandleMessage ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 	return false;
 }
 
-void CMouse::SetPos ( CPos cPos )
+void CMouse::SetPos ( CVector cPos )
 {
 	m_Pos = cPos;
 }
 
-void CMouse::SetPos ( int iX, int iY )
+void CMouse::SetPos(int iX, int iY)
 {
-	m_Pos.SetX ( iX );
-	m_Pos.SetY ( iY );
+	m_Pos.m_nX = iX;
+	m_Pos.m_nY = iY;
 }
 
-CPos CMouse::GetPos ( void )
+CVector CMouse::GetPos ( void )
 {
 	return m_Pos;
-}
-
-bool CMouse::InControlArea ( CPos pos, int iWidth, int iHeight )
-{
-	return InControlArea ( pos.GetX (), pos.GetY (), iWidth, iHeight );
-}
-
-bool CMouse::InControlArea ( RECT rc )
-{
-	return InControlArea ( rc.left, rc.top, rc.left + rc.right, rc.top + rc.bottom );
-}
-
-bool CMouse::InControlArea ( int iX, int iY, int iWidth, int iHeight )
-{
-	return ( m_Pos.GetX () >= iX && m_Pos.GetX () <= iX + iWidth && m_Pos.GetY () >= iY && m_Pos.GetY () <= iY + iHeight );
-}
-
-bool CMouse::InControlArea ( CControl *pElement, int iHeight )
-{
-	if ( !pElement )
-		return false;
-
-	if ( !iHeight )
-		iHeight = pElement->GetHeight ();
-
-	return InControlArea ( pElement->GetPos ()->GetX (), pElement->GetPos ()->GetY (), pElement->GetWidth (), iHeight );
 }
 
 void CMouse::Draw ()
 {
 	if ( m_eCursorType == S_RESIZE )
-		m_pTexture [ m_eCursorType ]->Draw ( m_Pos.GetX () - 4, m_Pos.GetY () - 8 );
+		m_pTexture [ m_eCursorType ]->Draw ( m_Pos.m_nX - 4, m_Pos.m_nY - 8 );
 	else if ( m_eCursorType == N_RESIZE )
-		m_pTexture [ S_RESIZE ]->Draw ( m_Pos.GetX () - 4, m_Pos.GetY () - 10 );
+		m_pTexture [ S_RESIZE ]->Draw ( m_Pos.m_nX - 4, m_Pos.m_nY - 10 );
 	else if ( m_eCursorType == E_RESIZE )
-		m_pTexture [ m_eCursorType ]->Draw ( m_Pos.GetX () - 8, m_Pos.GetY () - 4 );
+		m_pTexture [ m_eCursorType ]->Draw ( m_Pos.m_nX - 8, m_Pos.m_nY - 4 );
 	else if ( m_eCursorType == NE_RESIZE )
-		m_pTexture [ m_eCursorType ]->Draw ( m_Pos.GetX () - 5, m_Pos.GetY () - 5 );
+		m_pTexture [ m_eCursorType ]->Draw ( m_Pos.m_nX - 5, m_Pos.m_nY - 5 );
 	else if ( m_eCursorType == SE_RESIZE )
-		m_pTexture [ m_eCursorType ]->Draw ( m_Pos.GetX () - 6, m_Pos.GetY () - 4 );
+		m_pTexture [ m_eCursorType ]->Draw ( m_Pos.m_nX - 6, m_Pos.m_nY - 4 );
 	else if ( m_eCursorType == MOVE )
-		m_pTexture [ m_eCursorType ]->Draw ( m_Pos.GetX () - 5, m_Pos.GetY () - 5 );
+		m_pTexture [ m_eCursorType ]->Draw ( m_Pos.m_nX - 5, m_Pos.m_nY - 5 );
 	else
-		m_pTexture [ m_eCursorType ]->Draw ( m_Pos.GetX (), m_Pos.GetY () );
+		m_pTexture [ m_eCursorType ]->Draw ( m_Pos.m_nX, m_Pos.m_nY);
 }
 
 int CMouse::GetLeftButton ( int iState )
@@ -418,7 +392,7 @@ void CMouse::LoadPos ( void )
 	m_Pos = m_SavedPos;
 }
 
-CPos CMouse::GetSavedPos ( void)
+CVector CMouse::GetSavedPos ( void)
 {
 	return m_SavedPos;
 }

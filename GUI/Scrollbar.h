@@ -44,7 +44,7 @@ protected:
 	int m_nBackPos;
 	int m_nBackSize;
 
-	int m_nStep;	  // Step size used for increase / decrease button clicks.
+	int m_nStep;	  // Step m_size used for increase / decrease button clicks.
 	int m_nPosition;  // Position of the first displayed item
 	int m_nPageSize;  // How many items are displayable in one page
 

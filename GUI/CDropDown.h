@@ -3,7 +3,7 @@
 #include "CGUI.h"
 
 
-class CDropDown : public CControl
+class CDropDown : public CWidget
 {
 public:
 	CDropDown ( CDialog *pDialog );
@@ -37,7 +37,7 @@ public:
 	bool OnMouseButtonDown ( sMouseEvents e );
 	bool OnMouseButtonUp ( sMouseEvents e );
 
-	bool OnMouseMove ( CPos pos );
+	bool OnMouseMove ( CVector pos );
 	bool OnMouseWheel ( int zDelta );
 
 	bool CanHaveFocus ( void );
@@ -58,7 +58,7 @@ public:
 	void CloseBox ( void );
 
 	void UpdateRects ( void );
-	bool ContainsRect ( CPos pos );
+	bool ContainsPoint ( CVector pos );
 
 private:
 	CEntryList *m_pEntryList;

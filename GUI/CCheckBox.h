@@ -2,21 +2,13 @@
 
 #include "CGUI.h"
 
-class CCheckBox : public CControl
+class CCheckBox : public CWidget
 {
 public:
 	CCheckBox ( CDialog *pDialog );
 
-	bool GetChecked ( void )
-	{
-		return m_bChecked;
-	}
-
-	void SetChecked ( bool bChecked )
-	{
-		m_bChecked = bChecked;
-		SendEvent ( EVENT_CONTROL_SELECT, m_bChecked );
-	}
+	bool IsChecked(void);
+	void SetChecked(bool bChecked);
 
 	void Draw ( void );
 
@@ -26,10 +18,17 @@ public:
 	bool OnMouseButtonDown ( sMouseEvents e );
 	bool OnMouseButtonUp ( sMouseEvents e );
 
+	void SetText(SIMPLEGUI_STRING sText, bool = false);
+
+	void SetWidth(int nWidth);
+	void SetHeight(int nHeight);
+
 	void UpdateRects ( void );
-	bool ContainsRect ( CPos pos );
+	bool ContainsPoint ( CVector pos );
 
 private:
 	bool m_bChecked;
+
+	SControlRect m_rBox;
 	SControlRect m_rText;
 };

@@ -9,7 +9,7 @@ class CVar
 	double m_dValue;
 	SIMPLEGUI_STRING m_sString;
 
-	typedef SIMPLEGUI_STRING ( __cdecl * tAction )( const SIMPLEGUI_CHAR * pszArgs, CControl * pElement );
+	typedef SIMPLEGUI_STRING ( __cdecl * tAction )( const SIMPLEGUI_CHAR * pszArgs, CWidget * pElement );
 	tAction m_pAction;
 public:
 	CVar( double dValue );
@@ -31,7 +31,7 @@ public:
 	int GetInteger();
 	bool GetBoolean();
 	SIMPLEGUI_STRING GetString();
-	SIMPLEGUI_STRING GetActionString( const SIMPLEGUI_CHAR * pszString, CControl * pElement = 0 );
+	SIMPLEGUI_STRING GetActionString( const SIMPLEGUI_CHAR * pszString, CWidget * pElement = 0 );
 	tAction GetAction();
 };
 

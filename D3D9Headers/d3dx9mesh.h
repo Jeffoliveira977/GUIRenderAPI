@@ -42,7 +42,7 @@ typedef enum _D3DXPATCHMESHTYPE {
     D3DXPATCHMESH_TRI    = 0x002,
     D3DXPATCHMESH_NPATCH = 0x003,
 
-    D3DXPATCHMESH_FORCE_DWORD    = 0x7fffffff, /* force 32-bit size enum */
+    D3DXPATCHMESH_FORCE_DWORD    = 0x7fffffff, /* force 32-bit m_size enum */
 } D3DXPATCHMESHTYPE;
 
 // Mesh options - lower 3 bytes only, upper byte used by _D3DXMESHOPT option flags
@@ -158,7 +158,7 @@ typedef struct _D3DXEFFECTDEFAULT
 {
     LPSTR                 pParamName;
     D3DXEFFECTDEFAULTTYPE Type;           // type of the data pointed to by pValue
-    DWORD                 NumBytes;       // size in bytes of the data pointed to by pValue
+    DWORD                 NumBytes;       // m_size in bytes of the data pointed to by pValue
     LPVOID                pValue;         // data for the default of the effect
 } D3DXEFFECTDEFAULT, *LPD3DXEFFECTDEFAULT;
 
@@ -417,7 +417,7 @@ enum _D3DXMESHOPT {
     D3DXMESHOPT_STRIPREORDER  = 0x08000000,
     D3DXMESHOPT_IGNOREVERTS   = 0x10000000,  // optimize faces only, don't touch vertices
     D3DXMESHOPT_DONOTSPLIT    = 0x20000000,  // do not split vertices shared between attribute groups when attribute sorting
-    D3DXMESHOPT_DEVICEINDEPENDENT = 0x00400000,  // Only affects VCache.  uses a static known good cache size for all cards
+    D3DXMESHOPT_DEVICEINDEPENDENT = 0x00400000,  // Only affects VCache.  uses a static known good cache m_size for all cards
                             
     // D3DXMESHOPT_SHAREVB has been removed, please use D3DXMESH_VB_SHARE instead
 
@@ -481,10 +481,10 @@ DECLARE_INTERFACE_(ID3DXPatchMesh, IUnknown)
     STDMETHOD(LockAttributeBuffer)(THIS_ DWORD flags, DWORD** ppData) PURE;
     STDMETHOD(UnlockAttributeBuffer)(THIS) PURE;
 
-    // This function returns the size of the tessellated mesh given a tessellation level.
+    // This function returns the m_size of the tessellated mesh given a tessellation level.
     // This assumes uniform tessellation. For adaptive tessellation the Adaptive parameter must
     // be set to TRUE and TessellationLevel should be the max tessellation.
-    // This will result in the max mesh size necessary for adaptive tessellation.    
+    // This will result in the max mesh m_size necessary for adaptive tessellation.    
     STDMETHOD(GetTessSize)(THIS_ FLOAT fTessLevel,DWORD Adaptive, DWORD *NumTriangles,DWORD *NumVertices) PURE;
     
     //GenerateAdjacency determines which patches are adjacent with provided tolerance
@@ -905,14 +905,14 @@ HRESULT WINAPI
         PDWORD pNumMaterials,
         LPD3DXPATCHMESH *ppMesh);
 
-//computes the size a single rect patch.
+//computes the m_size a single rect patch.
 HRESULT WINAPI
     D3DXRectPatchSize(
         CONST FLOAT *pfNumSegs, //segments for each edge (4)
         DWORD *pdwTriangles,    //output number of triangles
         DWORD *pdwVertices);    //output number of vertices
 
-//computes the size of a single triangle patch      
+//computes the m_size of a single triangle patch      
 HRESULT WINAPI
     D3DXTriPatchSize(
         CONST FLOAT *pfNumSegs, //segments for each edge (3)    
@@ -1163,7 +1163,7 @@ typedef HRESULT (WINAPI *LPD3DXUVATLASCB)(FLOAT fPercentDone,  LPVOID lpUserCont
 //               the vector (1,-1) by 0. Note that this is multiplying the edge
 //               length by the square of the matrix, so if you want the face to
 //               stretch to twice its
-//               size with no shearing, the IMT value should be (2, 0, 2), which
+//               m_size with no shearing, the IMT value should be (2, 0, 2), which
 //               is just the identity matrix times 2.
 //               Note that this assumes you have an orientation for the triangle
 //               in some 2-D space. For D3DXUVAtlas, this space is created by
@@ -1230,7 +1230,7 @@ HRESULT WINAPI D3DXUVAtlasPartition(LPD3DXMESH pMesh,
                                     UINT *puNumChartsOut);
 
 // This takes the face partitioning result from Partition and packs it into an
-// atlas of the given size.
+// atlas of the given m_size.
 HRESULT WINAPI D3DXUVAtlasPack(ID3DXMesh *pMesh,
                                UINT uWidth,
                                UINT uHeight,
@@ -2005,7 +2005,7 @@ DECLARE_INTERFACE_(ID3DXPRTEngine, IUnknown)
     // SHOrder  - Order of SH to compute conv coefficients for 
     // pNormOut - Optional array of vectors (passed in) that will be filled with
     //             "shading normals", LDPRT coefficients are optimized for
-    //             these normals.  This array must be the same size as the number of
+    //             these normals.  This array must be the same m_size as the number of
     //             samples in pDataIn
     // pDataOut - Output buffer (SHOrder zonal harmonic coefficients per channel per sample)
     STDMETHOD(ComputeLDPRTCoeffs)(THIS_ LPD3DXPRTBUFFER pDataIn,
@@ -2452,7 +2452,7 @@ HRESULT WINAPI
 //   NumClusters
 //      Number of clusters (input parameter to compression)
 //   pSuperClusterIDs
-//      Array of size NumClusters that will contain super cluster ID's (from
+//      Array of m_size NumClusters that will contain super cluster ID's (from
 //      D3DXSHCompSuerCluster)
 //   NumSuperClusters
 //      Number of superclusters allocated in D3DXSHCompSuerCluster

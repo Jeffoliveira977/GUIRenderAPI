@@ -769,10 +769,10 @@ HRESULT WINAPI
 //      Pixel format of the source volume.
 //  SrcRowPitch
 //      Pitch of source image, in bytes.  For DXT formats, this number
-//      should represent the size of one row of cells, in bytes.
+//      should represent the m_size of one row of cells, in bytes.
 //  SrcSlicePitch
 //      Pitch of source image, in bytes.  For DXT formats, this number
-//      should represent the size of one slice of cells, in bytes.
+//      should represent the m_size of one slice of cells, in bytes.
 //  pSrcPalette
 //      Source palette of 256 colors, or NULL
 //  pSrcBox
@@ -888,7 +888,7 @@ HRESULT WINAPI
 //  pDevice
 //      The D3D device to be used
 //  pWidth, pHeight, pDepth, pSize
-//      Desired size in pixels, or NULL.  Returns corrected size.
+//      Desired m_size in pixels, or NULL.  Returns corrected m_size.
 //  pNumMipLevels
 //      Number of desired mipmap levels, or NULL.  Returns corrected number.
 //  Usage
@@ -941,7 +941,7 @@ HRESULT WINAPI
 //  pDevice
 //      The D3D device with which the texture is going to be used.
 //  Width, Height, Depth, Size
-//      size in pixels. these must be non-zero
+//      m_size in pixels. these must be non-zero
 //  MipLevels
 //      number of mip levels desired. if zero or D3DX_DEFAULT, a complete
 //      mipmap chain will be created.
@@ -1011,14 +1011,14 @@ HRESULT WINAPI
 //  SrcDataSize
 //      Size in bytes of file in memory.
 //  Width, Height, Depth, Size
-//      Size in pixels.  If zero or D3DX_DEFAULT, the size will be taken from 
+//      Size in pixels.  If zero or D3DX_DEFAULT, the m_size will be taken from 
 //      the file and rounded up to a power of two.  If D3DX_DEFAULT_NONPOW2, 
-//      and the device supports NONPOW2 textures, the size will not be rounded.
-//      If D3DX_FROM_FILE, the size will be taken exactly as it is in the file, 
+//      and the device supports NONPOW2 textures, the m_size will not be rounded.
+//      If D3DX_FROM_FILE, the m_size will be taken exactly as it is in the file, 
 //      and the call will fail if this violates device capabilities.
 //  MipLevels
 //      Number of mip levels.  If zero or D3DX_DEFAULT, a complete mipmap
-//      chain will be created.  If D3DX_FROM_FILE, the size will be taken 
+//      chain will be created.  If D3DX_FROM_FILE, the m_size will be taken 
 //      exactly as it is in the file, and the call will fail if this violates 
 //      device capabilities.
 //  Usage

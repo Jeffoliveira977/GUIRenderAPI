@@ -96,15 +96,16 @@ void CEntryList::Render ( SControlRect rRect, D3DCOLOR d3dColorSelected,
 	CScrollBarVertical *pScrollbarVer = m_pScrollbar->GetVerScrollbar ();
 	CScrollBarHorizontal *pScrollbarHor = m_pScrollbar->GetHorScrollbar ();
 
-	rRect.pos.SetX ( rRect.pos.GetX () + 4 - pScrollbarHor->GetTrackPos () );
+	int nHorScrollbarTrackPos = pScrollbarVer->GetTrackPos();
+	rRect.m_pos.m_nX -= nHorScrollbarTrackPos + 4;
 
 	// Draw all contexts
-	for ( int i = pScrollbarVer->GetTrackPos (); i < pScrollbarVer->GetTrackPos () + pScrollbarVer->GetPageSize (); i++ )
+	for ( int i = pScrollbarVer->GetTrackPos (); i < nHorScrollbarTrackPos + pScrollbarVer->GetPageSize (); i++ )
 	{
 		if ( i < ( int ) GetSize () )
 		{
-			if ( i != pScrollbarVer->GetTrackPos () )
-				rRect.pos.SetY ( rRect.pos.GetY () + GetTextSize ().cy );
+			if (i != pScrollbarVer->GetTrackPos())
+				rRect.m_pos.m_nY += GetTextSize().cy;
 
 			SEntryItem *pEntry = GetEntryByIndex ( i );
 
@@ -116,10 +117,10 @@ void CEntryList::Render ( SControlRect rRect, D3DCOLOR d3dColorSelected,
 					 uIndex == i )
 				{
 					SControlRect rBoxSel = rRect;
-					rBoxSel.pos.SetX ( rRect.pos.GetX () - 2 );
-					rBoxSel.pos.SetY ( rBoxSel.pos.GetY () + 1 );
-					rBoxSel.size.cx = rRect.size.cx + pScrollbarHor->GetTrackPos ();
-					rBoxSel.size.cy = GetTextSize ().cy - 1;
+					rBoxSel.m_pos.m_nX -= 2 ;
+					rBoxSel.m_pos.m_nY += 1;
+					rBoxSel.m_size.cx = rRect.m_size.cx + nHorScrollbarTrackPos;
+					rBoxSel.m_size.cy = GetTextSize ().cy - 1;
 
 					D3DCOLOR d3dColor = d3dColorNormal;
 					if ( IsEntrySelected ( pEntry ) )
@@ -220,19 +221,19 @@ size_t CEntryList::GetSize ( void )
 	return m_vEntryList.size ();
 }
 
-int CEntryList::GetItemAtPos ( SControlRect rRect, CPos pos )
+int CEntryList::GetItemAtPos ( SControlRect rRect, CVector pos )
 {
 	CScrollBarVertical *pScrollbarVer = m_pScrollbar->GetVerScrollbar ();
 	int iIndex = -1;
 
-	rRect.size.cx -= ( m_pScrollbar->IsHorScrollbarNeeded () ? pScrollbarVer->GetWidth () + 3 : 0 );
+	rRect.m_size.cx -= ( m_pScrollbar->IsHorScrollbarNeeded () ? pScrollbarVer->GetWidth () + 3 : 0 );
 
 	for ( int i = pScrollbarVer->GetTrackPos (); i < pScrollbarVer->GetTrackPos () + pScrollbarVer->GetPageSize (); i++ )
 	{
 		if ( i < ( int ) m_vEntryList.size() )
 		{
-			if ( i != pScrollbarVer->GetTrackPos () )
-				rRect.pos.SetY ( rRect.pos.GetY () + m_TextSize.cy );
+			if (i != pScrollbarVer->GetTrackPos())
+				rRect.m_pos.m_nY += m_TextSize.cy;
 
 			SEntryItem *pEntry = GetEntryByIndex ( i );
 
@@ -240,7 +241,7 @@ int CEntryList::GetItemAtPos ( SControlRect rRect, CPos pos )
 			// and determine which item has been selected
 			if ( pEntry &&
 				 pEntry->m_sText.c_str () != NULL &&
-				 rRect.InControlArea ( pos ) )
+				 rRect.ContainsPoint ( pos ) )
 			{
 				iIndex = i;
 				break;
@@ -365,17 +366,17 @@ void CEntryList::UpdateScrollbars ( SControlRect rRect )
 	CScrollBarHorizontal *pScrollbarHor = m_pScrollbar->GetHorScrollbar ();
 
 	// Set up scroll bar values
-	m_pScrollbar->SetPageSize ( rRect.size.cx - ( pScrollbarHor->GetHeight () + 4 ), rRect.size.cy / m_TextSize.cy );
+	m_pScrollbar->SetPageSize ( rRect.m_size.cx - ( pScrollbarHor->GetHeight () + 4 ), rRect.m_size.cy / m_TextSize.cy );
 	m_pScrollbar->UpdateScrollbars ( rRect );
 }
 
-bool CEntryList::ContainsRects ( SControlRect rRect, CPos pos )
+bool CEntryList::ContainsRects ( SControlRect rRect, CVector pos )
 {
 	if ( !m_pScrollbar )
 		return false;
 
-	return ( m_pScrollbar->ContainsRect ( pos ) ||
-			 rRect.InControlArea ( pos ) );
+	return ( m_pScrollbar->ContainsPoint ( pos ) ||
+			 rRect.ContainsPoint ( pos ) );
 }
 
 CScrollablePane *CEntryList::GetScrollbar ( void )

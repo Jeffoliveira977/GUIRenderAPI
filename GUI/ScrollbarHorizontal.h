@@ -2,7 +2,7 @@
 
 #include "CGUI.h"
 
-class CScrollBarHorizontal : public CScrollbar, public CControl
+class CScrollBarHorizontal : public CScrollbar, public CWidget
 {
 public:
 	CScrollBarHorizontal ( CDialog *pDialog );
@@ -10,11 +10,11 @@ public:
 	void Draw ( void );
 
 	void UpdateRects ( void );
-	bool ContainsRect ( CPos pos );
+	bool ContainsPoint ( CVector pos );
 
 	bool OnMouseButtonDown ( sMouseEvents e );
 	bool OnMouseButtonUp ( sMouseEvents e);
-	bool OnMouseMove ( CPos pos );
+	bool OnMouseMove ( CVector pos );
 
 	void OnClickLeave ( void );
 	bool OnClickEvent ( void );

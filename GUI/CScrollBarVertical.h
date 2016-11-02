@@ -2,7 +2,7 @@
 
 #include "CGUI.h"
 
-class CScrollBarVertical : public CScrollbar, public CControl
+class CScrollBarVertical : public CScrollbar, public CWidget
 {
 public:
 	CScrollBarVertical ( CDialog *pDialog );
@@ -10,11 +10,11 @@ public:
 	void Draw ( void );
 
 	void UpdateRects ( void );
-	bool ContainsRect ( CPos pos );
+	bool ContainsPoint ( CVector pos );
 
 	bool OnMouseButtonDown ( sMouseEvents e );
 	bool OnMouseButtonUp ( sMouseEvents e );
-	bool OnMouseMove ( CPos pos );
+	bool OnMouseMove ( CVector pos );
 
 	void OnClickLeave ( void )
 	{
@@ -55,6 +55,6 @@ private:
 	int nThumbOffset;
 
 	CTimer m_timer;
-	CPos m_LastMouse;
+	CVector m_LastMouse;
 	ARROWSTATE m_Arrow; // State of the arrows
 };

@@ -37,7 +37,7 @@ typedef enum _D3DXMESHDATATYPE {
     D3DXMESHTYPE_PMESH     = 0x002,             // Progressive Mesh - ID3DXPMesh
     D3DXMESHTYPE_PATCHMESH = 0x003,             // Patch Mesh - ID3DXPatchMesh
 
-    D3DXMESHTYPE_FORCE_DWORD    = 0x7fffffff,   /* force 32-bit size enum */
+    D3DXMESHTYPE_FORCE_DWORD    = 0x7fffffff,   /* force 32-bit m_size enum */
 } D3DXMESHDATATYPE;
 
 //----------------------------------------------------------------------------
@@ -329,7 +329,7 @@ typedef enum _D3DXPLAYBACK_TYPE
     D3DXPLAY_ONCE          = 1,
     D3DXPLAY_PINGPONG      = 2,
 
-    D3DXPLAY_FORCE_DWORD   = 0x7fffffff, /* force 32-bit size enum */
+    D3DXPLAY_FORCE_DWORD   = 0x7fffffff, /* force 32-bit m_size enum */
 } D3DXPLAYBACK_TYPE;
 
 
@@ -554,7 +554,7 @@ typedef enum _D3DXPRIORITY_TYPE {
     D3DXPRIORITY_LOW         = 0,           // This track should be blended with all low priority tracks before mixed with the high priority result
     D3DXPRIORITY_HIGH        = 1,           // This track should be blended with all high priority tracks before mixed with the low priority result
 
-    D3DXPRIORITY_FORCE_DWORD = 0x7fffffff,  /* force 32-bit size enum */
+    D3DXPRIORITY_FORCE_DWORD = 0x7fffffff,  /* force 32-bit m_size enum */
 } D3DXPRIORITY_TYPE;
 
 //----------------------------------------------------------------------------
@@ -589,7 +589,7 @@ typedef enum _D3DXEVENT_TYPE
     D3DXEVENT_TRACKENABLE   = 3,
     D3DXEVENT_PRIORITYBLEND = 4,
 
-    D3DXEVENT_FORCE_DWORD   = 0x7fffffff, /* force 32-bit size enum */
+    D3DXEVENT_FORCE_DWORD   = 0x7fffffff, /* force 32-bit m_size enum */
 } D3DXEVENT_TYPE;
 
 //----------------------------------------------------------------------------
@@ -602,7 +602,7 @@ typedef enum _D3DXTRANSITION_TYPE {
     D3DXTRANSITION_LINEAR        = 0x000,     // Linear transition from one value to the next
     D3DXTRANSITION_EASEINEASEOUT = 0x001,     // Ease-In Ease-Out spline transtion from one value to the next
 
-    D3DXTRANSITION_FORCE_DWORD   = 0x7fffffff, /* force 32-bit size enum */
+    D3DXTRANSITION_FORCE_DWORD   = 0x7fffffff, /* force 32-bit m_size enum */
 } D3DXTRANSITION_TYPE;
 
 //----------------------------------------------------------------------------

@@ -111,7 +111,7 @@ private:
 
 };
 
-class CEditBox : public CControl
+class CEditBox : public CWidget
 {
 
 public:
@@ -124,7 +124,7 @@ public:
 
 	bool OnMouseButtonDown ( sMouseEvents e );
 	bool OnMouseButtonUp ( sMouseEvents e );
-	bool OnMouseMove ( CPos pos );
+	bool OnMouseMove ( CVector pos );
 
 	bool OnKeyDown ( WPARAM wParam );           
 	bool OnKeyCharacter ( WPARAM wParam );
@@ -138,12 +138,31 @@ public:
 								  UINT bufferCount );
 	void            ClearText ();
 	void UpdateRects ( void );
-	bool ContainsRect ( CPos pos );
+	bool ContainsPoint ( Pos pos );
 private:
 	void            PlaceCaret ( int nCP );
 	void            DeleteSelectionText ();
 	void            CopyToClipboard ();
 	void            PasteFromClipboard ();
+	void ResetCaretBlink ( void );
+
+
+	struct SKeyColor
+	{
+		SIMPLEGUI_STRING strColor;
+		int nPos;
+
+		SKeyColor ( void )
+		{
+			nPos = 0;
+		}
+
+		SKeyColor ( int nPos, SIMPLEGUI_STRING strColor )
+		{
+			this->strColor = strColor;
+			this->nPos = nPos;
+		}
+	};
 
 	CTimer m_timer;
 	bool m_bMouseDrag;

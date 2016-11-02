@@ -1,29 +1,41 @@
 #pragma once
 
-class CPos
+class CVector
 {
-	int m_iX, m_iY;
-
 public:
+	int m_nX, m_nY;
 
-	CPos( CPos * pPos );
-	CPos( int iX, int iY );
-	CPos();
+	CVector(POINT point);
+	CVector( CVector *pos );
+	CVector( int iX, int iY );
+	CVector();
 
-	~CPos();
+	~CVector();
 
-	int GetX();
-	int GetY();
+	CVector operator * (CVector otherPos);
+	CVector operator / (CVector otherPos);
 
-	void SetX( int iX );
-	void SetY( int iY );
+	CVector operator *= (CVector otherPos);
+	CVector operator /= (CVector otherPos);
 
-	CPos operator + ( CPos otherPos );
-	CPos operator - ( CPos otherPos );
+	CVector operator * (int pos);
+	CVector operator / (int pos);
 
-	CPos operator + ( int iPos );
-	CPos operator - ( int iPos );
+	CVector operator *= (int pos);
+	CVector operator /= (int pos);
 
-	bool operator == ( CPos otherPos );
-	bool operator != ( CPos otherPos );
+	CVector operator + ( CVector otherPos );
+	CVector operator - ( CVector otherPos );
+
+	CVector operator += (CVector otherPos);
+	CVector operator -= (CVector otherPos);
+
+	CVector operator + ( int nIncPos );
+	CVector operator - ( int nDecPos);
+
+	CVector operator += (int pos);
+	CVector operator -= (int pos);
+
+	bool operator == ( CVector otherPos );
+	bool operator != ( CVector otherPos );
 };

@@ -85,7 +85,7 @@ typedef struct _D3DXPARAMETER_DESC
     UINT Annotations;                   // Number of annotations
     UINT StructMembers;                 // Number of structure member sub-parameters
     DWORD Flags;                        // D3DX_PARAMETER_* flags
-    UINT Bytes;                         // Parameter size, in bytes
+    UINT Bytes;                         // Parameter m_size, in bytes
 
 } D3DXPARAMETER_DESC;
 

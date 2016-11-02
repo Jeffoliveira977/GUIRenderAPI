@@ -100,7 +100,7 @@ SIMPLEGUI_STRING CVar::GetString()
 	return m_sString;
 }
 
-SIMPLEGUI_STRING CVar::GetActionString( const SIMPLEGUI_CHAR * pszString, CControl * pElement )
+SIMPLEGUI_STRING CVar::GetActionString( const SIMPLEGUI_CHAR * pszString, CWidget * pElement )
 {
 	/*unistream sStream;
 

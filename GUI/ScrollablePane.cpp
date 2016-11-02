@@ -86,9 +86,9 @@ bool CScrollablePane::OnMouseButtonUp ( sMouseEvents e )
 	return false;
 }
 
-bool CScrollablePane::OnMouseMove ( CPos pos )
+bool CScrollablePane::OnMouseMove ( CVector pos )
 {
-	m_pos = pos;
+	pos = pos;
 
 	if ( m_pScrollbarHor && m_pScrollbarHor->OnMouseMove ( pos ) )
 	{
@@ -137,12 +137,12 @@ void CScrollablePane::ShowScrollVer ( bool bShow )
 	m_bScrollVerShow = bShow;
 }
 
-void CScrollablePane::AddControl ( CControl *pControl )
+void CScrollablePane::SetControl ( CWidget *pControl )
 {
 	m_pControl = pControl;
 }
 
-CControl *CScrollablePane::GetControl ( void )
+CWidget *CScrollablePane::GetControl ( void )
 {
 	return m_pControl;
 }
@@ -154,22 +154,27 @@ void CScrollablePane::RemoveControl ( void )
 
 void CScrollablePane::SetFocussedControl ( void )
 {
-	// Check for a valid control
-	if ( m_pControl )
+	// Check for a valid control, and if it unfocused
+	if ( m_pControl /*&& m_pControl->HasFocus ()*/ )
 	{
-		// Make sure that the control is a window, and if it unfocused
-		if ( m_pControl->GetType () == CControl::TYPE_WINDOW  &&
-			 !m_pControl->HasFocus () )
+		CWidget *pParent = m_pControl->GetParent ();
+		m_pDialog->SetFocussedWidget ( m_pControl );
+		if ( !pParent )
 		{
 			// Give it focus
-			m_pDialog->SetFocussedWindow ( ( CWindow* ) m_pControl );
+			m_pDialog->SetFocussedWidget ( m_pControl );
 		}
-		// Otherwise, make sure the control has a parent, and if it unfocused
-		else if ( m_pControl->GetParent () &&
-				  !m_pControl->HasFocus () )
+		else // Otherwise, make sure the control has a parent
 		{
-			// Give it focus
-			m_pControl->GetParent ()->SetFocussedControl ( m_pControl );
+			if ( pParent->GetType () == CWidget::TYPE_WINDOW )
+			{
+				static_cast< CWindow* >( pParent )->SetFocussedWidget ( m_pControl );
+			}
+			else if ( pParent->GetType () == CWidget::TYPE_TABPANEL )
+			{
+				static_cast< CTabPanel* >( pParent )->SetFocussedControl ( m_pControl );
+			}
+
 		}
 	}
 }
@@ -260,23 +265,30 @@ void CScrollablePane::UpdateScrollbars ( SControlRect rRect )
 		 !m_pScrollbarVer )
 		return;
 
-	m_pScrollbarHor->SetPageSize ( m_pageSize.cx ? m_pageSize.cx : rRect.size.cx - ( IsVerScrollbarNeeded () ? SCROLLBAR_SIZE : 0 ) );
+
+	int nScrollVerAmount = IsVerScrollbarNeeded () ? SCROLLBAR_SIZE : 0;
+	int nScrollHorAmount = IsHorScrollbarNeeded () ? SCROLLBAR_SIZE : 0;
+
+	/*int nScrollVerAmount = 18;
+	int nScrollHorAmount = 18;*/
+
+	m_pScrollbarHor->SetPageSize ( m_pageSize.cx ? m_pageSize.cx : rRect.m_size.cx - nScrollVerAmount );
 	m_pScrollbarHor->SetMinSize ( 0, 0 );
-	m_pScrollbarHor->SetSize ( rRect.size.cx - ( IsVerScrollbarNeeded () ? SCROLLBAR_SIZE : 0 ), SCROLLBAR_SIZE );
-	m_pScrollbarHor->SetPos ( rRect.pos.GetX (), rRect.pos.GetY () + rRect.size.cy - SCROLLBAR_SIZE );
+	m_pScrollbarHor->SetSize ( rRect.m_size.cx - nScrollVerAmount, SCROLLBAR_SIZE );
+	m_pScrollbarHor->SetPos ( rRect.m_pos.m_nX, rRect.m_pos.m_nY + rRect.m_size.cy - SCROLLBAR_SIZE );
 	m_pScrollbarHor->UpdateRects ();
 
-	m_pScrollbarVer->SetPageSize ( m_pageSize.cy ? m_pageSize.cy : rRect.size.cy - ( IsHorScrollbarNeeded () ? SCROLLBAR_SIZE : 0 ) );
+	m_pScrollbarVer->SetPageSize ( m_pageSize.cy ? m_pageSize.cy : rRect.m_size.cy - nScrollHorAmount );
 	m_pScrollbarVer->SetMinSize ( 0, 0 );
-	m_pScrollbarVer->SetSize ( SCROLLBAR_SIZE, rRect.size.cy - ( IsHorScrollbarNeeded () ? SCROLLBAR_SIZE : 0 ) );
-	m_pScrollbarVer->SetPos ( rRect.pos.GetX () + rRect.size.cx - SCROLLBAR_SIZE, rRect.pos.GetY () );
+	m_pScrollbarVer->SetSize ( SCROLLBAR_SIZE, rRect.m_size.cy - nScrollHorAmount );
+	m_pScrollbarVer->SetPos ( rRect.m_pos.m_nX + rRect.m_size.cx - SCROLLBAR_SIZE, rRect.m_pos.m_nY );
 	m_pScrollbarVer->UpdateRects ();
 }
 
-bool CScrollablePane::ContainsRect ( CPos pos )
+bool CScrollablePane::ContainsPoint ( Pos pos )
 {
-	return ( IsHorScrollbarNeeded () && m_pScrollbarHor->ContainsRect ( pos ) ||
-			 IsVerScrollbarNeeded () && m_pScrollbarVer->ContainsRect ( pos ) );
+	return ( IsHorScrollbarNeeded () && m_pScrollbarHor->ContainsPoint ( pos ) ||
+			 IsVerScrollbarNeeded () && m_pScrollbarVer->ContainsPoint ( pos ) );
 }
 
 CScrollBarHorizontal *CScrollablePane::GetHorScrollbar ( void )

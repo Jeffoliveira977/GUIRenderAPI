@@ -2,46 +2,38 @@
 
 #include "CGUI.h"
 
-class CRadioButton : public CControl
+class CRadioButton : public CWidget
 {
 public:
 	CRadioButton ( CDialog *pDialog );
 	~CRadioButton ( void );
 
-	void SetGroup ( UINT uGroup )
-	{
-		m_uGroup = uGroup;
-	}
-
-	UINT GetGroup ( void )
-	{
-		return m_uGroup;
-	}
+	void SetGroup(UINT uGroup);
+	UINT GetGroup(void);
 
 	void Draw ( void );
 
-	bool GetChecked ( void )
-	{
-		return ( mADD [ m_pParent ] [ m_uGroup ] == this );
-	}
-
-	void SetChecked ( bool bChecked )
-	{
-		mADD [ m_pParent ] [ m_uGroup ] = bChecked ? this : NULL;
-		SendEvent ( EVENT_CONTROL_SELECT, bChecked );
-	}
+	bool IsChecked(void);
+	void SetChecked(bool bChecked);
 
 	bool OnMouseButtonDown ( sMouseEvents e );
 	bool OnMouseButtonUp ( sMouseEvents e );
 
+	void SetText(SIMPLEGUI_STRING sText, bool = false);
+
+	void SetWidth(int nWidth);
+	void SetHeight(int nHeight);
+
 	void UpdateRects ( void );
-	bool ContainsRect ( CPos pos );
+	bool ContainsPoint (Pos pos );
 private:
 	
 	UINT m_uGroup;
-	SControlRect m_rText;
 
-	static std::map<CControl*, std::map<UINT, CControl*>> mADD;
+	SControlRect m_rText;
+	SControlRect m_rBox;
+
+	static std::map<CWidget*, std::map<UINT, CWidget*>> mADD;
 
 };
 

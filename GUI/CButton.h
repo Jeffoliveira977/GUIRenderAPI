@@ -2,7 +2,7 @@
 
 #include "CGUI.h"
 
-class CButton : public CControl
+class CButton : public CWidget
 {
 public:
 	CButton ( CDialog *pDialog );

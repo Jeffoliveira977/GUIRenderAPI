@@ -2,13 +2,12 @@
 
 #include "CGUI.h"
 
-class CLabel : public CControl
+class CLabel : public CWidget
 {
 public:
 	CLabel ( CDialog *pDialog );
 	~CLabel ( void );
 
-	void SetAlign ( DWORD dwAlign );
 	void Draw ( void );
 
 
@@ -18,16 +17,19 @@ public:
 	bool OnMouseButtonDown ( sMouseEvents e );
 	bool OnMouseButtonUp ( sMouseEvents e );
 
-	void UpdateRects ( void );
+	void SetText(SIMPLEGUI_STRING str, bool = false);
+
+	void SetWordwrap(bool bWordwrap);
+	bool IsWordwrap(void);
 
 	void SetHeight ( int nHeight );
 	void SetWidth ( int nWidth );
 
-	void SetSize ( SIZE size );
-	void SetSize ( int nWidth, int nHeight );
-
+	bool ContainsPoint(Pos pos);
+	void UpdateRects(void);
 private:
-	DWORD m_dwAlign;
-	int m_nSizeX;
-	int m_nSizeY;
+
+	bool m_bWordwrap;
+	SIZE m_oldTextSize;
+	SIMPLEGUI_STRING m_sFormatted;
 };

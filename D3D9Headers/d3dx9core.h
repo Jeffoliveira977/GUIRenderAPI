@@ -83,13 +83,13 @@ UINT WINAPI
 ///////////////////////////////////////////////////////////////////////////
 // ID3DXBuffer:
 // ------------
-// The buffer object is used by D3DX to return arbitrary size data.
+// The buffer object is used by D3DX to return arbitrary m_size data.
 //
 // GetBufferPointer -
 //    Returns a pointer to the beginning of the buffer.
 //
 // GetBufferSize -
-//    Returns the size of the buffer, in bytes.
+//    Returns the m_size of the buffer, in bytes.
 ///////////////////////////////////////////////////////////////////////////
 
 typedef interface ID3DXBuffer ID3DXBuffer;
@@ -167,7 +167,7 @@ DECLARE_INTERFACE_(ID3DXBuffer, IUnknown)
 //    Prepares device for drawing sprites.
 //
 // Draw -
-//    Draws a sprite.  Before transformation, the sprite is the size of 
+//    Draws a sprite.  Before transformation, the sprite is the m_size of 
 //    SrcRect, with its top-left corner specified by Position.  The color 
 //    and alpha channels are modulated by Color.
 //

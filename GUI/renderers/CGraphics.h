@@ -17,8 +17,19 @@
 
 // Helpers functions
 void RotateVerts ( VECTOR2 *pVector, size_t size, float fX, float fY, float fAngle );
-void SetScissor ( IDirect3DDevice9 *pD3dd, int iX, int iY, int iWidth, int iHeight );
-void SetScissor ( IDirect3DDevice9 *pD3dd, RECT rect );
+
+class CScissor
+{
+	 RECT m_rOldScissor;
+	LPDIRECT3DDEVICE9 m_pDevice;
+public:
+
+	CScissor ( void )
+	{}
+	void RestoreScissor ( void );
+	void SetScissor ( IDirect3DDevice9 *pD3dd, int iX, int iY, int iWidth, int iHeight );
+	void SetScissor ( IDirect3DDevice9 *pD3dd, RECT rect );
+};
 
 void ClipRect ( LPDIRECT3DDEVICE9 device, LPDIRECT3DSURFACE9 surface, LPDIRECT3DSURFACE9 backbuffer, RECT rScr, RECT rDst );
 void ClipRect ( LPDIRECT3DDEVICE9 device, LPDIRECT3DSURFACE9 surface, LPDIRECT3DSURFACE9 backbuffer, int x, int y, int width, int height, int destX, int destY, int destWidth, int destHeight );
@@ -115,6 +126,7 @@ private:
 	int						m_curVertex;
 
 	bool					m_canRender;
+	bool					m_bAcceptableAntialias;
 
 	IDirect3DDevice9 *m_pd3dDevice;
 };
@@ -138,15 +150,21 @@ public:
 
 	// 2D and 3D text drawing functions
 	HRESULT Print ( FLOAT x, FLOAT y, DWORD dwColor, const TCHAR* strText, DWORD dwFlags = 0L );
+	
+	HRESULT RemoveLinesFromText(const TCHAR* text, D3DSTRING &out_text );
+	HRESULT RemoveLinesFromText(D3DSTRING &text);
 
+	void CutString(const TCHAR* text, D3DSTRING &out_text, int nWidth );
 	void CutString ( int iWidth, D3DSTRING &sString );
 
+	HRESULT FormatText(D3DSTRING &text, float fMaxWidth);
+	HRESULT FormatText(const TCHAR* text, D3DSTRING &out_text, float fMaxWidth);
 	void RemoveColorTableFromString ( D3DSTRING &sString );
 
 	// Function to get extent of text
 	HRESULT GetTextExtent ( const TCHAR* strText, SIZE* pSize );
 
-	HDC GetHDC ( void )
+	HDC GetDC ( void )
 	{
 		return m_hDC;
 	}
@@ -171,7 +189,7 @@ private:
 		DWORD   m_dwTexWidth;                 // Texture dimensions
 		DWORD   m_dwTexHeight;
 		FLOAT   m_fTextScale;
-		FLOAT   m_fTexCoords [ 255 ] [ 4 ];
+		FLOAT   m_fTexCoords [ 65536 ] [ 4 ];
 		DWORD   m_dwSpacing;                  // Character pixel spacing per side
 		HDC m_hDC;
 		IDirect3DDevice9 *m_pd3dDevice;

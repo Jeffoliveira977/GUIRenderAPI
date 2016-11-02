@@ -1,77 +1,146 @@
 #include "CGUI.h"
 
-CPos::CPos( CPos * pPos )
+CVector::CVector(POINT point)
 {
-	m_iX = pPos->GetX();
-	m_iY = pPos->GetY();
+	m_nX = point.x;
+	m_nY = point.y;
 }
 
-CPos::CPos( int iX, int iY )
+CVector::CVector( CVector *pPos )
 {
-	m_iX = iX;
-	m_iY = iY;
+	m_nX = pPos->m_nX;
+	m_nY = pPos->m_nY;
 }
 
-CPos::CPos()
+CVector::CVector( int nX, int nY )
 {
-	m_iX = 0;
-	m_iY = 0;
+	m_nX = nX;
+	m_nY = nY;
 }
 
-CPos::~CPos()
+CVector::CVector()
+{
+	m_nX = 0;
+	m_nY = 0;
+}
+
+CVector::~CVector()
 {
 }
 
-int CPos::GetX()
+CVector CVector::operator*(CVector otherPos)
 {
-	return m_iX;
+	return  CVector(m_nX * otherPos.m_nX, m_nY * otherPos.m_nY);
 }
 
-int CPos::GetY()
+CVector CVector::operator/(CVector otherPos)
 {
-	return m_iY;
+	return CVector(m_nX / otherPos.m_nX, m_nY / otherPos.m_nY);
 }
 
-void CPos::SetX( int iX )
+CVector CVector::operator*(int pos)
 {
-	m_iX = iX;
+	return CVector(m_nX * pos, m_nY * pos);
 }
 
-void CPos::SetY( int iY )
+CVector CVector::operator/(int pos)
 {
-	m_iY = iY;
+	return CVector(m_nX / pos, m_nY / pos);
 }
 
-CPos CPos::operator + ( CPos otherPos )
+CVector CVector::operator*=(CVector otherPos)
 {
-	return CPos( GetX() + otherPos.GetX(), GetY() + otherPos.GetY() );
+	m_nX *= otherPos.m_nX;
+	m_nY *= otherPos.m_nY;
+
+	return *this;
 }
 
-CPos CPos::operator - ( CPos otherPos )
+CVector CVector::operator/=(CVector otherPos)
 {
-	return CPos( GetX() - otherPos.GetX(), GetY() - otherPos.GetY() );
+	m_nX /= otherPos.m_nX;
+	m_nY /= otherPos.m_nY;
+
+	return *this;
 }
 
-CPos CPos::operator + ( int iPos )
+CVector CVector::operator*=(int pos)
 {
-	return CPos ( GetX () + iPos, GetY () + iPos );
+	m_nX *= pos;
+	m_nY *= pos;
+
+	return *this;
 }
 
-CPos CPos::operator - ( int iPos )
+CVector CVector::operator/=(int pos)
 {
-	return CPos ( GetX () - iPos, GetY () - iPos );
+	m_nX /= pos;
+	m_nY /= pos;
+
+	return *this;
 }
 
-bool CPos::operator == ( CPos otherPos )
+CVector CVector::operator + ( CVector otherPos )
 {
-	return ( GetX () == otherPos.GetX() &&
-				  GetY () == otherPos.GetY () );
+	return CVector(m_nX + otherPos.m_nX, m_nY + otherPos.m_nY);
 }
 
-bool CPos::operator!=( CPos otherPos )
+CVector CVector::operator - ( CVector otherPos )
 {
-	return ( GetX () != otherPos.GetX () ||
-			 GetY () != otherPos.GetY () );
+	return CVector(m_nX - otherPos.m_nX, m_nY - otherPos.m_nY);
+}
+
+CVector CVector::operator + ( int pos)
+{
+	return CVector (m_nX + pos, m_nY + pos);
+}
+
+CVector CVector::operator - ( int pos)
+{
+	return CVector (m_nX - pos, m_nY - pos);
+}
+
+CVector CVector::operator+=(CVector otherPos)
+{
+	m_nX += otherPos.m_nX;
+	m_nY += otherPos.m_nY;
+
+	return *this;
+}
+
+CVector CVector::operator-=(CVector otherPos)
+{
+	m_nX -= otherPos.m_nX;
+	m_nY -= otherPos.m_nY; 
+	
+	return *this;
+}
+
+CVector CVector::operator+=(int pos)
+{
+	m_nX += pos;
+	m_nY += pos;
+
+	return *this;
+}
+
+CVector CVector::operator-=(int pos)
+{
+	m_nX -= pos;
+	m_nY -= pos;
+
+	return *this;
+}
+
+bool CVector::operator == (CVector otherPos)
+{
+	return (m_nX == otherPos.m_nX &&
+		m_nY == otherPos.m_nY);
+}
+
+bool CVector::operator!=(CVector otherPos)
+{
+	return !operator==(otherPos);
 }
 
 

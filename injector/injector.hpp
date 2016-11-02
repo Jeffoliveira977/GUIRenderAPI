@@ -272,7 +272,7 @@ inline bool ProtectMemory(memory_pointer_tr addr, size_t size, DWORD protection)
 
 /*
  *  UnprotectMemory
- *      Unprotect the memory at @addr with size @size so it have all accesses (execute, read and write)
+ *      Unprotect the memory at @addr with m_size @m_size so it have all accesses (execute, read and write)
  *      Returns the old protection to out_oldprotect
  */
 inline bool UnprotectMemory(memory_pointer_tr addr, size_t size, DWORD& out_oldprotect)
@@ -313,7 +313,7 @@ struct scoped_unprotect
 
 /*
  *  WriteMemoryRaw 
- *      Writes into memory @addr the content of @value with a sizeof @size
+ *      Writes into memory @addr the content of @value with a sizeof @m_size
  *      Does memory unprotection if @vp is true
  */
 inline void WriteMemoryRaw(memory_pointer_tr addr, void* value, size_t size, bool vp)
@@ -324,7 +324,7 @@ inline void WriteMemoryRaw(memory_pointer_tr addr, void* value, size_t size, boo
 
 /*
  *  ReadMemoryRaw 
- *      Reads the memory at @addr with a sizeof @size into address @ret
+ *      Reads the memory at @addr with a sizeof @m_size into address @ret
  *      Does memory unprotection if @vp is true
  */
 inline void ReadMemoryRaw(memory_pointer_tr addr, void* ret, size_t size, bool vp)
@@ -335,7 +335,7 @@ inline void ReadMemoryRaw(memory_pointer_tr addr, void* ret, size_t size, bool v
 
 /*
  *  MemoryFill 
- *      Fills the memory at @addr with the byte @value doing it @size times
+ *      Fills the memory at @addr with the byte @value doing it @m_size times
  *      Does memory unprotection if @vp is true
  */
 inline void MemoryFill(memory_pointer_tr addr, uint8_t value, size_t size, bool vp)

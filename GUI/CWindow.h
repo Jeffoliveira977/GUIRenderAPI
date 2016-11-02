@@ -2,14 +2,14 @@
 
 #include "CGUI.h"
 
-class CWindow : public CControl
+class CWindow : public CWidget
 {
 public:
 	CWindow ( CDialog *pDialog );
 	~CWindow ( void );
 
-	void AddControl ( CControl *pControl );
-	void RemoveControl ( CControl *pControl );
+	void AddControl ( CWidget *pControl );
+	void RemoveControl ( CWidget *pControl );
 	void RemoveAllControls ( void );
 
 	void Draw ( void );
@@ -18,13 +18,13 @@ public:
 
 	bool OnMouseButtonDown ( sMouseEvents e);
 	bool OnMouseButtonUp ( sMouseEvents e );
-	bool OnMouseMove ( CPos pos );
+	bool OnMouseMove ( CVector pos );
 	bool OnMouseWheel ( int zDelta );
 
 	bool OnKeyDown ( WPARAM wParam );
 
 	void UpdateRects ( void );
-	bool ContainsRect ( CPos pos );
+	bool ContainsPoint ( CVector pos );
 
 	void OnClickLeave ( void );
 	bool OnClickEvent ( void );
@@ -41,21 +41,21 @@ public:
 
 	void SetCloseButton ( bool bEnabled );
 
-	void SetFocussedControl ( CControl *pControl );
-	CControl *GetFocussedControl ( void );
+	void SetFocussedWidget ( CWidget *pControl );
+	CWidget *GetFocussedControl ( void );
 
 	void ClearControlFocus ( void );
 
-	CControl *GetNextControl ( CControl *pControl );
-	CControl *GetPrevControl ( CControl *pControl );
+	CWidget *GetNextControl ( CWidget *pControl );
+	CWidget *GetPrevControl ( CWidget *pControl );
 
-	CControl *GetControlByText ( const SIMPLEGUI_CHAR *pszText );
+	CWidget *GetControlByText ( const SIMPLEGUI_CHAR *pszText );
 
-	void BringControlToTop ( CControl *pControl );
+	void BringControlToTop ( CWidget *pControl );
 	int GetTitleBarHeight ( void );
 
-	CControl *GetControlAtArea ( CPos pos );
-	CControl *GetControlClicked ( void );
+	CWidget *GetControlAtArea ( Pos pos );
+	CWidget *GetControlClicked ( void );
 
 	bool IsSizing ( void );
 
@@ -78,7 +78,7 @@ public:
 
 	void ScrollPage ( int nDelta );
 
-	CControl *GetTabPanelFocussedControl ( void );
+	CWidget *GetTabPanelFocussedControl ( void );
 
 private:
 	bool m_bDragging;
@@ -103,9 +103,9 @@ private:
 
 	};
 
-	void SetCursorForPoint ( CPos pos );
+	void SetCursorForPoint ( CVector pos );
 
-	E_WINDOW_AREA GetSizingBorderAtArea ( CPos pos );
+	E_WINDOW_AREA GetSizingBorderAtArea ( CVector pos );
 	SControlRect *GetWindowRect ( E_WINDOW_AREA eArea );
 
 	SControlRect m_rButton;
@@ -123,8 +123,8 @@ private:
 	SControlRect m_rWindowTopRight;
 	SControlRect m_rWindowBottomRight;
 
-	 CControl *m_pControlMouseOver;
-	 CControl *m_pFocussedControl;
+	 CWidget *m_pControlMouseOver;
+	 CWidget *m_pFocussedControl;
 
 	SControlRect rFrame;
 	int m_iTitleBarSize;
@@ -132,9 +132,9 @@ private:
 	int m_nDragX;
 	int m_nDragY;
 
-	CPos m_posDif;
+	CVector m_posDif;
 
-	std::vector<CControl*> m_vControls;
+	std::vector<CWidget*> m_vControls;
 
 	E_WINDOW_AREA m_eWindowArea;
 };

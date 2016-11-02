@@ -26,6 +26,6 @@ public:
 
 	void SetColor(CColor *color);
 	CColor *GetColor();
-	void Draw( CPos cpPos, int iWidth = -1, int iHeight = -1 );
+	void Draw( CVector cpPos, int iWidth = -1, int iHeight = -1 );
 	void Draw( int iX, int iY, int iWidth = -1, int iHeight = -1 );
 };

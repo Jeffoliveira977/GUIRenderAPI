@@ -19,7 +19,7 @@ CListView::CListView ( CDialog *pDialog )
 
 	m_pScrollbar = new CScrollablePane ( pDialog );
 
-	m_pScrollbar->AddControl ( this );
+	m_pScrollbar->SetControl ( this );
 	m_pDialog->LoadFont ( _UI ( "Arial" ), 10, true, &m_pTitleFont );
 }
 
@@ -137,9 +137,11 @@ void CListView::AddColumnItem ( UINT nColumnId, const SIMPLEGUI_CHAR *szItem, co
 
 void CListView::AddColumnItem ( UINT nColumnId, SEntryItem *pEntry )
 {
-	if ( nColumnId >= m_vColumnList.size () ||
-		 !pEntry && EMPTYCHAR ( pEntry->m_sText.c_str () ) )
+	if (nColumnId >= m_vColumnList.size() ||
+		!pEntry && EMPTYCHAR(pEntry->m_sText.c_str()))
+	{
 		return;
+	}
 
 	m_vColumnList [ nColumnId ].m_sItem.push_back ( pEntry );
 	m_nRowSize = max ( m_nRowSize, m_vColumnList [ nColumnId ].m_sItem.size () );
@@ -150,19 +152,23 @@ void CListView::AddColumnItem ( UINT nColumnId, SEntryItem *pEntry )
 
 void CListView::SetColumnItemName ( UINT nColumnId, UINT nIndex, const SIMPLEGUI_CHAR *szItem )
 {
-	if ( nColumnId >= m_vColumnList.size () || 
-		 nIndex >= m_vColumnList [ nColumnId ].m_sItem.size () ||
-		 EMPTYCHAR ( szItem ) )
+	if (nColumnId >= m_vColumnList.size() ||
+		nIndex >= m_vColumnList[nColumnId].m_sItem.size() ||
+		EMPTYCHAR(szItem))
+	{
 		return;
+	}
 
 	m_vColumnList [ nColumnId ].m_sItem [ nIndex ]->m_sText = szItem;
 }
 
 void CListView::RemoveColumnItem ( UINT nColumnId, UINT nIndex )
 {
-	if ( nColumnId >= m_vColumnList.size () ||  
-		 nIndex >= m_vColumnList [ nColumnId ].m_sItem.size () )
+	if (nColumnId >= m_vColumnList.size() ||
+		nIndex >= m_vColumnList[nColumnId].m_sItem.size())
+	{
 		return;
+	}
 
 	m_vColumnList [ nColumnId ].m_sItem.erase ( m_vColumnList [ nColumnId ].m_sItem.begin () + nIndex );
 }
@@ -208,20 +214,20 @@ const SEntryItem *CListView::GetSelectedItem ( UINT nColumnId )
 	return m_vColumnList [ nColumnId ].m_sItem [ m_nSelected ];
 }
 
-int CListView::GetColumnIdAtArea ( CPos pos )
+int CListView::GetColumnIdAtArea ( Pos pos )
 {
 	CScrollBarHorizontal *pScrollbarHor = m_pScrollbar->GetHorScrollbar ();
 
 	SControlRect rRect = m_rBoundingBox;
-	rRect.pos.SetX ( rRect.pos.GetX () - pScrollbarHor->GetTrackPos () );
+	rRect.m_pos.m_nX -= pScrollbarHor->GetTrackPos()-4;
 
 	for ( size_t i = 0; i < m_vColumnList.size (); i++ )
 	{
-		rRect.pos.SetX ( rRect.pos.GetX () + ( i ? GetColumnWidth ( i - 1 ) : 0 ) );
-		rRect.size.cx = GetColumnWidth ( i );
-		rRect.size.cy = m_rColumnArea.size.cy;
+		rRect.m_pos.m_nX += (i ? GetColumnWidth(i - 1) : 0);
+		rRect.m_size.cx = GetColumnWidth ( i );
+		rRect.m_size.cy = m_rColumnArea.m_size.cy;
 
-		if ( rRect.InControlArea ( pos ) )
+		if ( rRect.ContainsPoint ( pos ) )
 		{
 			return i;
 		}
@@ -230,20 +236,20 @@ int CListView::GetColumnIdAtArea ( CPos pos )
 	return -1;
 }
 
-int CListView::GetColumnIdAtAreaBorder ( CPos pos )
+int CListView::GetColumnIdAtAreaBorder ( Pos pos )
 {
 	CScrollBarHorizontal *pScrollbarHor = m_pScrollbar->GetHorScrollbar ();
 
 	SControlRect rRect = m_rBoundingBox;
-	rRect.pos.SetX ( rRect.pos.GetX () - pScrollbarHor->GetTrackPos () - 4 );
+	rRect.m_pos.m_nX -= pScrollbarHor->GetTrackPos () ;
 
 	for ( size_t i = 0; i < m_vColumnList.size (); i++ )
 	{
-		rRect.pos.SetX ( rRect.pos.GetX () + GetColumnWidth ( i ) );
-		rRect.size.cx = 4;
-		rRect.size.cy = m_rColumnArea.size.cy;
+		rRect.m_pos.m_nX += GetColumnWidth(i);
+		rRect.m_size.cx = 4;
+		rRect.m_size.cy = m_rColumnArea.m_size.cy;
 
-		if ( rRect.InControlArea ( pos ) )
+		if ( rRect.ContainsPoint ( pos ) )
 		{
 			return i;
 		}
@@ -257,8 +263,10 @@ int CListView::GetColumnOffset ( UINT nColumnId )
 	if ( nColumnId >= m_vColumnList.size () )
 		return 0;
 
+	CScrollBarHorizontal *pScrollbarHor = m_pScrollbar->GetHorScrollbar ();
+
 	UINT nId = 0;
-	int nX = m_rBoundingBox.pos.GetX ();
+	int nX = m_rBoundingBox.m_pos.m_nX - pScrollbarHor->GetTrackPos ();
 
 	while ( nColumnId != nId )
 	{
@@ -275,8 +283,10 @@ const SEntryItem *CListView::FindItemInRow ( UINT nRow )
 	while ( nColumnId < m_vColumnList.size () )
 	{
 		const SEntryItem *pEntry = GetColumnItemByRow ( nColumnId, nRow );
-		if ( pEntry )
+		if (pEntry)
+		{
 			return pEntry;
+		}
 
 		nColumnId++;
 	}
@@ -286,9 +296,11 @@ const SEntryItem *CListView::FindItemInRow ( UINT nRow )
 
 void CListView::MoveColumn ( UINT nColumnId, UINT nPosition )
 {
-	if ( nColumnId >= m_vColumnList.size () || 
-		 nColumnId == nPosition ) 
+	if (nColumnId >= m_vColumnList.size() ||
+		nColumnId == nPosition)
+	{
 		return;
+	}
 
 	// if position is too big, insert at end.
 	if ( nPosition > m_vColumnList.size () )
@@ -370,24 +382,23 @@ void CListView::Draw ( void )
 	int nVerScrollTrackPos = pScrollbarVer->GetTrackPos ();
 	int nHorScrollTrackPos = pScrollbarHor->GetTrackPos ();
 
-	m_rColumnArea.pos.SetX ( m_rColumnArea.pos.GetX () + 4 - nHorScrollTrackPos );
+	m_rColumnArea.m_pos.m_nX -= nHorScrollTrackPos - 4;
 
 	CD3DRender *pRender = m_pDialog->GetRenderer ();
-	pRender->D3DLine ( m_rColumnArea.pos.GetX (), m_rColumnArea.pos.GetY () + m_rColumnArea.size.cy,
-					   m_rColumnArea.pos.GetX () + m_rColumnArea.size.cx + nHorScrollTrackPos,
-					   m_rColumnArea.pos.GetY () + m_rColumnArea.size.cy, m_sControlColor.d3dColorOutline );
 
 	SControlRect rListBoxText = m_rListBoxArea;
-	rListBoxText.pos.SetX ( rListBoxText.pos.GetX () + 4 - nHorScrollTrackPos );
+	rListBoxText.m_pos.m_nX -= nHorScrollTrackPos - 4;
 	
-	RECT rOldScissor;
-	m_pDialog->GetDevice ()->GetScissorRect ( &rOldScissor );
-
 	SControlRect rScissor = m_rScissor;
-	rScissor.pos.SetX ( rScissor.pos.GetX () + 1 );
-	rScissor.pos.SetY ( rScissor.pos.GetY () + 1 );
-	rScissor.size.cx -= 2;
-	SetScissor ( m_pDialog->GetDevice (), rScissor.GetRect () );
+	rScissor.m_pos += 1;
+	rScissor.m_size.cx -= 2;
+
+	/*CScissor sCissor;
+	sCissor.SetScissor ( m_pDialog->GetDevice (), rScissor.GetRect () );
+*/
+	pRender->D3DLine ( m_rColumnArea.m_pos.m_nX, m_rColumnArea.m_pos.m_nY + m_rColumnArea.m_size.cy,
+					   m_rColumnArea.m_pos.m_nX + m_rColumnArea.m_size.cx + nHorScrollTrackPos,
+					   m_rColumnArea.m_pos.m_nY + m_rColumnArea.m_size.cy, m_sControlColor.d3dColorOutline );
 
 	// Draw all contexts
 	for ( size_t i = 0; i < m_vColumnList.size (); i++ )
@@ -395,13 +406,13 @@ void CListView::Draw ( void )
 		int nPrevColumnWidth = ( i ? GetColumnWidth ( i - 1 ) : 0 );
 		int nColumnWidth = GetColumnWidth ( i );
 
-		m_rColumnArea.pos.SetX ( m_rColumnArea.pos.GetX () + nPrevColumnWidth );
+		m_rColumnArea.m_pos.m_nX += nPrevColumnWidth;
 
 		D3DCOLOR d3dColorColumn = m_sControlColor.d3dColorBox [ SControlColor::STATE_NORMAL ];
 		if ( i == m_nOverColumnId )
 		{
 			if ( m_nId == i &&
-				 ( m_bSorting || m_bMoving ) )
+				( m_bSorting || m_bMoving ) )
 			{
 				d3dColorColumn = m_sControlColor.d3dColorBox [ SControlColor::STATE_PRESSED ];
 			}
@@ -411,73 +422,80 @@ void CListView::Draw ( void )
 			}
 		}
 
-		rListBoxText.pos.SetX ( rListBoxText.pos.GetX () + nPrevColumnWidth );
-		rListBoxText.pos.SetY ( m_rListBoxArea.pos.GetY () );
+		rListBoxText.m_pos.m_nX += nPrevColumnWidth;
+		rListBoxText.m_pos.m_nY = m_rListBoxArea.m_pos.m_nY;
+
+		if ( m_rColumnArea.m_pos.m_nX > m_rBoundingBox.m_pos.m_nX + m_rBoundingBox.m_size.cx )
+			break;
+
+		if ( m_rColumnArea.m_pos.m_nX + nColumnWidth < m_rBoundingBox.m_pos.m_nX )
+			continue;
 
 		SControlRect rColumnBox = m_rColumnArea;
-		rColumnBox.pos.SetX ( m_rColumnArea.pos.GetX () - 4 );
-		rColumnBox.size.cx = nColumnWidth;
+		rColumnBox.m_pos.m_nX = m_rColumnArea.m_pos.m_nX - 4;
+		rColumnBox.m_size.cx = nColumnWidth;
 		m_pDialog->DrawBox ( rColumnBox, d3dColorColumn, m_sControlColor.d3dColorOutline );
 
 		SIMPLEGUI_STRING strColumnName = GetColumnName ( i );
 		m_pTitleFont->CutString ( nColumnWidth - 4, strColumnName );
-		m_pDialog->DrawFont ( SControlRect ( m_rColumnArea.pos.GetX () + nColumnWidth / 2 - 4, m_rColumnArea.pos.GetY () + m_rColumnArea.size.cy / 2 ),
+		m_pDialog->DrawFont ( SControlRect ( m_rColumnArea.m_pos.m_nX + nColumnWidth / 2 - 4, m_rColumnArea.m_pos.m_nY + m_rColumnArea.m_size.cy / 2 ),
 							  m_sControlColor.d3dColorFont, strColumnName.c_str (), D3DFONT_COLORTABLE | D3DFONT_CENTERED_X | D3DFONT_CENTERED_Y,
 							  m_pTitleFont );
 
 		if ( i != 0 )
 		{
-			pRender->D3DLine ( m_rColumnArea.pos.GetX () - 4, m_rColumnArea.pos.GetY (), m_rColumnArea.pos.GetX () - 4,
-							   m_rColumnArea.pos.GetY () + m_rBoundingBox.size.cy,
+			pRender->D3DLine ( m_rColumnArea.m_pos.m_nX - 4, m_rColumnArea.m_pos.m_nY, m_rColumnArea.m_pos.m_nX - 4,
+							   m_rColumnArea.m_pos.m_nY + m_rBoundingBox.m_size.cy,
 							   m_sControlColor.d3dColorOutline );
 		}
 
 		for ( size_t j = nVerScrollTrackPos; j < nVerScrollTrackPos + pScrollbarVer->GetPageSize (); j++ )
 		{
-			if ( rListBoxText.pos.GetX () < m_rBoundingBox.pos.GetX () + m_rBoundingBox.size.cx )
+			SIMPLEGUI_STRING str;
+			const SEntryItem *pEntry = GetColumnItemByRow ( i, j );
+			if ( pEntry )
 			{
-				SIMPLEGUI_STRING str;
-				const SEntryItem *pEntry = GetColumnItemByRow ( i, j );
-				if ( pEntry )
-					 str = pEntry->m_sText;
+				str = pEntry->m_sText;
+			}
 
-				SIZE size;
-				m_pFont->GetTextExtent ( str.c_str (), &size );
+			SIZE size;
+			m_pFont->GetTextExtent ( str.c_str (), &size );
 
-				if ( j != pScrollbarVer->GetTrackPos () )
-					rListBoxText.pos.SetY ( rListBoxText.pos.GetY () + size.cy );
+			if ( j != pScrollbarVer->GetTrackPos () )
+			{
+				rListBoxText.m_pos.m_nY += size.cy;
+			}
 
-				D3DCOLOR d3dColorFont = m_sControlColor.d3dColorFont;
+			D3DCOLOR d3dColorFont = m_sControlColor.d3dColorFont;
 
-				if ( m_nSelected == j ||
-					 m_nIndex == j )
-				{
-					SControlRect rBoxSel = rListBoxText;
-					rBoxSel.pos.SetX ( rListBoxText.pos.GetX () - 2 );
-					rBoxSel.pos.SetY ( rBoxSel.pos.GetY () +1);
-					rBoxSel.size.cx += nHorScrollTrackPos;
-					rBoxSel.size.cy = size.cy - 1;
+			if ( m_nSelected == j ||
+				 m_nIndex == j )
+			{
+				SControlRect rBoxSel = rListBoxText;
+				rBoxSel.m_pos.m_nX -= 2;
+				rBoxSel.m_pos.m_nY += 1;
+				rBoxSel.m_size.cx += nHorScrollTrackPos;
+				rBoxSel.m_size.cy = size.cy - 1;
 
-					d3dColorFont = m_sControlColor.d3dColorSelectedFont;
-					D3DCOLOR d3dColorBox = m_sControlColor.d3dColorBox [ SControlColor::STATE_PRESSED ];
+				d3dColorFont = m_sControlColor.d3dColorSelectedFont;
+				D3DCOLOR d3dColorBox = m_sControlColor.d3dColorBox [ SControlColor::STATE_PRESSED ];
 
-					if ( m_nSelected == j )
-						d3dColorBox = m_sControlColor.d3dColorBoxSel;
+				if ( m_nSelected == j )
+					d3dColorBox = m_sControlColor.d3dColorBoxSel;
 
-					m_pDialog->DrawBox ( rBoxSel, d3dColorBox, 0, false );
-				}
+				m_pDialog->DrawBox ( rBoxSel, d3dColorBox, 0, false );
+			}
 
-				if ( pEntry &&
-					 !str.empty () )
-				{
-					m_pFont->CutString ( GetColumnWidth ( i ) - 4, str );
-					m_pDialog->DrawFont ( rListBoxText, d3dColorFont, str.c_str (), D3DFONT_COLORTABLE, m_pFont );
-				}
+			if ( pEntry &&
+				 !str.empty () )
+			{
+				m_pFont->CutString ( GetColumnWidth ( i ) - 4, str );
+				m_pDialog->DrawFont ( rListBoxText, d3dColorFont, str.c_str (), D3DFONT_COLORTABLE, m_pFont );
 			}
 		}
 	}
 
-	CPos mPos = m_pDialog->GetMouse ()->GetPos ();
+	Pos mPos = m_pDialog->GetMouse ()->GetPos ();
 	if ( m_bMoving )
 	{
 		int nColumnWidth = GetColumnWidth ( m_nId );
@@ -487,46 +505,47 @@ void CListView::Draw ( void )
 		SIMPLEGUI_STRING szStr = GetColumnName ( m_nId );
 
 		SControlRect rRect = m_rBoundingBox;
-		rRect.pos.SetX ( ( mPos.GetX () - m_nDragX ) - nHorScrollTrackPos );
-		rRect.size.cx = nColumnWidth;
-		rRect.size.cy = m_rColumnArea.size.cy;
+		rRect.m_pos.m_nX = mPos.m_nX - m_nDragX - nHorScrollTrackPos;
+		rRect.m_size.cx = nColumnWidth;
+		rRect.m_size.cy = m_rColumnArea.m_size.cy;
 
 		D3DCOLOR color	= D3DCOLOR_ARGB ( 140, 100, 100, 100 );
 		D3DCOLOR color1 = D3DCOLOR_ARGB ( 80, 0, 0, 0 );
 		D3DCOLOR color2 = D3DCOLOR_ARGB ( 255, 0, 0, 200 );
 
-		pRender->D3DLine ( nOffset, m_rBoundingBox.pos.GetY (), nOffset, m_rBoundingBox.pos.GetY () + m_rColumnArea.size.cy, color2 );
-		pRender->D3DLine ( nOffset + 1, m_rBoundingBox.pos.GetY (), nOffset + 1, m_rBoundingBox.pos.GetY () + m_rColumnArea.size.cy, color2 );
+		pRender->D3DLine ( nOffset, m_rBoundingBox.m_pos.m_nY, nOffset, m_rBoundingBox.m_pos.m_nY + m_rColumnArea.m_size.cy, color2 );
+		pRender->D3DLine ( nOffset + 1, m_rBoundingBox.m_pos.m_nY, nOffset + 1, m_rBoundingBox.m_pos.m_nY + m_rColumnArea.m_size.cy, color2 );
 
 		m_pDialog->DrawBox ( rRect, color, m_sControlColor.d3dColorOutline );
 
 		m_pTitleFont->CutString ( nColumnWidth - 4, szStr );
-		m_pDialog->DrawFont ( SControlRect ( rRect.pos.GetX () + nColumnWidth / 2, rRect.pos.GetY () + m_rColumnArea.size.cy / 2 ),
+		m_pDialog->DrawFont ( SControlRect ( rRect.m_pos.m_nX + nColumnWidth / 2, rRect.m_pos.m_nY + m_rColumnArea.m_size.cy / 2 ),
 							  color1, szStr.c_str (),
 							  D3DFONT_COLORTABLE | D3DFONT_CENTERED_X | D3DFONT_CENTERED_Y, m_pTitleFont );
 	}
 	else if ( m_bSizing )
 	{
 		int nOffset = GetColumnOffset ( m_nId );
-		if ( nOffset >= mPos.GetX () )
-			mPos.SetX ( nOffset );
+		if ( nOffset >= mPos.m_nX)
+			mPos.m_nX = nOffset;
 
 		D3DCOLOR d3dLineColor = m_sControlColor.d3dColorOutline;
-		if ( nOffset + LISTVIEW_MINCOLUMNSIZE >= mPos.GetX () )
+		if ( nOffset + LISTVIEW_MINCOLUMNSIZE >= mPos.m_nX)
 			d3dLineColor = D3DCOLOR_XRGB ( 200, 0, 0 );
 
-		pRender->D3DLine ( mPos.GetX (), m_rBoundingBox.pos.GetY () + 1, mPos.GetX (), m_rBoundingBox.pos.GetY () + m_rColumnArea.size.cy, d3dLineColor );
-		pRender->D3DLine ( mPos.GetX () + 1, m_rBoundingBox.pos.GetY () + 1, mPos.GetX () + 1, m_rBoundingBox.pos.GetY () + m_rColumnArea.size.cy, d3dLineColor );
+		pRender->D3DLine ( mPos.m_nX, m_rBoundingBox.m_pos.m_nY + 1, mPos.m_nX, m_rBoundingBox.m_pos.m_nY + m_rColumnArea.m_size.cy, d3dLineColor );
+		pRender->D3DLine ( mPos.m_nX + 1, m_rBoundingBox.m_pos.m_nY + 1, mPos.m_nX + 1, m_rBoundingBox.m_pos.m_nY + m_rColumnArea.m_size.cy, d3dLineColor );
 	}
 
-	rScissor.size.cx = m_rScissor.size.cx - 2;
-	SetScissor ( m_pDialog->GetDevice (), rScissor.GetRect () );
+	rScissor.m_size.cx = m_rScissor.m_size.cx - 2;
+	//sCissor.SetScissor ( m_pDialog->GetDevice (), rScissor.GetRect () );
+
 	m_pScrollbar->OnDraw ();
 }
 
 void CListView::OnClickLeave ( void )
 {
-	CControl::OnClickLeave ();
+	CWidget::OnClickLeave ();
 	m_pScrollbar->OnClickLeave ();
 
 	m_nId = m_nOverColumnId = -1;
@@ -535,44 +554,36 @@ void CListView::OnClickLeave ( void )
 
 bool CListView::OnClickEvent ( void )
 {
-	return ( CControl::OnClickEvent () ||
+	return ( CWidget::OnClickEvent () ||
 			 m_pScrollbar->OnClickEvent () ||
 			 m_bSizing || m_bMoving );
 }
 
 void CListView::OnFocusIn ( void )
 {
-	CControl::OnFocusIn ();
+	CWidget::OnFocusIn ();
 
-	if ( m_pScrollbar )
-	{
-		m_pScrollbar->OnFocusIn ();
-	}
+	m_pScrollbar->OnFocusIn ();
 }
 
 void CListView::OnFocusOut ( void )
 {
-	CControl::OnFocusOut ();
+	CWidget::OnFocusOut ();
 
-	if ( m_pScrollbar )
-	{
-		m_pScrollbar->OnFocusOut ();
-	}
+	m_pScrollbar->OnFocusOut ();
 }
+
 
 void CListView::OnMouseEnter ( void )
 {
-	CControl::OnMouseEnter ();
+	CWidget::OnMouseEnter ();
 
-	if ( m_pScrollbar )
-	{
-		m_pScrollbar->OnMouseEnter ();
-	}
+	m_pScrollbar->OnMouseEnter ();
 }
 
 void CListView::OnMouseLeave ( void )
 {
-	CControl::OnMouseLeave ();
+	CWidget::OnMouseLeave ();
 
 	if ( !m_bSizing &&
 		 !m_bMoving )
@@ -580,15 +591,13 @@ void CListView::OnMouseLeave ( void )
 		m_nOverColumnId = m_nIndex = -1;
 	}
 
-	if ( m_pScrollbar )
-	{
-		m_pScrollbar->OnMouseLeave ();
-	}
+	m_pScrollbar->OnMouseLeave ();
+	m_pDialog->GetMouse ()->SetCursorType ( CMouse::DEFAULT );
 }
 
 bool CListView::CanHaveFocus ( void )
 {
-	return ( CControl::CanHaveFocus () ||
+	return ( CWidget::CanHaveFocus () ||
 			 m_pScrollbar->CanHaveFocus () );
 }
 
@@ -603,14 +612,18 @@ bool CListView::OnMouseButtonDown ( sMouseEvents e )
 
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
+		/*if ( !m_bMouseOver )
+			return false;*/
+
 		if ( m_bSizable )
 		{
 			m_nId = GetColumnIdAtAreaBorder ( e.pos );
 			if ( m_nId > -1 )
 			{
 				m_bPressed = m_bSizing = true;
-				m_nDragX = m_rBoundingBox.pos.GetX () + GetColumnWidth ( m_nId ) - e.pos.GetX ();
-				m_pParent->SetFocussedControl ( this );
+				m_nDragX = m_rBoundingBox.m_pos.m_nX + GetColumnWidth ( m_nId ) - e.pos.m_nX;
+
+				_SetFocus ();
 				return true;
 			}
 		}
@@ -626,17 +639,19 @@ bool CListView::OnMouseButtonDown ( sMouseEvents e )
 			if ( m_nId > -1 )
 			{
 				m_bPressed = m_bMoving = true;
-				m_nDragX = e.pos.GetX () - GetColumnOffset ( m_nId );
-				m_pParent->SetFocussedControl ( this );
+				m_nDragX = e.pos.m_nX - GetColumnOffset ( m_nId );
+
+				_SetFocus ();
 				return true;
 			}
 		}
 
-		if ( m_rBoundingBox.InControlArea ( e.pos ) )
+		if ( m_rBoundingBox.ContainsPoint ( e.pos ) )
 		{
 			// Pressed while inside the control
 			m_bPressed = true;
-			m_pParent->SetFocussedControl ( this );
+
+			_SetFocus ();
 			return true;
 		}
 	}
@@ -658,7 +673,9 @@ bool CListView::OnMouseButtonUp ( sMouseEvents e )
 		if ( m_bMoving )
 		{
 			int nId = GetColumnIdAtArea ( e.pos );
-			nId == -1 ? m_vColumnList.size () - 1 : nId;
+			nId == -1 ?
+				m_vColumnList.size () - 1 :
+				nId;
 
 			MoveColumn ( m_nId, nId );
 			m_bMoving = false;
@@ -666,7 +683,7 @@ bool CListView::OnMouseButtonUp ( sMouseEvents e )
 
 		if ( m_bSizing )
 		{
-			SetColumnWidth ( m_nId, e.pos.GetX () - m_rBoundingBox.pos.GetX () + m_nDragX );
+			SetColumnWidth ( m_nId, e.pos.m_nX - m_rBoundingBox.m_pos.m_nX + m_nDragX );
 			m_pScrollbar->SetTrackRange ( GetAllColumnsWidth (), 0 );
 			m_bSizing = false;
 		}
@@ -676,12 +693,11 @@ bool CListView::OnMouseButtonUp ( sMouseEvents e )
 			SortColumn ( m_nId );
 			m_bSorting = false;
 		}
-
+		
 		if ( m_bPressed )
 		{
 			m_bPressed = false;
-
-			if ( m_rListBoxArea.InControlArea ( e.pos ) )
+			if ( m_rListBoxArea.ContainsPoint ( e.pos ) )
 			{
 				if ( m_nIndex != -1 )
 				{
@@ -696,7 +712,7 @@ bool CListView::OnMouseButtonUp ( sMouseEvents e )
 	return false;
 }
 
-bool CListView::OnMouseMove ( CPos pos )
+bool CListView::OnMouseMove ( CVector pos )
 {
 	CScrollBarVertical *pScrollbarVer = m_pScrollbar->GetVerScrollbar ();
 	CScrollBarHorizontal *pScrollbarHor = m_pScrollbar->GetHorScrollbar ();
@@ -722,8 +738,10 @@ bool CListView::OnMouseMove ( CPos pos )
 
 	m_nIndex = -1;
 
-	if ( ( GetAsyncKeyState ( VK_LBUTTON ) && !m_bHasFocus ) ||
-		 m_pScrollbar->ContainsRect ( pos ) ||
+	if ( ( GetAsyncKeyState ( VK_LBUTTON ) && !m_bHasFocus ) )
+		return false;
+
+	if ( m_pScrollbar->ContainsPoint ( pos ) ||
 		 m_pScrollbar->OnClickEvent () )
 	{
 		return true;
@@ -755,9 +773,9 @@ bool CListView::OnMouseMove ( CPos pos )
 		return false;
 
 	SControlRect rText = m_rListBoxArea;
-	rText.pos.SetX ( rText.pos.GetX () + 4 );
-	rText.size.cx -= ( pScrollbarVer->GetWidth () + 4 );
-	rText.size.cy = TEXTBOX_TEXTSPACE - 2;
+	rText.m_pos.m_nX += 4;
+	rText.m_size.cx -= ( pScrollbarVer->GetWidth () + 4 );
+	rText.m_size.cy = TEXTBOX_TEXTSPACE - 2;
 
 	for ( int i = pScrollbarVer->GetTrackPos (); i < pScrollbarVer->GetTrackPos () + pScrollbarVer->GetPageSize (); i++ )
 	{
@@ -773,14 +791,14 @@ bool CListView::OnMouseMove ( CPos pos )
 			m_pFont->GetTextExtent ( str.c_str (), &size );
 
 			if ( i != pScrollbarVer->GetTrackPos () )
-				rText.pos.SetY ( rText.pos.GetY () + size.cy );
+				rText.m_pos.m_nY += size.cy;
 
 			// Check if selected text is not NULL and determine 
 			// which item has been selected
-			if ( str.c_str () != NULL && rText.InControlArea ( pos ) )
+			if ( str.c_str () != NULL && rText.ContainsPoint ( pos ) )
 			{
 				m_nIndex = i;
-				return true;
+				//return true;
 			}
 		}
 	}
@@ -862,37 +880,34 @@ bool CListView::HandleKeyboard ( UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 void CListView::UpdateRects ( void )
 {
-	if ( !m_pScrollbar )
-		return;
-
 	CScrollBarHorizontal *pScrollbarHor = m_pScrollbar->GetHorScrollbar ();
 	CScrollBarVertical *pScrollbarVer = m_pScrollbar->GetVerScrollbar ();
 
-	CControl::UpdateRects ();
+	CWidget::UpdateRects ();
 
 	SIZE size;
 	m_pTitleFont->GetTextExtent ( _UI ( "Y" ), &size );
 
 	m_rColumnArea = m_rBoundingBox;
-	m_rColumnArea.size.cy = size.cy + LISTVIEW_TITLESIZE;
+	m_rColumnArea.m_size.cy = size.cy + LISTVIEW_TITLESIZE;
 
 	m_rListBoxArea = m_rBoundingBox;
-	m_rListBoxArea.pos.SetY ( m_rListBoxArea.pos.GetY () + m_rColumnArea.size.cy );
-	m_rListBoxArea.size.cy = m_rListBoxArea.size.cy - m_rColumnArea.size.cy;
+	m_rListBoxArea.m_pos.m_nY += m_rColumnArea.m_size.cy;
+	m_rListBoxArea.m_size.cy = m_rListBoxArea.m_size.cy - m_rColumnArea.m_size.cy;
 
 	m_pFont->GetTextExtent ( _UI ( "Y" ), &size );
 
 	// Set up scroll bar values
-	m_pScrollbar->SetPageSize ( m_rListBoxArea.size.cx, m_rListBoxArea.size.cy / size.cy );
 	pScrollbarHor->SetStepSize ( GetAllColumnsWidth () / 10 );
+	m_pScrollbar->SetPageSize ( m_rListBoxArea.m_size.cx-4, m_rListBoxArea.m_size.cy / size.cy );
 	m_pScrollbar->UpdateScrollbars ( m_rListBoxArea );
 }
 
-bool CListView::ContainsRect ( CPos pos )
+bool CListView::ContainsPoint ( CVector pos )
 {
 	if ( !CanHaveFocus () )
 		return false;
 
-	return ( m_pScrollbar->ContainsRect ( pos ) || 
-			 m_rBoundingBox.InControlArea ( pos ) );
+	return ( m_pScrollbar->ContainsPoint ( pos ) || 
+			 m_rBoundingBox.ContainsPoint ( pos ) );
 }
