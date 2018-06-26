@@ -747,10 +747,10 @@ void CWidget::LinkPos ( Pos pos )
 		SIZE parentSize = m_pParent->GetSize ();
 		Pos  parentPos = *m_pParent->GetPos ();
 
-		//if ( m_realSize.cx >= parentRealSize.cx )
-		//{
-		//	SetWidth ( parentRealSize.cx );
-		//}
+		if ( m_realSize.cx >= parentRealSize.cx )
+		{
+			//SetWidth ( parentRealSize.cx );
+		}
 
 		int nTitle = 0;
 		if ( m_pParent->GetType () == TYPE_WINDOW )
@@ -762,12 +762,11 @@ void CWidget::LinkPos ( Pos pos )
 			nTitle = static_cast< CTabPanel* >( m_pParent )->GetTabSizeY ();
 		}
 
-		//int nParentHeight = parentRealSize.cy - nTitle;
-		//if ( m_realSize.cy >= nParentHeight )
-		//{
-		//	//SetHeight ( nParentHeight );
-		//	//m_rBoundingBox.m_size.cy = m_size.cy = nParentHeight;
-		//}
+		int nParentHeight = parentRealSize.cy - nTitle;
+		if ( m_realSize.cy >= nParentHeight )
+		{
+			//SetHeight ( nParentHeight );
+		}
 
 		int nScrollSize = 0;
 
@@ -853,28 +852,6 @@ void CWidget::UpdateRects ( void )
 	if ( m_pParent )
 	{
 		SIZE size = m_pParent->GetSize ();
-
-		if ( m_realSize.cx >= size.cx )
-		{
-			m_rBoundingBox.m_size.cx = m_size.cx = size.cx;
-			//SetWidth ( parentRealSize.cx );
-		}
-
-		int nTitle = 0;
-		if ( m_pParent->GetType () == TYPE_WINDOW )
-		{
-			nTitle = static_cast< CWindow* >( m_pParent )->GetTitleBarHeight ();
-		}
-		else if ( m_pParent->GetType () == TYPE_TABPANEL )
-		{
-			nTitle = static_cast< CTabPanel* >( m_pParent )->GetTabSizeY ();
-		}
-
-		int nParentHeight = size.cy - nTitle;
-		if ( m_realSize.cy >= nParentHeight )
-		{
-			m_rBoundingBox.m_size.cy = m_size.cy = nParentHeight;
-		}
 
 		if ( m_eRelativeX == eRelative::RELATIVE_SIZE )
 		{

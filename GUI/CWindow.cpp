@@ -121,7 +121,7 @@ void CWindow::Draw ( void )
 
 				if ( pos->m_nY <= m_iTitleBarSize )
 					control->SetPosY ( 0 );
-
+				ResizeWidget ( control );
 				control->LinkPos ( m_pos + Pos ( 0, m_iTitleBarSize ) - ( m_bShowScrollbar ?
 																		  Pos ( pScrollbarHor->GetTrackPos (), pScrollbarVer->GetTrackPos () ) :
 																		  Pos () ) );
@@ -172,6 +172,31 @@ void CWindow::Draw ( void )
 	//SetScissor ( pDevice, rOldScissor );
 }
 
+
+void CWindow::ResizeWidget ( CWidget *pWidget, bool bCheckInList )
+{/*
+	if ( bCheckInList )
+	{
+		if ( !IsControlInList ( pWidget ) )
+			return;
+	}
+	else if ( !pWidget )
+		return;*/
+
+	SIZE size = pWidget->GetRealSize ();
+
+	if ( size.cx >= m_realSize.cx )
+	{
+		pWidget->SetWidth ( m_realSize.cx );
+	}
+
+	int nSize = m_realSize.cy-m_iTitleBarSize ;
+	if ( size.cy >= nSize )
+	{
+		pWidget->SetHeight ( nSize );
+	}
+}
+
 //--------------------------------------------------------------------------------------
 void CWindow::AddControl ( CWidget *pControl )
 {
@@ -182,6 +207,7 @@ void CWindow::AddControl ( CWidget *pControl )
 	pControl->SetParent ( this );
 
 	m_vControls.push_back ( pControl );
+	ResizeWidget ( pControl );
 }
 
 //--------------------------------------------------------------------------------------

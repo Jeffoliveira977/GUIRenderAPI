@@ -89,6 +89,7 @@ VOID Init ()
 	pGui = new CDialog ( pDevice );
 	pGui->LoadFont ( _UI ( "arial" ), 9, false );
 
+
 	
 	CWindow *pWindow = pGui->CreateWidget<CWindow> ( Pos ( 200, 200 ), 700, 100, _UI ( "text" ) );
 	CWindow *pWindow2 = pGui->CreateWidget<CWindow> ( Pos ( 200, 200 ), 700, 500, _UI ( "text 2" ) );
@@ -96,17 +97,28 @@ VOID Init ()
 
 	CEditBox *pEditBox = pGui->CreateWidget<CEditBox> ( Pos ( 0, 220 ), 700, 20, _UI ( "text 2" ) );
 
-	CButton *pButton = pGui->CreateWidget<CButton> ( Pos ( 200, 200 ), 100, 10, _UI ( "text" ) );
-	CButton *pButton2 = pGui->CreateWidget<CButton> ( Pos ( 200, 250 ), 100, 10, _UI ( "text 2" ) );
+	CButton *pButton = pGui->CreateWidget<CButton> ( Pos ( 200, 250 ), 100, 10, _UI ( "text" ) );
+	CButton *pButton2 = pGui->CreateWidget<CButton> ( Pos ( 200, 350 ), 100, 10, _UI ( "text 2" ) );
 	CListView *pListView = pGui->CreateWidget<CListView> ( Pos ( 210, 0 ), 600, 500, _UI ( "text 2" ) );
 	CRadioButton *pRadio = pGui->CreateWidget<CRadioButton> ( Pos ( 210, 120 ), 600, 500, _UI ( "text 2" ) );
 
 
-	pListView->AddColumn ( _UI ( "Column 1" ),300 );
-	pListView->AddColumn ( _UI ( "Column 2" ), 300 );
-	pListView->AddColumn ( _UI ( "Column 3" ), 300 );
-	pListView->AddColumn ( _UI ( "Column 4" ), 300 );
-	for ( size_t i = 0; i < 400; i++ )
+	pListView->AddColumn ( _UI ( "Column 1" ),350 );
+	pListView->AddColumn ( _UI ( "Column 2" ), 350 );
+	//pListView->AddColumn ( _UI ( "Column 3" ), 50 );
+	//pListView->AddColumn ( _UI ( "Column 4" ), 50 );
+
+	pListView->AddColumnItem ( 0, _UI ( "1 3" ) );
+	pListView->AddColumnItem ( 0, _UI ( "1 3" ) );
+	pListView->AddColumnItem ( 0, _UI ( "13" ) );
+	pListView->AddColumnItem ( 1, _UI ( "1 4" ) );
+	pListView->AddColumnItem ( 1, _UI ( "1 4" ) );
+	pListView->AddColumnItem ( 0, _UI ( "1 3" ) );
+	pListView->AddColumnItem ( 1, _UI ( "1 4" ) );
+
+	
+
+	/*for ( size_t i = 0; i < 400; i++ )
 	{
 		int n = 0;
 		if ( i >= 100 )
@@ -114,7 +126,7 @@ VOID Init ()
 		TCHAR szChar [ 128 ];
 		SIMPLEGUI_SPRINTF ( szChar, _UI ( "Item %i" ), i );
 		pListView->AddColumnItem ( n, szChar );
-	}
+	}*/
 
 	pListView->SetSortable ( true );
 
@@ -135,9 +147,9 @@ VOID Init ()
 	pTabPanel->AddControl ( 0, pButton );
 	pTabPanel->AddControl ( 1, pButton2 );
 	//pTabPanel->AddControl ( 1, pRadio );
-	//pTabPanel->AddControl ( 2, pListView );
+	pTabPanel->AddControl ( 2, pListView );
 	//pGui->AddWidget ( pTabPanel );
-	pWindow->AddControl ( pListView );
+	//pWindow->AddControl ( pListView );
 	pWindow2->AddControl ( pTabPanel );
 
 	/*pGui->AddWidget ( pButton );
@@ -145,7 +157,7 @@ VOID Init ()
 	pGui->AddWidget ( pEditBox );
 	pGui->AddWidget ( pWindow );
 	pGui->AddWidget ( pWindow2 );
-	//pGui->AddWidget ( pListView );
+	pGui->AddWidget ( pListView );
 
 	pGui->SetVisible ( true );
 	//LeaveCriticalSection ( &cs_gui );
@@ -165,10 +177,11 @@ VOID Draw ()
 		TCHAR szchar[512]={_UI("{FfE7E00d}{00000000}{FFE7E00D}{00000000}çéàèãõñìíóò úùvamdsa{FFE7E00D}s{FFE7E00D}d{00000000}a{FFE7E00D}s{00000000}d{FFE7E00D}a{00000000}s{FFE7E00D}d{00000000}d{FFE7E00D}s{00000000}d{FFE7E00D}a{00000000}s{FFE7E00D}d{00000000}s{FFE7E00D}a{00000000}d{FFE7E00D}s{00000000}a{FFE7E00D}s{00000000}d{FFE7E00D}s{00000000}d{FFE7E00D}s {00000000}{FFE7E00D}{00000000}{FFE7E00D}fasdsdk jkazer um texto muito {ffe7e00D}loko da cabeça {FFE7E00D}porque eu quero fazer isso sim entendeu, va se {FFE7E00D}foder")};
 
 		SIMPLEGUI_STRING stri= szchar;
-		g_font->FormatText(stri, 500);
+		g_font->FormatText ( stri, 500 );
 		g_font->CutString(800,stri);
 		g_font->Print(220, 20, D3DCOLOR_RGBA(255, 255, 255, 255), stri.c_str(),  D3DFONT_COLORTABLE);
 	}
+	//pGui->GetRenderer ()->D3DCircle ( 300, 300, 200, D3DCOLOR_RGBA ( 255, 255, 255, 255 ),0, true );
 
 	int posx = 0;
 	if ( GetAsyncKeyState ( VK_LEFT ) )

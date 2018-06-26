@@ -21,6 +21,11 @@ public:
 	void RemoveAllControls ( void );
 
 	bool IsControlInList ( CWidget *pControl );
+	std::vector<CWidget*>::iterator GetControlIteratorInList ( CWidget *pControl );
+
+
+	int GetControlTab ( CWidget*pWidget );
+	void ResizeWidget ( CWidget *pWidget, bool bCheckInList = false );
 
 	void SetFocussedControl ( CWidget *pControl );
 	void BringControlToTop ( UINT nTabID, CWidget *pControl );
@@ -37,9 +42,9 @@ public:
 	void SetSelectedTab ( UINT nTabID );
 	int GetSelectedTab ( void );
 
-	int GetTabIdAtArea ( CVector pos );
+	int GetTabIdAtArea ( Pos pos );
 
-	CWidget *GetControlAtArea ( UINT nTabID, CVector pos );
+	CWidget *GetControlAtArea ( UINT nTabID, Pos pos );
 
 	int GetTabSizeY ( void );
 	SIZE GetSize ( void );
@@ -67,7 +72,7 @@ public:
 	void OnMouseLeave ( void );
 
 private:
-
+	bool m_bOldState;
 	void UpdateScrollbars ( void );
 
 	struct STabList
@@ -80,6 +85,8 @@ private:
 
 		int nTrackX;
 		int nTrackY;
+
+		SIZE nMaxControlSize;
 
 		int nWidth;
 	};
@@ -97,12 +104,12 @@ private:
 			return ( bVisible && m_rButton.ContainsPoint ( pos ) );
 		}
 
-		bool OnMouseOver ( CVector pos )
+		bool OnMouseOver (	Pos pos )
 		{
 			return ( bOverButton && InArea ( pos ) );
 		}
 
-		bool OnClickEvent ( CVector pos )
+		bool OnClickEvent ( Pos pos )
 		{
 			return ( bClickedButton && InArea ( pos ) );
 		}
@@ -113,9 +120,6 @@ private:
 
  	int m_nOldAreaX;
 
-	std::map<int, int> m_nTrackX;
-	std::map<int, int> m_nTrackY;
-
 	UINT m_nNextTab;
 	UINT m_nSelectedTab;
 
@@ -123,7 +127,7 @@ private:
 
 	std::vector<STabList> m_TabList;
 	SIZE m_maxControlSize;
-
+	
 	CD3DFont *m_pTitleFont;
 
 	SControlRect m_rTabArea;

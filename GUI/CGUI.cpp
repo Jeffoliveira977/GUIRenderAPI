@@ -947,7 +947,7 @@ CWidget *CDialog::GetFocussedWidget ( void )
 }
 
 //--------------------------------------------------------------------------------------
-void CDialog::BringWidgetToTop (CWidget *pWidget )
+void CDialog::BringWidgetToTop ( CWidget *pWidget )
 {
 	std::vector<CWidget*>::iterator iter = std::find ( m_vWidgets.begin (), m_vWidgets.end (), pWidget );
 	if ( iter == m_vWidgets.end () )
@@ -962,11 +962,12 @@ void CDialog::BringWidgetToTop (CWidget *pWidget )
 			int nCount = 0;
 			for ( auto widget : m_vWidgets )
 			{
-				if ( widget->GetType () == CWidget::TYPE_WINDOW )
-				{
-					if ( static_cast< CWindow* >( widget )->GetAlwaysOnTop () )
-						nCount++;
-				}
+				if ( widget->GetType () != CWidget::TYPE_WINDOW )
+					continue;
+
+				if ( static_cast< CWindow* >( widget )->GetAlwaysOnTop () )
+					nCount++;
+
 			}
 
 			m_vWidgets.erase ( iter );

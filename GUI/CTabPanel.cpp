@@ -39,6 +39,8 @@ void CTabPanel::AddTab ( const SIMPLEGUI_CHAR *szTabName, int nWidth )
 
 	sTab.nTrackX = 0;
 	sTab.nTrackY = 0;
+	sTab.nMaxControlSize.cx = 0;
+	sTab.nMaxControlSize.cy = 0;
 
 	m_TabList.push_back ( sTab );
 
@@ -88,7 +90,10 @@ void CTabPanel::AddControl ( UINT nTabID, CWidget *pControl )
 	pControl->SetPos ( *pControl->GetPos ());
 	pControl->SetParent ( this );
 	pControl->UpdateRects ();
+
 	m_TabList [ nTabID ].vControls.push_back ( pControl );
+
+	ResizeWidget ( pControl );
 }
 
 void CTabPanel::RemoveControl ( UINT nTabID, CWidget *pControl )
@@ -143,6 +148,22 @@ bool CTabPanel::IsControlInList ( CWidget *pControl )
 	return false;
 }
 
+std::vector<CWidget*>::iterator CTabPanel::GetControlIteratorInList ( CWidget *pControl )
+{
+	std::vector<CWidget*>::iterator iter;
+	for ( size_t i = 0; i < m_TabList.size (); i++ )
+	{
+		std::vector<CWidget*> vWidgets = m_TabList [ i ].vControls;
+		/*std::vector<CWidget*>::iterator */iter = std::find ( vWidgets.begin (), vWidgets.end (), pControl );
+		if ( iter == vWidgets.end () )
+			continue;
+
+		return iter;
+	}
+
+	return iter;
+}
+
 void CTabPanel::SetFocussedControl ( CWidget *pControl )
 {
 	if ( !IsControlInList ( pControl ) )
@@ -167,16 +188,36 @@ void CTabPanel::SetFocussedControl ( CWidget *pControl )
 	BringControlToTop ( m_nSelectedTab, pControl );
 }
 
+int CTabPanel::GetControlTab ( CWidget *pWidget )
+{
+	if ( pWidget ) 
+		return -1;
+
+	for ( size_t i = 0; i < m_TabList.size (); i++ )
+	{
+		std::vector<CWidget*> vWidgets = m_TabList [ i ].vControls;
+		std::vector<CWidget*>::iterator iter = std::find ( vWidgets.begin (), vWidgets.end (), pWidget );
+		if ( iter == vWidgets.end () )
+			continue;
+
+		return i;
+	}
+
+	return -1;
+}
+
 void CTabPanel::BringControlToTop ( UINT nTabID, CWidget *pControl )
 {
-	if ( nTabID >= m_TabList.size () || 
+	if ( nTabID >= m_TabList.size () ||
 		 !pControl )
 		return;
 
-	std::vector<CWidget*> &vWidgets = m_TabList [ nTabID ].vControls;
-	std::vector<CWidget*>::iterator iter = std::find ( vWidgets.begin (), vWidgets.end (), pControl );
-	if ( iter == vWidgets.end () )
+	int nTabId = GetControlTab ( pControl );
+	if ( !nTabId || nTabId >= m_TabList.size () ) 
 		return;
+
+	std::vector<CWidget*>::iterator iter = GetControlIteratorInList ( pControl );
+	std::vector<CWidget*> vWidgets = m_TabList [ nTabId ].vControls;
 
 	vWidgets.erase ( iter );
 	vWidgets.insert ( vWidgets.end (), pControl );
@@ -427,8 +468,8 @@ void CTabPanel::Draw ( void )
 		}
 	}
 
-	/*ZeroMemory ( &m_maxControlSize, sizeof ( SIZE ) );
-*/
+	//ZeroMemory ( &maxControlsize[ m_nSelectedTab ], sizeof ( SIZE ) );
+
 	SControlRect rScissor = m_rScissor;
 	rScissor.m_pos.m_nY -= 1;
 	rScissor.m_size.cy += 1;
@@ -440,16 +481,8 @@ void CTabPanel::Draw ( void )
 
 	STabList &sTab = m_TabList [ m_nSelectedTab ];
 
-	if ( sTab.vControls.size () )
-	{
-		sTab.nTrackX = pScrollbarHor->GetTrackPos ();
-		sTab.nTrackY = pScrollbarVer->GetTrackPos ();
-	}
-	else
-	{
-		m_maxControlSize .cx = 0;
-		m_maxControlSize .cy = 0;
-	}
+	sTab.nTrackX = pScrollbarHor->GetTrackPos ();
+	sTab.nTrackY = pScrollbarVer->GetTrackPos ();
 
 	for ( auto control : sTab.vControls )
 	{
@@ -457,10 +490,13 @@ void CTabPanel::Draw ( void )
 		{
 			Pos *pos = control->GetPos ();
 			SIZE size = control->GetSize ();
-			if ( pos->m_nY <= GetTabSizeY () )
-				control->SetPosY ( 0 );
-			control->LinkPos ( m_rBoundingBox.m_pos + Pos ( 0, m_rTabArea.m_size.cy ) - Pos ( sTab.nTrackX, sTab.nTrackY ) );
-		
+			ResizeWidget ( control );
+			control->LinkPos ( m_rBoundingBox.m_pos + Pos ( 0, m_rTabArea.m_size.cy ) - Pos ( sTab.nTrackX, sTab.nTrackY) );
+		/*	Pos *pos = control->GetPos ();
+			SIZE size = control->GetSize ();*/
+		/*	if ( pos->m_nY <= GetTabSizeY () )
+				control->SetPosY ( 0 );*/
+
 	
 			CWidget::eRelative relativeX = control->GetRelativeX ();
 			CWidget::eRelative relativeY = control->GetRelativeY ();
@@ -468,7 +504,7 @@ void CTabPanel::Draw ( void )
 			if ( !( relativeX == CWidget::RELATIVE_SIZE || relativeX == CWidget::RELATIVE_POS ) ||
 				( relativeX == CWidget::RELATIVE_POS &&  pos->m_nX <= 0 ) || ( control->GetMinSize ().cx == size.cx &&pos->m_nX > 0 ) )
 			{
-				m_maxControlSize.cx = max ( m_maxControlSize.cx, pos->m_nX + size.cx );
+				sTab.nMaxControlSize.cx = max ( sTab.nMaxControlSize.cx, pos->m_nX + size.cx );
 			}
 
 			if ( !( relativeY == CWidget::RELATIVE_SIZE || relativeY == CWidget::RELATIVE_POS ) ||
@@ -476,7 +512,7 @@ void CTabPanel::Draw ( void )
 				 /*( control->GetRelativeY () == CWidget::RELATIVE_SIZE &&*/( control->GetMinSize ().cy == size.cy && pos->m_nY >= GetTabSizeY () ) )
 			{
 
-			m_maxControlSize.cy = max ( m_maxControlSize.cy, pos->m_nY + size.cy );
+				sTab.nMaxControlSize.cy = max ( sTab.nMaxControlSize.cy, pos->m_nY + size.cy );
 			}
 
 			pos = control->GetUpdatedPos ();
@@ -488,7 +524,7 @@ void CTabPanel::Draw ( void )
 			{
 				m_rScissor = m_rPanelArea;
 	
-			/*	int nDragOffSet;
+				/*int nDragOffSet;
 				if ( rScissor.m_pos.m_nY + rScissor.m_size.cy < m_rPanelArea.m_pos.m_nY + m_rPanelArea.m_size.cy )
 				{
 					m_rScissor.m_size.cy = rScissor.m_pos.m_nY + rScissor.m_size.cy - m_rPanelArea.m_pos.m_nY;
@@ -522,8 +558,33 @@ void CTabPanel::Draw ( void )
 
 	m_rScissor = rScissor;
 	sCissor.SetScissor ( m_pDialog->GetDevice (), m_rScissor.GetRect () );
+
 	UpdateScrollbars ();
 	m_pScrollbar->OnDraw ();
+}
+
+void CTabPanel::ResizeWidget ( CWidget *pWidget, bool bCheckInList )
+{
+	if ( bCheckInList )
+	{
+		if ( !IsControlInList ( pWidget ) )
+			return;
+	}
+	else if ( !pWidget )
+		return;
+
+	SIZE size = pWidget->GetRealSize ();
+
+	if ( size.cx >= m_realSize.cx )
+	{
+		pWidget->SetWidth ( m_realSize.cx );
+	}
+
+	int nSize = m_realSize.cy - m_rTabArea.m_size.cy;
+	if ( /*pWidget->GetRelativeY() != CWidget::NO_RELATIVE && */size.cy >= nSize )
+	{
+		pWidget->SetHeight ( nSize );
+	}
 }
 
 bool CTabPanel::OnMouseButtonDown ( sMouseEvents e )
@@ -542,8 +603,11 @@ bool CTabPanel::OnMouseButtonDown ( sMouseEvents e )
 			ClearControlFocus ();
 			return true;
 		}
-	}	
-	
+	}
+
+	CScrollBarVertical *pScrollbarVer = m_pScrollbar->GetVerScrollbar ();
+	CScrollBarHorizontal *pScrollbarHor = m_pScrollbar->GetHorScrollbar ();
+
 	if ( e.eButton == sMouseEvents::LeftButton )
 	{
 		_SetFocus ();
@@ -563,11 +627,14 @@ bool CTabPanel::OnMouseButtonDown ( sMouseEvents e )
 		int nId = GetTabIdAtArea ( e.pos );
 		if ( nId > -1 )
 		{
-			m_nSelectedTab = nId;
 			m_bPressed = true;
+			m_nSelectedTab = nId;
 
-			m_pScrollbar->GetHorScrollbar ()->SetTrackPos ( m_TabList [ nId ].nTrackX );
-			m_pScrollbar->GetVerScrollbar ()->SetTrackPos ( m_TabList [ nId ].nTrackY );
+			UpdateScrollbars ();
+
+			pScrollbarHor->SetTrackPos ( m_TabList [ m_nSelectedTab ].nTrackX );
+			pScrollbarVer->SetTrackPos ( m_TabList [ m_nSelectedTab ].nTrackY );
+
 			return true;
 		}
 
@@ -656,6 +723,9 @@ bool CTabPanel::OnMouseMove ( CVector pos )
 	{
 		m_nOverTabId = nId;
 		m_sRightButton.bOverButton = m_sLeftButton.bOverButton = false;
+		
+		if ( nId > -1 )
+			ClearControlFocus ();
 	}
 
 	return false;
@@ -682,7 +752,7 @@ bool CTabPanel::ControlMessages ( sControlEvents e )
 
 	if ( !CanHaveFocus () ||
 		( m_pScrollbar->ContainsPoint ( e.mouseEvent.pos ) && !bHasDropDown ) ||
-		 !m_rBoundingBox.ContainsPoint ( e.mouseEvent.pos ) &&
+		 !m_rPanelArea.ContainsPoint ( e.mouseEvent.pos ) &&
 		 !( bHasDropDown || HAS_CONTROL_TYPE ( pFocussedWidget, CWidget::TYPE_EDITBOX  || pFocussedWidget && pFocussedWidget->OnClickEvent () )) )
 	{
 		return false;
@@ -807,14 +877,14 @@ void CTabPanel::UpdateScrollbars ( void )
 	rRect.m_size.cy -= m_rTabArea.m_size.cy;
 	rRect.m_pos.m_nY += m_rTabArea.m_size.cy;
 
-	m_pScrollbar->SetTrackRange ( m_maxControlSize.cx, m_maxControlSize.cy );
+	m_pScrollbar->SetTrackRange ( m_TabList[m_nSelectedTab].nMaxControlSize.cx, m_TabList [ m_nSelectedTab ].nMaxControlSize.cy );
 	m_pScrollbar->GetHorScrollbar ()->SetStepSize ( m_rBoundingBox.m_size.cx / 10 );
 	m_pScrollbar->GetVerScrollbar ()->SetStepSize ( m_rBoundingBox.m_size.cy / 10 );
 	m_pScrollbar->UpdateScrollbars ( rRect );
-
-	//m_pScrollbar->SetTrackRange ( m_maxControlSize.cx, m_maxControlSize.cy );
-	//m_pScrollbar->SetPageSize ( m_rBoundingBox.m_size.cx - ( m_pScrollbar->IsVerScrollbarNeeded () ? 18 : 0 ), m_rBoundingBox.m_size.cy - ( m_pScrollbar->IsHorScrollbarNeeded () ? 18 : 0 ) );
-	//m_pScrollbar->UpdateScrollbars ( rRect );
+/*
+	m_pScrollbar->SetTrackRange ( m_maxControlSize.cx, m_maxControlSize.cy );
+	m_pScrollbar->SetPageSize ( m_rBoundingBox.m_size.cx - ( m_pScrollbar->IsVerScrollbarNeeded () ? 18 : 0 ), m_rBoundingBox.m_size.cy - ( m_pScrollbar->IsHorScrollbarNeeded () ? 18 : 0 ) );
+	m_pScrollbar->UpdateScrollbars ( rRect );*/
 }
 
 #define BUTTONSIZEY 15

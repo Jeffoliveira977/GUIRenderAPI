@@ -16,7 +16,7 @@ CListView::CListView ( CDialog *pDialog )
 	m_nSelected = m_nIndex = m_nOverColumnId = -1;
 	m_nRowSize = 0;
 	m_bSizable = m_bMovable = m_bSortable = true;
-
+	d_columnCount = 0;
 	m_pScrollbar = new CScrollablePane ( pDialog );
 
 	m_pScrollbar->SetControl ( this );
@@ -29,7 +29,7 @@ CListView::~CListView ( void )
 	SAFE_DELETE ( m_pScrollbar );
 }
 
-void CListView::AddColumn ( const SIMPLEGUI_CHAR *szColumnName, int nWidth )
+void CListView::InsertColumn ( const SIMPLEGUI_CHAR *szColumnName, int nWidth, UINT nPos )
 {
 	if ( EMPTYCHAR ( szColumnName ) )
 		return;
@@ -44,6 +44,20 @@ void CListView::AddColumn ( const SIMPLEGUI_CHAR *szColumnName, int nWidth )
 	sColumn.m_sColumnName = szColumnName;
 
 	m_vColumnList.push_back ( sColumn );
+	d_columnCount++;
+
+	//// Insert a blank entry at the appropriate position in each row.
+	//for ( UINT i = 0; i < m_nRowSize; ++i )
+	//{
+	//	d_grid [ i ].d_items.insert (
+	//		d_grid [ i ].d_items.begin () + nPos,
+	//		static_cast<SEntryItem*>( 0 ) );
+	//}
+}
+
+void CListView::AddColumn ( const SIMPLEGUI_CHAR *szColumnName, int nWidth )
+{
+	InsertColumn ( szColumnName, nWidth, d_columnCount );
 }
 
 void CListView::RemoveColumn ( UINT nColumnId )
@@ -137,15 +151,32 @@ void CListView::AddColumnItem ( UINT nColumnId, const SIMPLEGUI_CHAR *szItem, co
 
 void CListView::AddColumnItem ( UINT nColumnId, SEntryItem *pEntry )
 {
-	if (nColumnId >= m_vColumnList.size() ||
-		!pEntry && EMPTYCHAR(pEntry->m_sText.c_str()))
+	if ( nColumnId >= m_vColumnList.size () ||
+		 !pEntry && EMPTYCHAR ( pEntry->m_sText.c_str () ) )
 	{
 		return;
 	}
 
-	m_vColumnList [ nColumnId ].m_sItem.push_back ( pEntry );
-	m_nRowSize = max ( m_nRowSize, m_vColumnList [ nColumnId ].m_sItem.size () );
 
+	
+
+	//ColumnItem item;
+	
+	//item [ nColumnId ] = pEntry;
+	//vColumnItemList.push_back ( item );
+
+	//// Build the new row
+	//ListRow row;
+	//////row.d_sortColumn = getSortColumn ();
+	row.d_items.resize ( d_columnCount, 0 );
+	//////row.d_rowID = row_id;
+	row [ nColumnId ] = pEntry;
+	//row.d_items.push_back ( pEntry );
+
+	d_grid.push_back ( row );
+	m_nRowSize = d_grid.size ();
+	//m_vColumnList [ nColumnId ].m_sItem.resize ( m_nRowSize,0 );
+	//m_nRowSize = max ( m_nRowSize, m_vColumnList [ nColumnId ].m_sItem.size () );
 	// Set up scroll bar ranges
 	m_pScrollbar->SetTrackRange ( GetAllColumnsWidth (), m_nRowSize );
 }
@@ -318,10 +349,10 @@ void CListView::SortColumn ( UINT nColumnId )
 	if ( !m_bSortable )
 		return;
 
-	ColumnItem mColumnItem;
-	std::vector<ColumnItem>	vColumnItemList;
+	//ColumnItem mColumnItem;
+	//std::vector<ColumnItem>	vColumnItemList;
 
-	for ( size_t i = 0; i < m_nRowSize; i++ )
+	/*for ( size_t i = 0; i < m_nRowSize; i++ )
 	{
 		for ( size_t j = 0; j < GetNumOfColumns (); j++ )
 		{
@@ -333,22 +364,22 @@ void CListView::SortColumn ( UINT nColumnId )
 		}
 		vColumnItemList.push_back ( mColumnItem );
 	}
+*/
+	//m_nColumnSort = nColumnId;
+	//if ( std::is_sorted ( vColumnItemList.begin (), vColumnItemList.end (), ColumnItemLess ) )
+	//{
+	//	std::sort ( vColumnItemList.begin (), vColumnItemList.end (), ColumnItemGreater );
+	//}
+	//else
+	//{
+	//	std::sort ( vColumnItemList.begin (), vColumnItemList.end (), ColumnItemLess );
+	//}
 
-	m_nColumnSort = nColumnId;
-	if ( std::is_sorted ( vColumnItemList.begin (), vColumnItemList.end (), ColumnItemLess ) )
-	{
-		std::sort ( vColumnItemList.begin (), vColumnItemList.end (), ColumnItemGreater );
-	}
-	else
-	{
-		std::sort ( vColumnItemList.begin (), vColumnItemList.end (), ColumnItemLess );
-	}
-
-	for ( size_t i = 0; i < m_nRowSize; i++ )
-	{
-		for ( size_t j = 0; j < GetNumOfColumns (); j++ )
-			m_vColumnList [ j ].m_sItem [ i ] = vColumnItemList [ i ] [ j ];
-	}
+	//for ( size_t i = 0; i < m_nRowSize; i++ )
+	//{
+	//	for ( size_t j = 0; j < GetNumOfColumns (); j++ )
+	//		m_vColumnList [ j ].m_sItem [ i ] = vColumnItemList [ i ] [ j ];
+	//}
 }
 
 void CListView::SetSortable ( bool bSortable )
@@ -393,12 +424,63 @@ void CListView::Draw ( void )
 	rScissor.m_pos += 1;
 	rScissor.m_size.cx -= 2;
 
-	/*CScissor sCissor;
+	CScissor sCissor;
 	sCissor.SetScissor ( m_pDialog->GetDevice (), rScissor.GetRect () );
-*/
+
 	pRender->D3DLine ( m_rColumnArea.m_pos.m_nX, m_rColumnArea.m_pos.m_nY + m_rColumnArea.m_size.cy,
 					   m_rColumnArea.m_pos.m_nX + m_rColumnArea.m_size.cx + nHorScrollTrackPos,
 					   m_rColumnArea.m_pos.m_nY + m_rColumnArea.m_size.cy, m_sControlColor.d3dColorOutline );
+
+	SControlRect rect = m_rListBoxArea;
+	int sd = m_nRowSize;
+
+	for ( size_t j = 0; j <  d_columnCount; j++ )
+	{
+		rect.m_pos.m_nX += 100;
+		rect.m_pos.m_nY = m_rListBoxArea.m_pos.m_nY;
+		for ( size_t i = 0; i < m_nRowSize; i++ )
+		{
+			
+			SIMPLEGUI_STRING str ;
+			if ( i < d_grid.size() )
+			{
+				const SEntryItem *pEntry = d_grid [ i ] [ j ];
+				if ( pEntry )
+				{
+					str = pEntry->m_sText;
+				}
+			}
+
+			//rect.m_pos.m_nX += GetColumnWidth ( j );
+			SIZE size;
+			if ( !str.empty () )
+
+			{
+				m_pDialog->DrawFont ( rect, m_sControlColor.d3dColorSelectedFont, str.c_str (), D3DFONT_COLORTABLE, m_pFont );
+				
+			}
+			m_pFont->GetTextExtent ( str.c_str (), &size );
+			rect.m_pos.m_nY += size.cy;
+			
+		}sd -= 1;
+		
+	}
+
+	return;
+	for ( size_t i = 0; i < m_nRowSize; i++ )
+	{
+		int count = 0;
+		for ( size_t j = 0; j < d_columnCount; j++, count++ )
+		{
+			/*	if ( m_nRowSize > m_vColumnList [ j ].m_sItem.size () )
+				{
+					m_vColumnList [ j ].m_sItem.resize ( m_nRowSize );
+				}*/
+			m_vColumnList [ j ].m_sItem.size ();
+			if ( i < m_vColumnList [ j ].m_sItem.size () )
+				m_vColumnList [ j ].m_sItem [ i ] = vColumnItemList [ i ] [ j ];
+		}
+	}
 
 	// Draw all contexts
 	for ( size_t i = 0; i < m_vColumnList.size (); i++ )
@@ -538,7 +620,7 @@ void CListView::Draw ( void )
 	}
 
 	rScissor.m_size.cx = m_rScissor.m_size.cx - 2;
-	//sCissor.SetScissor ( m_pDialog->GetDevice (), rScissor.GetRect () );
+	sCissor.SetScissor ( m_pDialog->GetDevice (), rScissor.GetRect () );
 
 	m_pScrollbar->OnDraw ();
 }
@@ -572,7 +654,6 @@ void CListView::OnFocusOut ( void )
 
 	m_pScrollbar->OnFocusOut ();
 }
-
 
 void CListView::OnMouseEnter ( void )
 {

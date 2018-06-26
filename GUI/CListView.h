@@ -11,6 +11,7 @@ public:
 	void					AddColumn					( const SIMPLEGUI_CHAR *szColumnName, int nWidth );
 	void					RemoveColumn				( UINT nColumnId );
 	void					RemoveAllColumns			( void );
+	void					InsertColumn				( const SIMPLEGUI_CHAR *szColumnName, int nWidth, UINT nPos );
 
 	void					SetColumnName				( UINT nColumnId, const SIMPLEGUI_CHAR *szColumnName );
 	const SIMPLEGUI_CHAR*	GetColumnName				( UINT nColumnId );
@@ -37,8 +38,8 @@ public:
 
 	const SEntryItem*		GetSelectedItem				( UINT nColumnId );
 
-	int						GetColumnIdAtArea			( CVector pos );
-	int						GetColumnIdAtAreaBorder		( CVector pos );
+	int						GetColumnIdAtArea			( Pos pos );
+	int						GetColumnIdAtAreaBorder		( Pos pos );
 	int						GetColumnOffset				( UINT nColumnId );
 
 	void					SetSortable					( bool bSortable );
@@ -76,6 +77,79 @@ public:
 
 private:
 
+	struct ListRow
+	{
+		typedef	std::vector<SEntryItem*> RowItems;
+		RowItems	d_items;
+		UINT		d_sortColumn;
+		UINT		d_rowID;
+
+		// operators
+		SEntryItem* const& operator[]( UINT idx ) const { return d_items [ idx ]; }
+		SEntryItem*&	operator[]( UINT idx ) { return d_items [ idx ]; }
+
+		//----------------------------------------------------------------------------//
+
+		//////////////////////////////////////////////////////////////////////////
+		/*************************************************************************
+		Operators for ListRow
+		*************************************************************************/
+		//////////////////////////////////////////////////////////////////////////
+		/*************************************************************************
+		Less-than operator
+		*************************************************************************/
+		bool operator<( const ListRow& rhs ) const
+		{
+			SEntryItem* a = d_items [ d_sortColumn ];
+			SEntryItem* b = rhs.d_items [ d_sortColumn ];
+
+			// handle cases with empty slots
+			if ( !b )
+			{
+				return false;
+			}
+			else if ( !a )
+			{
+				return true;
+			}
+			else
+			{
+				return a < b;
+			}
+
+		}
+
+
+		/*************************************************************************
+		Greater-than operator
+		*************************************************************************/
+		bool operator>( const ListRow& rhs ) const
+		{
+			SEntryItem* a = d_items [ d_sortColumn ];
+			SEntryItem* b = rhs.d_items [ d_sortColumn ];
+
+			// handle cases with empty slots
+			if ( !a )
+			{
+				return false;
+			}
+			else if ( !b )
+			{
+				return true;
+			}
+			else
+			{
+				return a > b;
+			}
+
+		}
+	
+
+	}; ListRow row;
+	UINT d_columnCount;
+	// storage of items in the list box.
+	typedef std::vector<ListRow> ListItemGrid;
+	ListItemGrid	d_grid;			//!< Holds the list box data.
 	struct SListViewColumn
 	{
 		std::vector<SEntryItem*>		m_sItem;
@@ -97,7 +171,6 @@ private:
 	bool				m_bMoving;
 	bool				m_bSorting;
 
-
 	UINT				m_nRowSize;
 	CD3DFont			*m_pTitleFont;
 	CScrollablePane		*m_pScrollbar;
@@ -108,7 +181,8 @@ private:
 	static UINT									m_nColumnSort;
 	std::vector<SListViewColumn>				m_vColumnList;
 	typedef std::map<UINT, SEntryItem*>			ColumnItem;
-
+	std::pair<UINT, SEntryItem*> item;
+	std::vector<ColumnItem>	vColumnItemList;
 	static bool				ColumnItemLess				( ColumnItem a, ColumnItem b )
 	{
 		SEntryItem* pEntrya = a [ m_nColumnSort ];

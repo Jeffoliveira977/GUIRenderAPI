@@ -216,7 +216,7 @@ bool CScrollBarVertical::OnMouseButtonUp ( sMouseEvents e )
 	return false;
 }
 
-bool CScrollBarVertical::OnMouseMove ( CVector pos )
+bool CScrollBarVertical::OnMouseMove ( Pos pos )
 {
 	if ( m_bDrag )
 	{

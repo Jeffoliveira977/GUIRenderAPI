@@ -63,7 +63,7 @@ void CScissor::SetScissor ( IDirect3DDevice9 *pD3dd, RECT rect )
 			rect.bottom += 1;
 
 			pD3dd->SetScissorRect ( &rect );
-			pD3dd->SetRenderState ( D3DRS_SCISSORTESTENABLE, TRUE );
+			//pD3dd->SetRenderState ( D3DRS_SCISSORTESTENABLE, TRUE );
 		}
 		else
 			pD3dd->SetRenderState ( D3DRS_SCISSORTESTENABLE, FALSE );
@@ -1360,8 +1360,8 @@ void CD3DRender::D3DCircle ( float fX, float fY, float fScale,
 	const int nVertexSize = 100;
 	D3DXVECTOR2 vVector [ nVertexSize ];
 
-	float _cos			= cos ( 180.f / D3DX_PI );
-	float _sin			= sin ( 180.f / D3DX_PI );
+	float _cos			= cos ( 180.f / 3.10 );
+	float _sin			= sin ( 180.f / 3.10 );
 	float fSize			= fScale / 2.f;
 	float fVertexHalf	= static_cast< float >( nVertexSize ) / 2.f;
 

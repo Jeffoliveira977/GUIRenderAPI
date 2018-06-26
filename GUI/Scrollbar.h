@@ -1,7 +1,7 @@
 #pragma once
 #include "CGUI.h"
 
-class CScrollbar /*: public CControl*/
+class CScrollbar
 {
 public:
 	/*CScrollbar ();
@@ -11,7 +11,7 @@ public:
 	int GetEndSize ( void );
 
 	int GetTrackPos ( void );
-	void SetTrackPos ( int nPosition );
+	void SetTrackPos ( int nTrackPos );
 
 	int GetPageSize ( void );
 	void SetPageSize ( int nPageSize );

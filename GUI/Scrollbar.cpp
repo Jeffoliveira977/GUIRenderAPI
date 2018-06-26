@@ -182,13 +182,13 @@ void CScrollbar::UpdateThumbRect ( void )
 			m_nThumbSize = __max ( m_nBackSize * m_nPageSize / nMaxItem, SCROLLBAR_MINTHUMBSIZE );
 
 			m_nThumbPos = m_nBackPos + ( m_nPosition - m_nStart ) *
-				( m_nBackSize - m_nThumbSize ) /
-				( nMaxItem - m_nPageSize + 1 );
+				( m_nBackSize - m_nThumbSize ) / ( nMaxItem - m_nPageSize + 1 );
 		}
 		else
 		{
 			m_nThumbSize = 0;
 		}
+
 		m_bShowThumb = true;
 	}
 	else

@@ -80,6 +80,8 @@ public:
 
 	CWidget *GetTabPanelFocussedControl ( void );
 
+	void ResizeWidget ( CWidget *pWidget, bool bCheckInList =false);
+
 private:
 	bool m_bDragging;
 	bool m_bCloseButtonEnabled;

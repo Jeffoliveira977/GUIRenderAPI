@@ -1,0 +1,214 @@
+﻿  stdafx.cpp
+  TrackBar.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+  TextUtils.cpp
+  ScrollbarHorizontal.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\scrollbarhorizontal.cpp(40): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\scrollbarhorizontal.cpp(47): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\scrollbarhorizontal.cpp(60): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\scrollbarhorizontal.cpp(67): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\scrollbarhorizontal.cpp(140): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\scrollbarhorizontal.cpp(157): warning C4305: 'argument': truncation from 'double' to 'float'
+  Scrollbar.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+  ScrollablePane.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+  CGraphics.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\renderers\cgraphics.cpp(827): warning C4244: 'initializing': conversion from '__int64' to 'DWORD', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\renderers\cgraphics.cpp(1193): warning C4800: 'unsigned long': forcing value to bool 'true' or 'false' (performance warning)
+c:\users\boss\source\repos\guirenderapi2\gui\renderers\cgraphics.cpp(1644): warning C4244: 'argument': conversion from 'UINT' to 'float', possible loss of data
+  ProgressBarVertical.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\progressbarvertical.cpp(31): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\progressbarvertical.cpp(36): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\progressbarvertical.cpp(72): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\progressbarvertical.cpp(110): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\progressbarvertical.cpp(162): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
+  LogFile.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\logfile.cpp(6): error C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_wstdio.h(129): note: see declaration of '_wfopen'
+c:\users\boss\source\repos\guirenderapi2\gui\logfile.cpp(36): error C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\time.h(505): note: see declaration of 'localtime'
+  Entry.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\entry.cpp(55): warning C4002: too many actual parameters for macro 'max'
+c:\users\boss\source\repos\guirenderapi2\gui\entry.cpp(58): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\entry.cpp(59): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\entry.cpp(71): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\entry.cpp(190): warning C4244: 'return': conversion from '__int64' to 'int', possible loss of data
+  CWindow.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cwindow.cpp(25): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
+c:\users\boss\source\repos\guirenderapi2\gui\cwindow.cpp(26): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
+c:\users\boss\source\repos\guirenderapi2\gui\cwindow.cpp(27): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
+c:\users\boss\source\repos\guirenderapi2\gui\cwindow.cpp(89): warning C4244: 'argument': conversion from 'int' to 'FLOAT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cwindow.cpp(104): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cwindow.cpp(104): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cwindow.cpp(104): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cwindow.cpp(105): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cwindow.cpp(105): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cwindow.cpp(975): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cwindow.cpp(976): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
+  CVar.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+  CTrackBar.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+  CTimer.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+  CTextBox.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ctextbox.cpp(58): error C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\time.h(505): note: see declaration of 'localtime'
+c:\users\boss\source\repos\guirenderapi2\gui\ctextbox.cpp(59): error C4996: 'wcscat': This function or variable may be unsafe. Consider using wcscat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_wstring.h(101): note: see declaration of 'wcscat'
+c:\users\boss\source\repos\guirenderapi2\gui\ctextbox.cpp(60): error C4996: 'wcscat': This function or variable may be unsafe. Consider using wcscat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_wstring.h(101): note: see declaration of 'wcscat'
+c:\users\boss\source\repos\guirenderapi2\gui\ctextbox.cpp(62): error C4996: 'wcscat': This function or variable may be unsafe. Consider using wcscat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_wstring.h(101): note: see declaration of 'wcscat'
+  CText.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ctext.cpp(136): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ctext.cpp(149): warning C4800: 'BOOL': forcing value to bool 'true' or 'false' (performance warning)
+  CTabPanel.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ctabpanel.cpp(47): warning C4267: '=': conversion from 'size_t' to 'UINT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ctabpanel.cpp(60): warning C4267: 'argument': conversion from 'size_t' to 'UINT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ctabpanel.cpp(132): warning C4267: 'argument': conversion from 'size_t' to 'UINT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ctabpanel.cpp(203): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ctabpanel.cpp(232): warning C4267: '=': conversion from 'size_t' to 'UINT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ctabpanel.cpp(330): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+  CScrollBarVertical.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cscrollbarvertical.cpp(39): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\cscrollbarvertical.cpp(46): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\cscrollbarvertical.cpp(59): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\cscrollbarvertical.cpp(66): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\cscrollbarvertical.cpp(129): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\cscrollbarvertical.cpp(145): warning C4305: 'argument': truncation from 'double' to 'float'
+  CRadioButton.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+  CProgressBar.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cprogressbar.cpp(31): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\cprogressbar.cpp(36): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\cprogressbar.cpp(71): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\cprogressbar.cpp(109): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cprogressbar.cpp(158): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
+  CPos.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+  Generating Code...
+  Compiling...
+  CMouse.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cmouse.cpp(258): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cmouse.cpp(260): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cmouse.cpp(262): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cmouse.cpp(264): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cmouse.cpp(266): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cmouse.cpp(268): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cmouse.cpp(270): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  CListView.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(160): warning C4267: '=': conversion from 'size_t' to 'UINT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(243): warning C4267: 'argument': conversion from 'size_t' to 'UINT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(244): warning C4267: 'argument': conversion from 'size_t' to 'UINT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(249): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(265): warning C4267: 'argument': conversion from 'size_t' to 'UINT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(271): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(325): warning C4267: '=': conversion from 'size_t' to 'UINT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(418): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(418): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(429): warning C4267: 'argument': conversion from 'size_t' to 'const unsigned int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(437): warning C4267: 'argument': conversion from 'size_t' to 'UINT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(447): warning C4267: 'argument': conversion from 'size_t' to 'UINT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(448): warning C4267: 'argument': conversion from 'size_t' to 'UINT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(480): warning C4267: 'argument': conversion from 'size_t' to 'UINT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(490): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(490): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(496): warning C4267: 'argument': conversion from 'size_t' to 'UINT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(533): warning C4267: 'argument': conversion from 'size_t' to 'UINT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(544): warning C4267: 'argument': conversion from 'size_t' to 'UINT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(557): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(557): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(558): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(558): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(577): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(577): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(578): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(578): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(425): warning C4101: 'size': unreferenced local variable
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(823): warning C4018: '<': signed/unsigned mismatch
+c:\users\boss\source\repos\guirenderapi2\gui\clistview.cpp(898): warning C4018: '<': signed/unsigned mismatch
+  CListBox.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+  CKeyboard.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+  CGUI.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cgui.cpp(125): warning C4244: 'argument': conversion from 'int' to 'FLOAT', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cgui.cpp(137): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cgui.cpp(137): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cgui.cpp(150): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cgui.cpp(150): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cgui.cpp(163): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cgui.cpp(163): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cgui.cpp(1072): warning C4018: '>=': signed/unsigned mismatch
+c:\users\boss\source\repos\guirenderapi2\gui\cgui.cpp(1073): warning C4018: '>=': signed/unsigned mismatch
+c:\users\boss\source\repos\guirenderapi2\gui\cgui.cpp(1081): warning C4018: '>=': signed/unsigned mismatch
+c:\users\boss\source\repos\guirenderapi2\gui\cgui.cpp(1082): warning C4018: '>=': signed/unsigned mismatch
+  CFigure.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cfigure.cpp(21): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cfigure.cpp(21): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  CElement.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\celement.cpp(80): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
+c:\users\boss\source\repos\guirenderapi2\gui\celement.cpp(81): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
+c:\users\boss\source\repos\guirenderapi2\gui\celement.cpp(82): warning C4002: too many actual parameters for macro 'D3DCOLOR_XRGB'
+c:\users\boss\source\repos\guirenderapi2\gui\celement.cpp(887): warning C4800: 'BOOL': forcing value to bool 'true' or 'false' (performance warning)
+  CEditBox.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.cpp(129): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.cpp(259): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.cpp(268): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.cpp(357): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.cpp(461): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.cpp(594): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.cpp(721): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.cpp(725): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.cpp(759): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.cpp(759): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.cpp(763): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.cpp(763): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.cpp(784): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.cpp(786): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+  CDropDown.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\gui\cdropdown.cpp(192): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+  CCheckBox.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+  CButton.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+  GUIRenderAPI.cpp
+c:\users\boss\source\repos\guirenderapi2\gui\ceditbox.h(20): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\injector\gvm\gvm.hpp(102): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(119): note: see declaration of 'strcpy'
+c:\users\boss\source\repos\guirenderapi2\injector\gvm\gvm.hpp(109): error C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1769): note: see declaration of 'sprintf'
+c:\users\boss\source\repos\guirenderapi2\injector\gvm\gvm.hpp(128): error C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1769): note: see declaration of 'sprintf'
+c:\users\boss\source\repos\guirenderapi2\injector\injector.hpp(417): warning C4244: 'return': conversion from 'uintptr_t' to 'int', possible loss of data
+c:\users\boss\source\repos\guirenderapi2\internal\callbackresetdevice.hpp(118): error C2485: 'naked': unrecognized extended attribute
+c:\users\boss\source\repos\guirenderapi2\internal\callbackresetdevice.hpp(120): error C4235: nonstandard extension used: '__asm' keyword not supported on this architecture
+c:\users\boss\source\repos\guirenderapi2\internal\callbackresetdevice.hpp(124): error C2065: 'mov': undeclared identifier
+c:\users\boss\source\repos\guirenderapi2\internal\callbackresetdevice.hpp(124): error C2146: syntax error: missing ';' before identifier 'eax'
+c:\users\boss\source\repos\guirenderapi2\internal\callbackresetdevice.hpp(124): error C2065: 'eax': undeclared identifier
+c:\users\boss\source\repos\guirenderapi2\internal\callbackresetdevice.hpp(124): error C2143: syntax error: missing ']' before '+'
+c:\users\boss\source\repos\guirenderapi2\internal\callbackresetdevice.hpp(124): error C3481: 'esp': lambda capture variable not found
+c:\users\boss\source\repos\guirenderapi2\internal\callbackresetdevice.hpp(124): error C3260: '+': skipping unexpected token(s) before lambda body
+c:\users\boss\source\repos\guirenderapi2\injector\calling.hpp(37): error C2951: template declarations are only permitted at global, namespace, or class scope
+c:\users\boss\source\repos\guirenderapi2\injector\calling.hpp(37): fatal error C1903: unable to recover from previous error(s); stopping compilation
+  INTERNAL COMPILER ERROR in 'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\CL.exe'
+      Please choose the Technical Support command on the Visual C++
+      Help menu, or open the Technical Support help file for more information
