@@ -160,6 +160,7 @@ void CListView::AddColumnItem ( UINT nColumnId, SEntryItem *pEntry )
 
 	
 
+
 	//ColumnItem item;
 	
 	//item [ nColumnId ] = pEntry;
