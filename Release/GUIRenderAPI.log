@@ -1,0 +1,69 @@
+﻿  stdafx.cpp
+  dllmain.cpp
+  Graphics.cpp
+Graphics.cpp(17): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  GUIRenderAPI.cpp
+GUIRenderAPI.cpp(211): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CButton.cpp
+GUI\CButton.cpp(90): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CCheckBox.cpp
+GUI\CCheckBox.cpp(166): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CDropDown.cpp
+GUI\CDropDown.cpp(415): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CEditBox.cpp
+GUI\CEditBox.cpp(1171): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CElement.cpp
+GUI\CElement.cpp(889): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CFigure.cpp
+GUI\CFigure.cpp(112): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CGUI.cpp
+GUI\CGUI.cpp(1144): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CKeyboard.cpp
+GUI\CKeyboard.cpp(37): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CListBox.cpp
+GUI\CListBox.cpp(391): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CListView.cpp
+GUI\CListView.cpp(996): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CMouse.cpp
+GUI\CMouse.cpp(404): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CPos.cpp
+GUI\CPos.cpp(147): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CProgressBar.cpp
+GUI\CProgressBar.cpp(170): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CRadioButton.cpp
+GUI\CRadioButton.cpp(157): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CScrollBarVertical.cpp
+GUI\CScrollBarVertical.cpp(283): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CTabPanel.cpp
+GUI\CTabPanel.cpp(939): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CText.cpp
+GUI\CText.cpp(151): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  Compiling...
+  CTextBox.cpp
+GUI\CTextBox.cpp(268): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CTimer.cpp
+GUI\CTimer.cpp(33): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CTrackBar.cpp
+GUI\CTrackBar.cpp(198): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CVar.cpp
+GUI\CVar.cpp(126): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CWindow.cpp
+GUI\CWindow.cpp(1100): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  Entry.cpp
+GUI\Entry.cpp(386): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  LogFile.cpp
+GUI\LogFile.cpp(54): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  ProgressBarVertical.cpp
+GUI\ProgressBarVertical.cpp(174): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  CGraphics.cpp
+GUI\renderers\CGraphics.cpp(1646): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  ScrollablePane.cpp
+GUI\ScrollablePane.cpp(303): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  Scrollbar.cpp
+GUI\Scrollbar.cpp(201): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  ScrollbarHorizontal.cpp
+GUI\ScrollbarHorizontal.cpp(296): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  TextUtils.cpp
+GUI\TextUtils.cpp(164): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  TrackBar.cpp
+GUI\TrackBar.cpp(198): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
