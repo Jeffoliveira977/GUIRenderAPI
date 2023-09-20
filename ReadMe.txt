@@ -1,1 +1,1 @@
-A very old project of a graphical user interface API built in C++, which aimed to add new Cleo opcodes for graphical elements, but I never finished it.
+An extremely old project of a graphical user interface API developed in C++ with the goal of introducing new Cleo opcodes for graphical elements in GTA, but I never completed it.
